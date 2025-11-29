@@ -15,7 +15,10 @@ target_sources(${PROJECT_NAME}
         src/ResistorManager.cpp
         src/ResistorPackageManager.cpp
         src/SchemaManager.cpp
- "include/DbUtils.h")
+        src/CapacitorManager.cpp
+        src/ElectrolyticManager.cpp
+        src/CapacitorPackageManager.cpp
+        src/CapacitorDielectricManager.cpp)
 
 # Public headers live directly in include/
 target_include_directories(${PROJECT_NAME}

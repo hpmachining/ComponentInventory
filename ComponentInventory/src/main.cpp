@@ -4,10 +4,12 @@
 #include "CategoryManager.h"
 #include "ManufacturerManager.h"
 #include "ComponentManager.h"
-#include "ResistorManager.h"
-#include "ResistorCompositionManager.h"
-#include "ResistorPackageManager.h"
+#include "CapacitorManager.h"
+#include "ElectrolyticManager.h"
+#include "CapacitorPackageManager.h"
+#include "CapacitorDielectricManager.h"
 #include "ConsoleUtils.h"
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -17,7 +19,7 @@ int main() {
     configureConsoleUtf8();
 
     DbResult res;
-    Database db("inventory.db", res);
+    Database db("inventory.db", res);   // two-argument constructor
     if (!db.isOpen()) {
         std::cerr << "Failed to open database: " << res.toString() << std::endl;
         return 1;
@@ -33,70 +35,71 @@ int main() {
     CategoryManager catMgr(db);
     ManufacturerManager manMgr(db);
     ComponentManager compMgr(db);
-    ResistorManager resMgr(db);
-    ResistorCompositionManager compoMgr(db);
-    ResistorPackageManager pkgMgr(db);
+    CapacitorManager capMgr(db);
+    ElectrolyticManager ecapMgr(db);
+    CapacitorPackageManager pkgMgr(db);
+    CapacitorDielectricManager dielMgr(db);
 
-    // 1. Ensure lookup values exist (insert or reuse existing)
+    // 1. Ensure lookup values exist
     int catId = -1;
-    Category resistorCat("Resistor", "Through-hole resistors");
-    if (catMgr.addCategory(resistorCat, res)) {
+    Category capacitorCat("Capacitor", "Electrolytic capacitors");
+    if (catMgr.addCategory(capacitorCat, res)) {
         catId = db.lastInsertId();
     }
     else {
         std::vector<Category> cats;
         if (catMgr.listCategories(cats, res)) {
             auto it = std::find_if(cats.begin(), cats.end(),
-                [](const Category& c) { return c.name == "Resistor"; });
+                [](const Category& c) { return c.name == "Capacitor"; });
             if (it != cats.end()) catId = it->id;
         }
     }
 
     int manId = -1;
-    Manufacturer vishay("Vishay", "USA", "https://www.vishay.com", "Major resistor manufacturer");
-    if (manMgr.addManufacturer(vishay, res)) {
+    Manufacturer nichicon("Nichicon", "Japan", "https://www.nichicon.co.jp", "Major capacitor manufacturer");
+    if (manMgr.addManufacturer(nichicon, res)) {
         manId = db.lastInsertId();
     }
     else {
         std::vector<Manufacturer> mans;
         if (manMgr.listManufacturers(mans, res)) {
             auto it = std::find_if(mans.begin(), mans.end(),
-                [](const Manufacturer& m) { return m.name == "Vishay"; });
+                [](const Manufacturer& m) { return m.name == "Nichicon"; });
             if (it != mans.end()) manId = it->id;
         }
     }
 
-    int compoId = -1;
-    ResistorComposition carbonFilm("Carbon film");
-    if (compoMgr.addComposition(carbonFilm, res)) {
-        compoId = db.lastInsertId();
-    }
-    else {
-        std::vector<ResistorComposition> compos;
-        if (compoMgr.listCompositions(compos, res)) {
-            auto it = std::find_if(compos.begin(), compos.end(),
-                [](const ResistorComposition& c) { return c.name == "Carbon film"; });
-            if (it != compos.end()) compoId = it->id;
-        }
-    }
-
     int pkgId = -1;
-    ResistorPackage axial("Axial");
-    if (pkgMgr.addPackage(axial, res)) {
+    CapacitorPackage radial("Radial");
+    if (pkgMgr.addPackage(radial, res)) {
         pkgId = db.lastInsertId();
     }
     else {
-        std::vector<ResistorPackage> pkgs;
+        std::vector<CapacitorPackage> pkgs;
         if (pkgMgr.listPackages(pkgs, res)) {
             auto it = std::find_if(pkgs.begin(), pkgs.end(),
-                [](const ResistorPackage& p) { return p.name == "Axial"; });
+                [](const CapacitorPackage& p) { return p.name == "Radial"; });
             if (it != pkgs.end()) pkgId = it->id;
         }
     }
 
-    // 2. Add base component (insert or skip if duplicate)
+    int dielId = -1;
+    CapacitorDielectric alum("Aluminum");
+    if (dielMgr.addDielectric(alum, res)) {
+        dielId = db.lastInsertId();
+    }
+    else {
+        std::vector<CapacitorDielectric> diels;
+        if (dielMgr.listDielectrics(diels, res)) {
+            auto it = std::find_if(diels.begin(), diels.end(),
+                [](const CapacitorDielectric& d) { return d.name == "Aluminum"; });
+            if (it != diels.end()) dielId = it->id;
+        }
+    }
+
+    // 2. Add base component
     int compId = -1;
-    Component baseComp("R10K", "10kΩ resistor", catId, manId, 500, "Stock for prototypes");
+    Component baseComp("C47uF25V", "47µF electrolytic capacitor", catId, manId, 200, "Stock for audio repairs");
     if (compMgr.addComponent(baseComp, res)) {
         compId = db.lastInsertId();
     }
@@ -104,47 +107,73 @@ int main() {
         std::vector<Component> comps;
         if (compMgr.listComponents(comps, res)) {
             auto it = std::find_if(comps.begin(), comps.end(),
-                [](const Component& c) { return c.partNumber == "R10K"; });
+                [](const Component& c) { return c.partNumber == "C47uF25V"; });
             if (it != comps.end()) compId = it->id;
         }
     }
 
-    // 3. Add resistor details linked to component (insert or skip)
-    Resistor r;
-    r.componentId = compId;
-    r.resistance = 10000.0;   // 10kΩ
-    r.tolerance = 5.0;        // ±5%
-    r.powerRating = 0.25;     // 1/4 W
-    r.tempCoefficient = 100.0; // ppm/°C
-    r.packageTypeId = pkgId;  // Axial
-    r.compositionId = compoId; // Carbon film
-    r.leadSpacing = 10.0;     // mm
-    r.voltageRating = 250.0;  // Volts
+    // 3. Add capacitor details
+    Capacitor cap;
+    cap.componentId = compId;
+    cap.capacitance = 0.000047;   // 47 µF
+    cap.voltageRating = 25.0;     // Volts
+    cap.tolerance = 20.0;         // ±20%
+    cap.esr = 0.1;                // Ohms
+    cap.leakageCurrent = 0.00001; // Amps
+    cap.polarized = true;
+    cap.packageTypeId = pkgId;
+    cap.dielectricTypeId = dielId;
 
-    if (!resMgr.addResistor(r, res)) {
-        // If already exists, just continue
+    if (!capMgr.addCapacitor(cap, res)) {
+        res.clear(); // If already exists, just continue
+    }
+
+    // 4. Add electrolytic subtype
+    Electrolytic ecap;
+    ecap.componentId = compId;
+    ecap.diameter = 6.3;
+    ecap.height = 11.0;
+    ecap.leadSpacing = 2.5;
+
+    if (!ecapMgr.addElectrolytic(ecap, res)) {
         res.clear();
     }
 
-    // 4. Fetch and display
-    Resistor fetched;
-    if (resMgr.getResistorByComponentId(compId, fetched, res)) {
-        ResistorComposition compo;
-        compoMgr.getCompositionById(fetched.compositionId, compo, res);
+    // 5. Fetch and display combined report
+    Capacitor fetchedCap;
+    if (capMgr.getCapacitorById(compId, fetchedCap, res)) {
+        CapacitorPackage pkg;
+        if (!pkgMgr.getPackageById(fetchedCap.packageTypeId, pkg, res)) {
+            pkg.name = "(unknown)";
+            res.clear();
+        }
 
-        ResistorPackage pkg;
-        pkgMgr.getPackageById(fetched.packageTypeId, pkg, res);
+        CapacitorDielectric diel;
+        if (!dielMgr.getDielectricById(fetchedCap.dielectricTypeId, diel, res)) {
+            diel.name = "(unknown)";
+            res.clear();
+        }
 
-        std::cout << "Resistor Report:\n"
-            << "ComponentID=" << fetched.componentId
-            << " Resistance=" << fetched.resistance << "Ω"
-            << " Tolerance=±" << fetched.tolerance << "%"
-            << " Power=" << fetched.powerRating << "W"
-            << " TempCoeff=" << fetched.tempCoefficient << "ppm/°C\n"
-            << "Package=" << pkg.name
-            << " Composition=" << compo.name
-            << " LeadSpacing=" << fetched.leadSpacing << "mm"
-            << " Voltage=" << fetched.voltageRating << "V"
+        std::cout << "Capacitor Report:\n"
+            << "ComponentID=" << fetchedCap.componentId << "\n"
+            << "PartNumber=" << baseComp.partNumber << "\n"
+            << "Capacitance=" << fetchedCap.capacitance << " F\n"
+            << "Voltage=" << fetchedCap.voltageRating << " V\n"
+            << "Tolerance=±" << fetchedCap.tolerance << "%\n"
+            << "ESR=" << fetchedCap.esr << " Ω\n"
+            << "Leakage=" << fetchedCap.leakageCurrent << " A\n"
+            << "Polarized=" << (fetchedCap.polarized ? "Yes" : "No") << "\n"
+            << "Package=" << pkg.name << "\n"
+            << "Dielectric=" << diel.name << "\n"
+            << std::endl;
+    }
+
+    Electrolytic fetchedEcap;
+    if (ecapMgr.getElectrolyticById(compId, fetchedEcap, res)) {
+        std::cout << "Electrolytic Geometry:\n"
+            << "Diameter=" << fetchedEcap.diameter << " mm\n"
+            << "Height=" << fetchedEcap.height << " mm\n"
+            << "LeadSpacing=" << fetchedEcap.leadSpacing << " mm\n"
             << std::endl;
     }
 

@@ -3,8 +3,8 @@ project(InventoryBackendTests LANGUAGES CXX)
 
 # Define the test executable
 add_executable(${PROJECT_NAME}
-    src/BackendTests.cpp
-)
+    
+    src/ComponentManagerTest.cpp)
 
 # Link against backend and gtest
 find_package(GTest CONFIG REQUIRED)

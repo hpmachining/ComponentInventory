@@ -143,5 +143,66 @@ bool SchemaManager::initialize(DbResult& result) {
             sqlite3_finalize(insertStmt);
         }
     }
+
+    if (version < 3) {
+        const char* migration3 = R"SQL(
+        -- Lookup tables
+        CREATE TABLE IF NOT EXISTS CapacitorDielectric (
+            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name TEXT NOT NULL UNIQUE
+        );
+
+        CREATE TABLE IF NOT EXISTS CapacitorPackage (
+            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name TEXT NOT NULL UNIQUE
+        );
+
+        -- General capacitor attributes
+        CREATE TABLE IF NOT EXISTS Capacitors (
+            ComponentID INTEGER PRIMARY KEY,
+            Capacitance REAL NOT NULL,
+            VoltageRating REAL,
+            Tolerance REAL,
+            ESR REAL,
+            LeakageCurrent REAL,
+            Polarized INTEGER, -- 0 = No, 1 = Yes
+            PackageTypeID INTEGER,
+            DielectricTypeID INTEGER,
+            FOREIGN KEY (ComponentID) REFERENCES Components(ID) ON DELETE CASCADE,
+            FOREIGN KEY (PackageTypeID) REFERENCES CapacitorPackage(ID),
+            FOREIGN KEY (DielectricTypeID) REFERENCES CapacitorDielectric(ID)
+        );
+
+        -- Electrolytic subtype with geometry
+        CREATE TABLE IF NOT EXISTS Electrolytics (
+            ComponentID INTEGER PRIMARY KEY,
+            Diameter REAL,
+            Height REAL,
+            LeadSpacing REAL,
+            FOREIGN KEY (ComponentID) REFERENCES Capacitors(ComponentID) ON DELETE CASCADE
+        );
+    )SQL";
+
+        if (!db_.exec(migration3, result)) return false;
+
+        sqlite3_stmt* insertStmt = nullptr;
+        if (db_.prepare(
+            "INSERT INTO SchemaVersion (Version, AppliedOn, Description) VALUES (?,?,?);",
+            insertStmt,
+            result)) {
+
+            sqlite3_bind_int(insertStmt, 1, 3);
+            sqlite3_bind_text(insertStmt, 2, currentTimestamp().c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insertStmt, 3,
+                "Added Capacitors table with dielectric/package lookups and Electrolytics subtype.",
+                -1, SQLITE_TRANSIENT);
+
+            if (sqlite3_step(insertStmt) != SQLITE_DONE) {
+                result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+            }
+            sqlite3_finalize(insertStmt);
+        }
+    }
+
     return true;
 }
