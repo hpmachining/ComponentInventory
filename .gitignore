@@ -1,6 +1,8 @@
 *
 
 !.gitignore
+!LICENSE
+!README.md
 !CMakeLists.txt
 !vcpkg.json
 
