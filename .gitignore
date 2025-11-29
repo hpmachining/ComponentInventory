@@ -1,0 +1,15 @@
+*
+
+!.gitignore
+!CMakeLists.txt
+!vcpkg.json
+
+!ComponentInventory/
+!ComponentInventory/**
+
+!InventoryBackend/
+!InventoryBackend/**
+
+!tests/
+!tests/**
+

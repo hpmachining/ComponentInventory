@@ -1,0 +1,9 @@
+{
+  "name": "component-inventory-app",
+  "version": "0.1.0",
+  "builtin-baseline": "2ad9df4a426e11516e509ecff1bda1cc14afb546",
+  "dependencies": [
+    "sqlite3",
+    "gtest"
+  ]
+}
