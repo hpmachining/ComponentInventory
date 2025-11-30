@@ -22,6 +22,7 @@ public:
     bool getPackageById(int id, CapacitorPackage& pkg, DbResult& result);
     bool listPackages(std::vector<CapacitorPackage>& pkgs, DbResult& result);
     bool deletePackage(int id, DbResult& result);
+	int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

@@ -13,6 +13,7 @@ public:
     bool updateComposition(const ResistorComposition& comp, DbResult& result);
     bool deleteComposition(int id, DbResult& result);
     bool listCompositions(std::vector<ResistorComposition>& comps, DbResult& result);
+	int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

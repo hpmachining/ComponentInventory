@@ -20,6 +20,7 @@ public:
     bool getTypeById(int id, TransistorType& type, DbResult& result);
     bool listTypes(std::vector<TransistorType>& types, DbResult& result);
     bool deleteType(int id, DbResult& result);
+	int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

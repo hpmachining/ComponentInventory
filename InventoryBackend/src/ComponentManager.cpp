@@ -147,3 +147,20 @@ bool ComponentManager::listComponents(std::vector<Component>& comps, DbResult& r
     result.clear();
     return true;
 }
+
+int ComponentManager::getByPartNumber(const std::string& partNumber, DbResult& result) {
+    sqlite3_stmt* stmt = nullptr;
+    if (!db_.prepare("SELECT ID FROM Components WHERE PartNumber=?;", stmt, result)) {
+        return -1;
+    }
+
+    sqlite3_bind_text(stmt, 1, partNumber.c_str(), -1, SQLITE_TRANSIENT);
+
+    int id = -1;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        id = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return id;
+}

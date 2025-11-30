@@ -13,6 +13,7 @@ public:
     bool updateComponent(const Component& comp, DbResult& result);
     bool deleteComponent(int id, DbResult& result);
     bool listComponents(std::vector<Component>& comps, DbResult& result);
+	int getByPartNumber(const std::string& partNumber, DbResult& result);
 
 private:
     Database& db_;

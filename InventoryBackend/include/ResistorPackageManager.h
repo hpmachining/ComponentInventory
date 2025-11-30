@@ -13,6 +13,7 @@ public:
     bool updatePackage(const ResistorPackage& pkg, DbResult& result);
     bool deletePackage(int id, DbResult& result);
     bool listPackages(std::vector<ResistorPackage>& pkgs, DbResult& result);
+	int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

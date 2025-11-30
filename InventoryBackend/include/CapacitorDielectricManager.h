@@ -22,6 +22,7 @@ public:
     bool getDielectricById(int id, CapacitorDielectric& diel, DbResult& result);
     bool listDielectrics(std::vector<CapacitorDielectric>& diels, DbResult& result);
     bool deleteDielectric(int id, DbResult& result);
+	int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

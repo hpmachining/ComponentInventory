@@ -13,6 +13,7 @@ public:
     bool updateManufacturer(const Manufacturer& man, DbResult& result);
     bool deleteManufacturer(int id, DbResult& result);
     bool listManufacturers(std::vector<Manufacturer>& mans, DbResult& result);
+	int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

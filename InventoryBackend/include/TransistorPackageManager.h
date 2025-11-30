@@ -20,6 +20,7 @@ public:
     bool getPackageById(int id, TransistorPackage& pkg, DbResult& result);
     bool listPackages(std::vector<TransistorPackage>& pkgs, DbResult& result);
     bool deletePackage(int id, DbResult& result);
+    int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

@@ -20,6 +20,7 @@ public:
     bool getPolarityById(int id, TransistorPolarity& pol, DbResult& result);
     bool listPolarities(std::vector<TransistorPolarity>& pols, DbResult& result);
     bool deletePolarity(int id, DbResult& result);
+	int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

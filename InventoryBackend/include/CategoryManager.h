@@ -13,6 +13,7 @@ public:
     bool updateCategory(const Category& cat, DbResult& result);
     bool deleteCategory(int id, DbResult& result);
     bool listCategories(std::vector<Category>& cats, DbResult& result);
+	int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;
