@@ -21,6 +21,10 @@ public:
 
     sqlite3* handle() const { return db_; }
     int lastInsertId() const;
+    bool tableExists(const std::string& tableName) const;
+	bool columnExists(const std::string& tableName, const std::string& columnName) const;
+    int getMaxSchemaVersion() const;
+	int countRows(const std::string& tableName, const std::string& whereClause) const;
 
 private:
     sqlite3* db_;
