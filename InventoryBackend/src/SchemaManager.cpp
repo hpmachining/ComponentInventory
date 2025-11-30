@@ -204,5 +204,72 @@ bool SchemaManager::initialize(DbResult& result) {
         }
     }
 
+    if (version < 4) {
+        const char* migration4 = R"SQL(
+        -- Lookup tables for transistors
+        CREATE TABLE IF NOT EXISTS TransistorType (
+            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name TEXT NOT NULL UNIQUE
+        );
+
+        CREATE TABLE IF NOT EXISTS TransistorPolarity (
+            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name TEXT NOT NULL UNIQUE
+        );
+
+        CREATE TABLE IF NOT EXISTS TransistorPackage (
+            ID INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name TEXT NOT NULL UNIQUE
+        );
+
+        -- Base transistor table
+        CREATE TABLE IF NOT EXISTS Transistors (
+            ComponentID INTEGER PRIMARY KEY,
+            TypeID INTEGER NOT NULL,
+            PolarityID INTEGER NOT NULL,
+            PackageID INTEGER,
+            FOREIGN KEY (ComponentID) REFERENCES Components(ID) ON DELETE CASCADE,
+            FOREIGN KEY (TypeID) REFERENCES TransistorType(ID),
+            FOREIGN KEY (PolarityID) REFERENCES TransistorPolarity(ID),
+            FOREIGN KEY (PackageID) REFERENCES TransistorPackage(ID)
+        );
+
+        -- BJT subtype table
+        CREATE TABLE IF NOT EXISTS BJTs (
+            ComponentID INTEGER PRIMARY KEY,
+            VceMax REAL,
+            IcMax REAL,
+            PdMax REAL,
+            Hfe REAL,
+            Ft REAL,
+            FOREIGN KEY (ComponentID) REFERENCES Transistors(ComponentID) ON DELETE CASCADE
+        );
+
+        -- Future expansion: MOSFETs, JFETs, IGBTs
+        -- Each will follow the same pattern: FK to Transistors.ComponentID
+        -- with only the fields relevant to that subtype.
+    )SQL";
+
+        if (!db_.exec(migration4, result)) return false;
+
+        sqlite3_stmt* insertStmt = nullptr;
+        if (db_.prepare(
+            "INSERT INTO SchemaVersion (Version, AppliedOn, Description) VALUES (?,?,?);",
+            insertStmt,
+            result)) {
+
+            sqlite3_bind_int(insertStmt, 1, 4);
+            sqlite3_bind_text(insertStmt, 2, currentTimestamp().c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insertStmt, 3,
+                "Added Transistors base table with lookup tables and BJT subtype. Future expansion for MOSFETs, JFETs, IGBTs.",
+                -1, SQLITE_TRANSIENT);
+
+            if (sqlite3_step(insertStmt) != SQLITE_DONE) {
+                result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+            }
+            sqlite3_finalize(insertStmt);
+        }
+    }
+
     return true;
 }

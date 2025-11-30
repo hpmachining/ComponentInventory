@@ -6,6 +6,9 @@
 #include "SchemaManager.h"
 #include "CategoryManager.h"
 #include "ManufacturerManager.h"
+#include "TransistorTypeManager.h"
+#include "TransistorPolarityManager.h"
+#include "TransistorPackageManager.h"
 
 // A reusable test fixture for all manager tests
 class BackendTestFixture : public ::testing::Test {
@@ -49,5 +52,15 @@ protected:
             ASSERT_TRUE(manMgr.listManufacturers(mans, res));
             manId = mans.front().id;
         }
+
+        // ✅ Seed transistor lookup tables
+        TransistorTypeManager typeMgr(db);
+        typeMgr.addType(TransistorType("BJT"), res);
+
+        TransistorPolarityManager polMgr(db);
+        polMgr.addPolarity(TransistorPolarity("NPN"), res);
+
+        TransistorPackageManager pkgMgr(db);
+        pkgMgr.addPackage(TransistorPackage("TO-92"), res);
     }
 };

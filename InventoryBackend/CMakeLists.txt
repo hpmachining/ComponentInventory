@@ -18,7 +18,12 @@ target_sources(${PROJECT_NAME}
         src/CapacitorManager.cpp
         src/ElectrolyticManager.cpp
         src/CapacitorPackageManager.cpp
-        src/CapacitorDielectricManager.cpp)
+        src/CapacitorDielectricManager.cpp
+        src/TransistorTypeManager.cpp
+        src/TransistorPolarityManager.cpp
+        src/TransistorPackageManager.cpp
+        src/TransistorManager.cpp
+        src/BJTManager.cpp)
 
 # Public headers live directly in include/
 target_include_directories(${PROJECT_NAME}
