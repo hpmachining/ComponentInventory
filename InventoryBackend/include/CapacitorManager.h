@@ -30,6 +30,7 @@ public:
 
     bool addCapacitor(const Capacitor& cap, DbResult& result);
     bool getCapacitorById(int id, Capacitor& cap, DbResult& result);
+	bool getCapacitorByComponentId(int componentId, Capacitor& cap, DbResult& result);
     bool updateCapacitor(const Capacitor& cap, DbResult& result);
     bool deleteCapacitor(int id, DbResult& result);
     bool listCapacitors(std::vector<Capacitor>& caps, DbResult& result);

@@ -23,22 +23,20 @@ protected:
     }
 
     void SetUp() override {
-        BackendTestFixture::SetUp();
+        BackendTestFixture::SetUp(); // base fixture seeds lookups
 
-        // Seed a package
-        CapacitorPackage pkg("Radial");
-        ASSERT_TRUE(pkgMgr.addPackage(pkg, res)) << res.toString();
-        pkgId = db.lastInsertId();
+        // Resolve seeded lookup IDs
+        pkgId = pkgMgr.getByName("Radial leaded", res);
+        ASSERT_GT(pkgId, 0);
 
-        // Seed a dielectric
-        CapacitorDielectric diel("Aluminum");
-        ASSERT_TRUE(dielMgr.addDielectric(diel, res)) << res.toString();
-        dielId = db.lastInsertId();
+        dielId = dielMgr.getByName("C0G/NP0", res);
+        ASSERT_GT(dielId, 0);
 
         // Seed a component + capacitor base record
         Component comp("E-100", "Seed electrolytic component", catId, manId, 10, "Seed notes");
         ASSERT_TRUE(compMgr.addComponent(comp, res)) << res.toString();
-        compId = db.lastInsertId();
+        compId = compMgr.getByPartNumber("E-100", res);
+        ASSERT_GT(compId, 0);
 
         Capacitor cap;
         cap.componentId = compId;

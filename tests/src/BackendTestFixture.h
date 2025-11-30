@@ -9,6 +9,10 @@
 #include "TransistorTypeManager.h"
 #include "TransistorPolarityManager.h"
 #include "TransistorPackageManager.h"
+#include "ResistorPackageManager.h"
+#include "ResistorCompositionManager.h"
+#include "CapacitorPackageManager.h"
+#include "CapacitorDielectricManager.h"
 
 // A reusable test fixture for all manager tests
 class BackendTestFixture : public ::testing::Test {
@@ -53,7 +57,7 @@ protected:
             manId = mans.front().id;
         }
 
-        // ✅ Seed transistor lookup tables
+        // Seed transistor lookup tables
         TransistorTypeManager typeMgr(db);
         typeMgr.addType(TransistorType("BJT"), res);
 
@@ -62,5 +66,19 @@ protected:
 
         TransistorPackageManager pkgMgr(db);
         pkgMgr.addPackage(TransistorPackage("TO-92"), res);
+
+        // Seed resistor lookup tables
+        ResistorPackageManager resPkgMgr(db);
+        resPkgMgr.addPackage(ResistorPackage("0805"), res);
+
+        ResistorCompositionManager resCompoMgr(db);
+        resCompoMgr.addComposition(ResistorComposition("Carbon Film"), res);
+
+        CapacitorPackageManager capPkgMgr(db);
+        capPkgMgr.addPackage(CapacitorPackage("Radial leaded"), res);
+
+        CapacitorDielectricManager capDielMgr(db);
+        capDielMgr.addDielectric(CapacitorDielectric("C0G/NP0"), res);
+
     }
 };

@@ -71,6 +71,10 @@ bool CapacitorManager::getCapacitorById(int id, Capacitor& cap, DbResult& result
     return true;
 }
 
+bool CapacitorManager::getCapacitorByComponentId(int componentId, Capacitor& cap, DbResult& result) {
+    return getCapacitorById(componentId, cap, result);
+}
+
 // Update capacitor
 bool CapacitorManager::updateCapacitor(const Capacitor& cap, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;

@@ -21,22 +21,20 @@ protected:
     }
 
     void SetUp() override {
-        BackendTestFixture::SetUp();
+        BackendTestFixture::SetUp(); // base fixture seeds lookups
 
-        // Seed a package
-        ResistorPackage pkg("0805");
-        ASSERT_TRUE(pkgMgr.addPackage(pkg, res)) << res.toString();
-        pkgId = db.lastInsertId();
+        // Resolve seeded lookup IDs
+        pkgId = pkgMgr.getByName("0805", res);
+        ASSERT_GT(pkgId, 0);
 
-        // Seed a composition
-        ResistorComposition compo("Carbon Film");
-        ASSERT_TRUE(compoMgr.addComposition(compo, res)) << res.toString();
-        compoId = db.lastInsertId();
+        compoId = compoMgr.getByName("Carbon Film", res);
+        ASSERT_GT(compoId, 0);
 
-        // Seed a component
+        // Seed a component specific to resistor tests
         Component comp("R-100", "Seed resistor component", catId, manId, 100, "Seed notes");
         ASSERT_TRUE(compMgr.addComponent(comp, res)) << res.toString();
-        compId = db.lastInsertId();
+        compId = compMgr.getByPartNumber("R-100", res);
+        ASSERT_GT(compId, 0);
     }
 };
 

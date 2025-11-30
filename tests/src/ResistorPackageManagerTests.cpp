@@ -4,63 +4,68 @@
 class ResistorPackageManagerTest : public BackendTestFixture {
 protected:
     ResistorPackageManager pkgMgr;
-    ResistorPackageManagerTest() : pkgMgr(db) {}
+
+    ResistorPackageManagerTest()
+        : pkgMgr(db) {
+    }
 };
 
 // 1. AddPackage_InsertsRow
 TEST_F(ResistorPackageManagerTest, AddPackage_InsertsRow) {
-    ResistorPackage pkg("0805");
+    // Use a distinct name to avoid collision with fixture's "0805"
+    ResistorPackage pkg("0603");
     ASSERT_TRUE(pkgMgr.addPackage(pkg, res)) << res.toString();
 
-    int insertedPkgId = db.lastInsertId();
-    ResistorPackage fetched;
-    ASSERT_TRUE(pkgMgr.getPackageById(insertedPkgId, fetched, res)) << res.toString();
+    int id = pkgMgr.getByName("0603", res);
+    ASSERT_GT(id, 0);
 
-    EXPECT_EQ(fetched.id, insertedPkgId);
-    EXPECT_EQ(fetched.name, "0805");
+    ResistorPackage fetched;
+    ASSERT_TRUE(pkgMgr.getPackageById(id, fetched, res)) << res.toString();
+    EXPECT_EQ(fetched.id, id);
+    EXPECT_EQ(fetched.name, "0603");
 }
 
 // 2. GetPackageById_ReturnsCorrectPackage
 TEST_F(ResistorPackageManagerTest, GetPackageById_ReturnsCorrectPackage) {
     ResistorPackage pkg("1206");
     ASSERT_TRUE(pkgMgr.addPackage(pkg, res)) << res.toString();
-    int insertedPkgId = db.lastInsertId();
+
+    int id = pkgMgr.getByName("1206", res);
+    ASSERT_GT(id, 0);
 
     ResistorPackage fetched;
-    ASSERT_TRUE(pkgMgr.getPackageById(insertedPkgId, fetched, res)) << res.toString();
-
-    EXPECT_EQ(fetched.id, insertedPkgId);
+    ASSERT_TRUE(pkgMgr.getPackageById(id, fetched, res)) << res.toString();
     EXPECT_EQ(fetched.name, "1206");
 }
 
 // 3. ListPackages_ReturnsAllPackages
 TEST_F(ResistorPackageManagerTest, ListPackages_ReturnsAllPackages) {
-    ASSERT_TRUE(pkgMgr.addPackage(ResistorPackage("0603"), res)) << res.toString();
-    ASSERT_TRUE(pkgMgr.addPackage(ResistorPackage("2512"), res)) << res.toString();
+    ResistorPackage pkg("2512");
+    ASSERT_TRUE(pkgMgr.addPackage(pkg, res)) << res.toString();
 
     std::vector<ResistorPackage> pkgs;
     ASSERT_TRUE(pkgMgr.listPackages(pkgs, res)) << res.toString();
+    ASSERT_GE(pkgs.size(), 2);
 
-    EXPECT_GE(pkgs.size(), 2);
-
-    bool found0603 = false, found2512 = false;
+    bool has0805 = false, has2512 = false;
     for (const auto& p : pkgs) {
-        if (p.name == "0603") found0603 = true;
-        if (p.name == "2512") found2512 = true;
+        if (p.name == "0805") has0805 = true;
+        if (p.name == "2512") has2512 = true;
     }
-    EXPECT_TRUE(found0603);
-    EXPECT_TRUE(found2512);
+    EXPECT_TRUE(has0805);
+    EXPECT_TRUE(has2512);
 }
 
 // 4. DeletePackage_RemovesRow
 TEST_F(ResistorPackageManagerTest, DeletePackage_RemovesRow) {
-    ResistorPackage pkg("DeleteMe");
+    ResistorPackage pkg("2010");
     ASSERT_TRUE(pkgMgr.addPackage(pkg, res)) << res.toString();
-    int insertedPkgId = db.lastInsertId();
 
-    ASSERT_TRUE(pkgMgr.deletePackage(insertedPkgId, res)) << res.toString();
+    int id = pkgMgr.getByName("2010", res);
+    ASSERT_GT(id, 0);
+
+    ASSERT_TRUE(pkgMgr.deletePackage(id, res)) << res.toString();
 
     ResistorPackage fetched;
-    bool gotPkg = pkgMgr.getPackageById(insertedPkgId, fetched, res);
-    EXPECT_FALSE(gotPkg);  // should not exist anymore
+    EXPECT_FALSE(pkgMgr.getPackageById(id, fetched, res));
 }

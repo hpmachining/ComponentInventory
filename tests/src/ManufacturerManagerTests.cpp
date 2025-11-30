@@ -12,7 +12,9 @@ TEST_F(ManufacturerManagerTest, AddManufacturer_InsertsRow) {
     Manufacturer man("AcmeCorp", "USA", "http://acme.example.com", "Test manufacturer");
     ASSERT_TRUE(manMgr.addManufacturer(man, res)) << res.toString();
 
-    int insertedManId = db.lastInsertId();
+    int insertedManId = manMgr.getByName("AcmeCorp", res);
+    ASSERT_GT(insertedManId, 0);
+
     Manufacturer fetched;
     ASSERT_TRUE(manMgr.getManufacturerById(insertedManId, fetched, res)) << res.toString();
 
@@ -27,7 +29,9 @@ TEST_F(ManufacturerManagerTest, AddManufacturer_InsertsRow) {
 TEST_F(ManufacturerManagerTest, GetManufacturerById_ReturnsCorrectManufacturer) {
     Manufacturer man("Globex", "Germany", "http://globex.example.com", "Another test manufacturer");
     ASSERT_TRUE(manMgr.addManufacturer(man, res)) << res.toString();
-    int insertedManId = db.lastInsertId();
+
+    int insertedManId = manMgr.getByName("Globex", res);
+    ASSERT_GT(insertedManId, 0);
 
     Manufacturer fetched;
     ASSERT_TRUE(manMgr.getManufacturerById(insertedManId, fetched, res)) << res.toString();
@@ -62,7 +66,9 @@ TEST_F(ManufacturerManagerTest, ListManufacturers_ReturnsAllManufacturers) {
 TEST_F(ManufacturerManagerTest, DeleteManufacturer_RemovesRow) {
     Manufacturer man("DeleteMe", "France", "http://deleteme.example.com", "To be deleted");
     ASSERT_TRUE(manMgr.addManufacturer(man, res)) << res.toString();
-    int insertedManId = db.lastInsertId();
+
+    int insertedManId = manMgr.getByName("DeleteMe", res);
+    ASSERT_GT(insertedManId, 0);
 
     ASSERT_TRUE(manMgr.deleteManufacturer(insertedManId, res)) << res.toString();
 

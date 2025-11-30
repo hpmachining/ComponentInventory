@@ -19,6 +19,10 @@ TEST_F(SchemaManagerTest, Initialize_CreatesAllTables) {
     EXPECT_TRUE(db.tableExists("ResistorPackage"));
     EXPECT_TRUE(db.tableExists("Resistors"));
 
+    // Baseline audit fields
+    EXPECT_TRUE(db.columnExists("Components", "CreatedOn"));
+    EXPECT_TRUE(db.columnExists("Components", "ModifiedOn"));
+
     // Verify SchemaVersion has baseline entry
     int version = db.getMaxSchemaVersion();
     EXPECT_GE(version, 1);
@@ -29,29 +33,34 @@ TEST_F(SchemaManagerTest, Reinitialize_DoesNotDuplicateTables) {
     ASSERT_TRUE(schemaMgr.initialize(res)) << res.toString();
     ASSERT_TRUE(schemaMgr.initialize(res)) << res.toString();
 
-    // Tables should still exist and not be duplicated
     EXPECT_TRUE(db.tableExists("Components"));
     EXPECT_TRUE(db.tableExists("Resistors"));
 
-    // SchemaVersion should not have duplicate baseline entries
     int count = db.countRows("SchemaVersion", "Version=1");
     EXPECT_EQ(count, 1);
 }
 
-// 3. Migration_AddsNewColumns
-TEST_F(SchemaManagerTest, Migration_AddsNewColumns) {
+// 3. Migration_AddsNewColumnsAndTables
+TEST_F(SchemaManagerTest, Migration_AddsNewColumnsAndTables) {
     ASSERT_TRUE(schemaMgr.initialize(res)) << res.toString();
 
-    // DatasheetLink column should exist in Components (migration 2)
+    // Migration 2: DatasheetLink column
     EXPECT_TRUE(db.columnExists("Components", "DatasheetLink"));
 
-    // Capacitor-related tables should exist (migration 3)
+    // Migration 3: Capacitor-related tables
     EXPECT_TRUE(db.tableExists("CapacitorDielectric"));
     EXPECT_TRUE(db.tableExists("CapacitorPackage"));
     EXPECT_TRUE(db.tableExists("Capacitors"));
     EXPECT_TRUE(db.tableExists("Electrolytics"));
 
+    // Migration 4: Transistor-related tables
+    EXPECT_TRUE(db.tableExists("TransistorType"));
+    EXPECT_TRUE(db.tableExists("TransistorPolarity"));
+    EXPECT_TRUE(db.tableExists("TransistorPackage"));
+    EXPECT_TRUE(db.tableExists("Transistors"));
+    EXPECT_TRUE(db.tableExists("BJTs"));
+
     // SchemaVersion should reflect latest migration
     int version = db.getMaxSchemaVersion();
-    EXPECT_GE(version, 3);
+    EXPECT_GE(version, 4);
 }

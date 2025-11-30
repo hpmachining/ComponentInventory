@@ -2,6 +2,9 @@
 #include "BJTManager.h"
 #include "TransistorManager.h"
 #include "ComponentManager.h"
+#include "TransistorTypeManager.h"
+#include "TransistorPolarityManager.h"
+#include "TransistorPackageManager.h"
 
 // Derived fixture for BJT tests
 class BJTManagerTest : public BackendTestFixture {
@@ -9,28 +12,35 @@ protected:
     BJTManager bjtMgr;
     TransistorManager transistorMgr;
     ComponentManager compMgr;
+    TransistorTypeManager typeMgr;
+    TransistorPolarityManager polMgr;
+    TransistorPackageManager pkgMgr;
 
     BJTManagerTest()
-        : bjtMgr(db), transistorMgr(db), compMgr(db) {
+        : bjtMgr(db), transistorMgr(db), compMgr(db),
+        typeMgr(db), polMgr(db), pkgMgr(db) {
     }
 };
 
 // 1. AddBJT_InsertsRow
 TEST_F(BJTManagerTest, AddBJT_InsertsRow) {
-    // Seed a component
     Component c("PN2222", "Unit test transistor", catId, manId, 1);
     ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = db.lastInsertId();
+    int compId = compMgr.getByPartNumber("PN2222", res);
 
-    // Insert into Transistors
-    Transistor t(compId, 1, 1, 1);
+    int typeId = typeMgr.getByName("BJT", res);
+    ASSERT_GT(typeId, 0);
+    int polId = polMgr.getByName("NPN", res);
+    ASSERT_GT(polId, 0);
+    int pkgId = pkgMgr.getByName("TO-92", res);
+    ASSERT_GT(pkgId, 0);
+
+    Transistor t(compId, typeId, polId, pkgId);
     ASSERT_TRUE(transistorMgr.addTransistor(t, res));
 
-    // Insert into BJTs
     BJT b(compId, 40.0, 0.2, 0.5, 200.0, 100e6);
     EXPECT_TRUE(bjtMgr.addBJT(b, res));
 
-    // Verify
     BJT fetched;
     EXPECT_TRUE(bjtMgr.getBJTById(compId, fetched, res));
     EXPECT_EQ(fetched.hfe, 200.0);
@@ -40,15 +50,21 @@ TEST_F(BJTManagerTest, AddBJT_InsertsRow) {
 TEST_F(BJTManagerTest, UpdateBJT_ChangesPersist) {
     Component c("PN2907", "Unit test transistor", catId, manId, 1);
     ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = db.lastInsertId();
+    int compId = compMgr.getByPartNumber("PN2907", res);
 
-    Transistor t(compId, 1, 1, 1);
+    int typeId = typeMgr.getByName("BJT", res);
+    ASSERT_GT(typeId, 0);
+    int polId = polMgr.getByName("NPN", res);
+    ASSERT_GT(polId, 0);
+    int pkgId = pkgMgr.getByName("TO-92", res);
+    ASSERT_GT(pkgId, 0);
+
+    Transistor t(compId, typeId, polId, pkgId);
     ASSERT_TRUE(transistorMgr.addTransistor(t, res));
 
     BJT b(compId, 40.0, 0.2, 0.5, 150.0, 80e6);
     ASSERT_TRUE(bjtMgr.addBJT(b, res));
 
-    // Update gain
     b.hfe = 300.0;
     EXPECT_TRUE(bjtMgr.updateBJT(b, res));
 
@@ -61,9 +77,16 @@ TEST_F(BJTManagerTest, UpdateBJT_ChangesPersist) {
 TEST_F(BJTManagerTest, DeleteBJT_RemovesRow) {
     Component c("PN3904", "Unit test transistor", catId, manId, 1);
     ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = db.lastInsertId();
+    int compId = compMgr.getByPartNumber("PN3904", res);
 
-    Transistor t(compId, 1, 1, 1);
+    int typeId = typeMgr.getByName("BJT", res);
+    ASSERT_GT(typeId, 0);
+    int polId = polMgr.getByName("NPN", res);
+    ASSERT_GT(polId, 0);
+    int pkgId = pkgMgr.getByName("TO-92", res);
+    ASSERT_GT(pkgId, 0);
+
+    Transistor t(compId, typeId, polId, pkgId);
     ASSERT_TRUE(transistorMgr.addTransistor(t, res));
 
     BJT b(compId, 40.0, 0.2, 0.5, 100.0, 50e6);
@@ -77,27 +100,30 @@ TEST_F(BJTManagerTest, DeleteBJT_RemovesRow) {
 
 // 4. ListBJTs_ReturnsAll
 TEST_F(BJTManagerTest, ListBJTs_ReturnsAll) {
-    // First component
     Component c1("PN3906", "Unit test transistor", catId, manId, 1);
     ASSERT_TRUE(compMgr.addComponent(c1, res));
-    int compId1 = db.lastInsertId();
+    int compId1 = compMgr.getByPartNumber("PN3906", res);
 
-    Transistor t1(compId1, 1, 1, 1);
-    ASSERT_TRUE(transistorMgr.addTransistor(t1, res));
-    BJT b1(compId1, 40.0, 0.2, 0.5, 100.0, 50e6);
-    ASSERT_TRUE(bjtMgr.addBJT(b1, res));
+    int typeId = typeMgr.getByName("BJT", res);
+    ASSERT_GT(typeId, 0);
+    int polId1 = polMgr.getByName("NPN", res);
+    ASSERT_GT(polId1, 0);
+    int pkgId = pkgMgr.getByName("TO-92", res);
+    ASSERT_GT(pkgId, 0);
 
-    // Second component
+    ASSERT_TRUE(transistorMgr.addTransistor(Transistor(compId1, typeId, polId1, pkgId), res));
+    ASSERT_TRUE(bjtMgr.addBJT(BJT(compId1, 40.0, 0.2, 0.5, 100.0, 50e6), res));
+
     Component c2("2N3055", "Unit test transistor", catId, manId, 1);
     ASSERT_TRUE(compMgr.addComponent(c2, res));
-    int compId2 = db.lastInsertId();
+    int compId2 = compMgr.getByPartNumber("2N3055", res);
 
-    Transistor t2(compId2, 1, 1, 1);
-    ASSERT_TRUE(transistorMgr.addTransistor(t2, res));
-    BJT b2(compId2, 60.0, 0.5, 1.0, 200.0, 80e6);
-    ASSERT_TRUE(bjtMgr.addBJT(b2, res));
+    int polId2 = polMgr.getByName("NPN", res);
+    ASSERT_GT(polId2, 0);
 
-    // Verify list
+    ASSERT_TRUE(transistorMgr.addTransistor(Transistor(compId2, typeId, polId2, pkgId), res));
+    ASSERT_TRUE(bjtMgr.addBJT(BJT(compId2, 60.0, 0.5, 1.0, 200.0, 80e6), res));
+
     std::vector<BJT> bjts;
     EXPECT_TRUE(bjtMgr.listBJTs(bjts, res));
     EXPECT_EQ(bjts.size(), 2);

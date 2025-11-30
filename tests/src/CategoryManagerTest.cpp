@@ -12,7 +12,9 @@ TEST_F(CategoryManagerTest, AddCategory_InsertsRow) {
     Category cat("Resistor", "Test category");
     ASSERT_TRUE(catMgr.addCategory(cat, res)) << res.toString();
 
-    int insertedCatId = db.lastInsertId();
+    int insertedCatId = catMgr.getByName("Resistor", res);
+    ASSERT_GT(insertedCatId, 0);
+
     Category fetched;
     ASSERT_TRUE(catMgr.getCategoryById(insertedCatId, fetched, res)) << res.toString();
 
@@ -25,7 +27,9 @@ TEST_F(CategoryManagerTest, AddCategory_InsertsRow) {
 TEST_F(CategoryManagerTest, GetCategoryById_ReturnsCorrectCategory) {
     Category cat("Capacitor", "Another test category");
     ASSERT_TRUE(catMgr.addCategory(cat, res)) << res.toString();
-    int insertedCatId = db.lastInsertId();
+
+    int insertedCatId = catMgr.getByName("Capacitor", res);
+    ASSERT_GT(insertedCatId, 0);
 
     Category fetched;
     ASSERT_TRUE(catMgr.getCategoryById(insertedCatId, fetched, res)) << res.toString();
@@ -37,17 +41,14 @@ TEST_F(CategoryManagerTest, GetCategoryById_ReturnsCorrectCategory) {
 
 // 3. ListCategories_ReturnsAllCategories
 TEST_F(CategoryManagerTest, ListCategories_ReturnsAllCategories) {
-    // Add two categories
     ASSERT_TRUE(catMgr.addCategory(Category("Inductor", "Test category A"), res)) << res.toString();
     ASSERT_TRUE(catMgr.addCategory(Category("Transformer", "Test category B"), res)) << res.toString();
 
     std::vector<Category> cats;
     ASSERT_TRUE(catMgr.listCategories(cats, res)) << res.toString();
 
-    // Expect at least 2 categories (plus any seeded in fixture)
     EXPECT_GE(cats.size(), 2);
 
-    // Verify names are present
     bool foundInductor = false, foundTransformer = false;
     for (const auto& c : cats) {
         if (c.name == "Inductor") foundInductor = true;
@@ -61,13 +62,13 @@ TEST_F(CategoryManagerTest, ListCategories_ReturnsAllCategories) {
 TEST_F(CategoryManagerTest, DeleteCategory_RemovesRow) {
     Category cat("Diode", "Category to delete");
     ASSERT_TRUE(catMgr.addCategory(cat, res)) << res.toString();
-    int insertedCatId = db.lastInsertId();
 
-    // Delete it
+    int insertedCatId = catMgr.getByName("Diode", res);
+    ASSERT_GT(insertedCatId, 0);
+
     ASSERT_TRUE(catMgr.deleteCategory(insertedCatId, res)) << res.toString();
 
-    // Try to fetch again
     Category fetched;
     bool gotCategory = catMgr.getCategoryById(insertedCatId, fetched, res);
-    EXPECT_FALSE(gotCategory);  // should not exist anymore
+    EXPECT_FALSE(gotCategory);
 }
