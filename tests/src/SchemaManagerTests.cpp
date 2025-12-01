@@ -71,7 +71,19 @@ TEST_F(SchemaManagerTest, Migration_AddsNewColumnsAndTables) {
     EXPECT_TRUE(db.rowExists("TransistorPolarity", "Name='NPN'", res));
     EXPECT_TRUE(db.rowExists("TransistorPackage", "Name='TO-92'", res));
 
+    // Migration 6: Fuse tables and seeds
+    EXPECT_TRUE(db.tableExists("FusePackage"));
+    EXPECT_TRUE(db.tableExists("FuseType"));
+    EXPECT_TRUE(db.tableExists("Fuses"));
+    EXPECT_TRUE(db.rowExists("FusePackage", "Name='Axial'", res));
+    EXPECT_TRUE(db.rowExists("FusePackage", "Name='Radial'", res));
+    EXPECT_TRUE(db.rowExists("FusePackage", "Name='Cartridge'", res));
+    EXPECT_TRUE(db.rowExists("FusePackage", "Name='SMD'", res));
+    EXPECT_TRUE(db.rowExists("FuseType", "Name='Fast-blow'", res));
+    EXPECT_TRUE(db.rowExists("FuseType", "Name='Slow-blow'", res));
+    EXPECT_TRUE(db.rowExists("FuseType", "Name='Resettable (polyfuse)'", res));
+
     // SchemaVersion should reflect latest migration
     int version = db.getMaxSchemaVersion();
-    EXPECT_GE(version, 5);
+    EXPECT_GE(version, 6);
 }

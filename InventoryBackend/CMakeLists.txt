@@ -23,7 +23,10 @@ target_sources(${PROJECT_NAME}
         src/TransistorPolarityManager.cpp
         src/TransistorPackageManager.cpp
         src/TransistorManager.cpp
-        src/BJTManager.cpp)
+        src/BJTManager.cpp
+        src/FuseManager.cpp 
+        src/FusePackageManager.cpp
+        src/FuseTypeManager.cpp)
 
 # Public headers live directly in include/
 target_include_directories(${PROJECT_NAME}

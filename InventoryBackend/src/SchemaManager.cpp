@@ -348,5 +348,63 @@ bool SchemaManager::initialize(DbResult& result) {
         }
     }
 
+    if (version < 6) {
+        const char* migration6 = R"SQL(
+        -- Create Fuse lookup tables
+        CREATE TABLE IF NOT EXISTS FusePackage (
+            Id INTEGER PRIMARY KEY,
+            Name TEXT UNIQUE NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS FuseType (
+            Id INTEGER PRIMARY KEY,
+            Name TEXT UNIQUE NOT NULL
+        );
+
+        -- Create Fuses table linked to Components
+        CREATE TABLE IF NOT EXISTS Fuses (
+            ComponentId INTEGER PRIMARY KEY,
+            PackageId INTEGER,
+            TypeId INTEGER,
+            FOREIGN KEY(ComponentId) REFERENCES Components(Id) ON DELETE CASCADE,
+            FOREIGN KEY(PackageId) REFERENCES FusePackage(Id),
+            FOREIGN KEY(TypeId) REFERENCES FuseType(Id)
+        );
+
+        -- Seed Fuse types
+        INSERT OR IGNORE INTO FuseType (Name) VALUES
+            ('Fast-blow'),
+            ('Slow-blow'),
+            ('Resettable (polyfuse)');
+
+        -- Seed Fuse packages
+        INSERT OR IGNORE INTO FusePackage (Name) VALUES
+            ('Axial'),
+            ('Radial'),
+            ('Cartridge'),
+            ('SMD');
+    )SQL";
+
+        if (!db_.exec(migration6, result)) return false;
+
+        sqlite3_stmt* insertStmt = nullptr;
+        if (db_.prepare(
+            "INSERT INTO SchemaVersion (Version, AppliedOn, Description) VALUES (?,?,?);",
+            insertStmt,
+            result)) {
+
+            sqlite3_bind_int(insertStmt, 1, 6);
+            sqlite3_bind_text(insertStmt, 2, currentTimestamp().c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insertStmt, 3,
+                "Added Fuse support: created FusePackage, FuseType, and Fuses tables with baseline seeds.",
+                -1, SQLITE_TRANSIENT);
+
+            if (sqlite3_step(insertStmt) != SQLITE_DONE) {
+                result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+            }
+            sqlite3_finalize(insertStmt);
+        }
+    }
+
     return true;
 }
