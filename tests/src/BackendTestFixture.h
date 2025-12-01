@@ -35,50 +35,15 @@ protected:
         ASSERT_TRUE(db.isOpen());
         ASSERT_TRUE(schema.initialize(res));
 
-        // Seed a default category
-        Category cat("TestCategory", "Category for unit tests");
-        if (catMgr.addCategory(cat, res)) {
-            catId = db.lastInsertId();
-        }
-        else {
-            std::vector<Category> cats;
-            ASSERT_TRUE(catMgr.listCategories(cats, res));
-            catId = cats.front().id;
-        }
+        // Use canonical seeded values from Migration 5
+        catId = catMgr.getByName("Resistor", res);
+        ASSERT_GT(catId, 0);
 
-        // Seed a default manufacturer
-        Manufacturer man("TestManufacturer", "USA", "http://example.com", "For unit tests");
-        if (manMgr.addManufacturer(man, res)) {
-            manId = db.lastInsertId();
-        }
-        else {
-            std::vector<Manufacturer> mans;
-            ASSERT_TRUE(manMgr.listManufacturers(mans, res));
-            manId = mans.front().id;
-        }
+        manId = manMgr.getByName("Generic", res);
+        ASSERT_GT(manId, 0);
 
-        // Seed transistor lookup tables
-        TransistorTypeManager typeMgr(db);
-        typeMgr.addType(TransistorType("BJT"), res);
-
-        TransistorPolarityManager polMgr(db);
-        polMgr.addPolarity(TransistorPolarity("NPN"), res);
-
-        TransistorPackageManager pkgMgr(db);
-        pkgMgr.addPackage(TransistorPackage("TO-92"), res);
-
-        // Seed resistor lookup tables
-        ResistorPackageManager resPkgMgr(db);
-        resPkgMgr.addPackage(ResistorPackage("0805"), res);
-
-        ResistorCompositionManager resCompoMgr(db);
-        resCompoMgr.addComposition(ResistorComposition("Carbon Film"), res);
-
-        CapacitorPackageManager capPkgMgr(db);
-        capPkgMgr.addPackage(CapacitorPackage("Radial leaded"), res);
-
-        CapacitorDielectricManager capDielMgr(db);
-        capDielMgr.addDielectric(CapacitorDielectric("C0G/NP0"), res);
-
+        // No need to seed transistor/resistor/capacitor lookups here —
+        // Migration 5 already inserted BJT, NPN, TO-92, Carbon Film, Radial leaded, C0G/NP0, etc.
+        // Tests can resolve IDs with getByName when needed.
     }
 };

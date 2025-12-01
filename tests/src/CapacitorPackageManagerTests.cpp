@@ -9,60 +9,58 @@ protected:
 
 // 1. AddPackage_InsertsRow
 TEST_F(CapacitorPackageManagerTest, AddPackage_InsertsRow) {
-    // Use a distinct name to avoid collision with fixture baseline
-    CapacitorPackage pkg("Axial");
+    // Use a unique test-only name to avoid collision with seeded packages
+    CapacitorPackage pkg("TestCapPkg_Add");
     ASSERT_TRUE(pkgMgr.addPackage(pkg, res)) << res.toString();
 
-    int insertedPkgId = pkgMgr.getByName("Axial", res);
+    int insertedPkgId = pkgMgr.getByName("TestCapPkg_Add", res);
     ASSERT_GT(insertedPkgId, 0);
 
     CapacitorPackage fetched;
     ASSERT_TRUE(pkgMgr.getPackageById(insertedPkgId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedPkgId);
-    EXPECT_EQ(fetched.name, "Axial");
+    EXPECT_EQ(fetched.name, "TestCapPkg_Add");
 }
 
 // 2. GetPackageById_ReturnsCorrectPackage
 TEST_F(CapacitorPackageManagerTest, GetPackageById_ReturnsCorrectPackage) {
-    CapacitorPackage pkg("SMD");
+    CapacitorPackage pkg("TestCapPkg_Get");
     ASSERT_TRUE(pkgMgr.addPackage(pkg, res)) << res.toString();
 
-    int insertedPkgId = pkgMgr.getByName("SMD", res);
+    int insertedPkgId = pkgMgr.getByName("TestCapPkg_Get", res);
     ASSERT_GT(insertedPkgId, 0);
 
     CapacitorPackage fetched;
     ASSERT_TRUE(pkgMgr.getPackageById(insertedPkgId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedPkgId);
-    EXPECT_EQ(fetched.name, "SMD");
+    EXPECT_EQ(fetched.name, "TestCapPkg_Get");
 }
 
 // 3. ListPackages_ReturnsAllPackages
 TEST_F(CapacitorPackageManagerTest, ListPackages_ReturnsAllPackages) {
-    ASSERT_TRUE(pkgMgr.addPackage(CapacitorPackage("Through-hole"), res)) << res.toString();
-    ASSERT_TRUE(pkgMgr.addPackage(CapacitorPackage("Chip"), res)) << res.toString();
+    // Add a unique package
+    ASSERT_TRUE(pkgMgr.addPackage(CapacitorPackage("TestCapPkg_List"), res)) << res.toString();
 
     std::vector<CapacitorPackage> pkgs;
     ASSERT_TRUE(pkgMgr.listPackages(pkgs, res)) << res.toString();
 
-    EXPECT_GE(pkgs.size(), 2);
-
-    bool foundTH = false, foundChip = false;
+    bool foundRadial = false, foundTestPkg = false;
     for (const auto& p : pkgs) {
-        if (p.name == "Through-hole") foundTH = true;
-        if (p.name == "Chip") foundChip = true;
+        if (p.name == "Radial leaded") foundRadial = true;        // seeded canonical
+        if (p.name == "TestCapPkg_List") foundTestPkg = true;     // test-only
     }
-    EXPECT_TRUE(foundTH);
-    EXPECT_TRUE(foundChip);
+    EXPECT_TRUE(foundRadial);
+    EXPECT_TRUE(foundTestPkg);
 }
 
 // 4. DeletePackage_RemovesRow
 TEST_F(CapacitorPackageManagerTest, DeletePackage_RemovesRow) {
-    CapacitorPackage pkg("DeleteMe");
+    CapacitorPackage pkg("TestCapPkg_Delete");
     ASSERT_TRUE(pkgMgr.addPackage(pkg, res)) << res.toString();
 
-    int insertedPkgId = pkgMgr.getByName("DeleteMe", res);
+    int insertedPkgId = pkgMgr.getByName("TestCapPkg_Delete", res);
     ASSERT_GT(insertedPkgId, 0);
 
     ASSERT_TRUE(pkgMgr.deletePackage(insertedPkgId, res)) << res.toString();

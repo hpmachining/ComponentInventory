@@ -9,54 +9,59 @@ protected:
 
 // 1. AddDielectric_InsertsRow
 TEST_F(CapacitorDielectricManagerTest, AddDielectric_InsertsRow) {
-    CapacitorDielectric diel("Ceramic");
+    // Use a unique test-only name to avoid collision with seeded dielectrics
+    CapacitorDielectric diel("TestDiel_Add");
     ASSERT_TRUE(dielMgr.addDielectric(diel, res)) << res.toString();
 
-    int insertedDielId = db.lastInsertId();
+    int insertedDielId = dielMgr.getByName("TestDiel_Add", res);
+    ASSERT_GT(insertedDielId, 0);
+
     CapacitorDielectric fetched;
     ASSERT_TRUE(dielMgr.getDielectricById(insertedDielId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedDielId);
-    EXPECT_EQ(fetched.name, "Ceramic");
+    EXPECT_EQ(fetched.name, "TestDiel_Add");
 }
 
 // 2. GetDielectricById_ReturnsCorrectDielectric
 TEST_F(CapacitorDielectricManagerTest, GetDielectricById_ReturnsCorrectDielectric) {
-    CapacitorDielectric diel("Polyester");
+    CapacitorDielectric diel("TestDiel_Get");
     ASSERT_TRUE(dielMgr.addDielectric(diel, res)) << res.toString();
-    int insertedDielId = db.lastInsertId();
+
+    int insertedDielId = dielMgr.getByName("TestDiel_Get", res);
+    ASSERT_GT(insertedDielId, 0);
 
     CapacitorDielectric fetched;
     ASSERT_TRUE(dielMgr.getDielectricById(insertedDielId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedDielId);
-    EXPECT_EQ(fetched.name, "Polyester");
+    EXPECT_EQ(fetched.name, "TestDiel_Get");
 }
 
 // 3. ListDielectrics_ReturnsAllDielectrics
 TEST_F(CapacitorDielectricManagerTest, ListDielectrics_ReturnsAllDielectrics) {
-    ASSERT_TRUE(dielMgr.addDielectric(CapacitorDielectric("Polypropylene"), res)) << res.toString();
-    ASSERT_TRUE(dielMgr.addDielectric(CapacitorDielectric("Tantalum"), res)) << res.toString();
+    // Add a unique dielectric
+    ASSERT_TRUE(dielMgr.addDielectric(CapacitorDielectric("TestDiel_List"), res)) << res.toString();
 
     std::vector<CapacitorDielectric> diels;
     ASSERT_TRUE(dielMgr.listDielectrics(diels, res)) << res.toString();
 
-    EXPECT_GE(diels.size(), 2);
-
-    bool foundPolypropylene = false, foundTantalum = false;
+    bool foundPolypropylene = false, foundTestDiel = false;
     for (const auto& d : diels) {
-        if (d.name == "Polypropylene") foundPolypropylene = true;
-        if (d.name == "Tantalum") foundTantalum = true;
+        if (d.name == "Polypropylene") foundPolypropylene = true; // seeded canonical
+        if (d.name == "TestDiel_List") foundTestDiel = true;      // test-only
     }
     EXPECT_TRUE(foundPolypropylene);
-    EXPECT_TRUE(foundTantalum);
+    EXPECT_TRUE(foundTestDiel);
 }
 
 // 4. DeleteDielectric_RemovesRow
 TEST_F(CapacitorDielectricManagerTest, DeleteDielectric_RemovesRow) {
-    CapacitorDielectric diel("DeleteMe");
+    CapacitorDielectric diel("TestDiel_Delete");
     ASSERT_TRUE(dielMgr.addDielectric(diel, res)) << res.toString();
-    int insertedDielId = db.lastInsertId();
+
+    int insertedDielId = dielMgr.getByName("TestDiel_Delete", res);
+    ASSERT_GT(insertedDielId, 0);
 
     ASSERT_TRUE(dielMgr.deleteDielectric(insertedDielId, res)) << res.toString();
 

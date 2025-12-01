@@ -25,6 +25,7 @@ public:
 	bool columnExists(const std::string& tableName, const std::string& columnName) const;
     int getMaxSchemaVersion() const;
 	int countRows(const std::string& tableName, const std::string& whereClause) const;
+	bool rowExists(const std::string& tableName, const std::string& condition, DbResult& result);
 
 private:
     sqlite3* db_;

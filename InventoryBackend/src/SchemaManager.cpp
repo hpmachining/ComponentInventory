@@ -271,5 +271,82 @@ bool SchemaManager::initialize(DbResult& result) {
         }
     }
 
+    if (version < 5) {
+        const char* migration5 = R"SQL(
+        -- Seed Categories
+        INSERT OR IGNORE INTO Categories (Name, Description) VALUES
+            ('Resistor','Resistive components'),
+            ('Capacitor','Capacitive components'),
+            ('Transistor','Active transistor devices'),
+            ('Diode','Semiconductor diodes'),
+            ('Fuse','Circuit protection devices');
+
+        -- Seed Manufacturers
+        INSERT OR IGNORE INTO Manufacturers (Name, Country, Website, Notes) VALUES
+            ('Generic','USA','','Baseline manufacturer'),
+            ('Vishay','USA','https://www.vishay.com','Major resistor/capacitor vendor'),
+            ('Murata','Japan','https://www.murata.com','Capacitor vendor'),
+            ('ON Semiconductor','USA','https://www.onsemi.com','Transistor vendor'),
+            ('Sanken','Japan','https://www.sanken-ele.co.jp/en/','Power semiconductors, ICs, LEDs, power supplies'),
+            ('Toshiba','Japan','https://www.global.toshiba/ww/outline/corporate.html','Broad electronics conglomerate, semiconductors, storage, power systems'),
+            ('Stackpole','USA','https://www.seielect.com','Resistive components manufacturer, thick/thin film, current sense resistors'),
+            ('TE Connectivity','Ireland/USA','https://www.te.com','Connectivity and sensor solutions for automotive, aerospace, industrial'),
+            ('Panasonic','Japan','https://www.panasonic.com/global/about/corporate-profile/overview.html','Global electronics giant, consumer and industrial devices'),
+            ('TDK Electronics','Germany','https://www.tdk-electronics.tdk.com/en','Electronic components: capacitors, inductors, sensors, EMC filters'),
+            ('Rubycon','Japan','https://www.rubycon.co.jp/en/','Capacitors and power supplies, aluminum electrolytic and film types'),
+            ('KEMET','USA','https://www.kemet.com','Capacitors (tantalum, ceramic, aluminum, film), subsidiary of Yageo'),
+            ('SCHURTER','Switzerland/USA','https://www.schurter.com/en','Circuit protection, connectors, switches, EMC products'),
+            ('Bel Fuse','USA','https://www.belfuse.com/company/about-us','Power, protection, and connectivity solutions for telecom, aerospace, industrial');
+
+        -- Seed Resistor lookups
+        INSERT OR IGNORE INTO ResistorComposition (Name) VALUES
+            ('Carbon Film'),('Metal Film'),('Wirewound');
+
+        INSERT OR IGNORE INTO ResistorPackage (Name) VALUES
+            ('Axial leaded'),
+            ('0603'),
+            ('0805');
+
+        -- Seed Capacitor lookups
+        INSERT OR IGNORE INTO CapacitorDielectric (Name) VALUES
+            ('C0G/NP0'),('X7R'),('Y5V'),
+            ('Polypropylene'),('Polyester'),
+            ('Aluminum'),('Tantalum'),('Mica');
+
+        INSERT OR IGNORE INTO CapacitorPackage (Name) VALUES
+            ('Radial leaded'),('Axial leaded'),('SMD');
+
+        -- Seed Transistor lookups
+        INSERT OR IGNORE INTO TransistorType (Name) VALUES
+            ('BJT'),('MOSFET'),('JFET'),('IGBT');
+
+        INSERT OR IGNORE INTO TransistorPolarity (Name) VALUES
+            ('NPN'),('PNP'),('N-Channel'),('P-Channel');
+
+        INSERT OR IGNORE INTO TransistorPackage (Name) VALUES
+            ('TO-3P'),('TO-220'),('TO-92'),('TO-126');
+    )SQL";
+
+        if (!db_.exec(migration5, result)) return false;
+
+        sqlite3_stmt* insertStmt = nullptr;
+        if (db_.prepare(
+            "INSERT INTO SchemaVersion (Version, AppliedOn, Description) VALUES (?,?,?);",
+            insertStmt,
+            result)) {
+
+            sqlite3_bind_int(insertStmt, 1, 5);
+            sqlite3_bind_text(insertStmt, 2, currentTimestamp().c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insertStmt, 3,
+                "Seeded baseline lookup values for categories, manufacturers, resistor, capacitor, and transistor tables.",
+                -1, SQLITE_TRANSIENT);
+
+            if (sqlite3_step(insertStmt) != SQLITE_DONE) {
+                result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+            }
+            sqlite3_finalize(insertStmt);
+        }
+    }
+
     return true;
 }

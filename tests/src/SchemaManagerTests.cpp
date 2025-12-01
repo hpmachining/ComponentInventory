@@ -11,7 +11,7 @@ protected:
 TEST_F(SchemaManagerTest, Initialize_CreatesAllTables) {
     ASSERT_TRUE(schemaMgr.initialize(res)) << res.toString();
 
-    // Verify baseline tables exist
+    // Baseline tables
     EXPECT_TRUE(db.tableExists("Categories"));
     EXPECT_TRUE(db.tableExists("Manufacturers"));
     EXPECT_TRUE(db.tableExists("Components"));
@@ -19,11 +19,11 @@ TEST_F(SchemaManagerTest, Initialize_CreatesAllTables) {
     EXPECT_TRUE(db.tableExists("ResistorPackage"));
     EXPECT_TRUE(db.tableExists("Resistors"));
 
-    // Baseline audit fields
+    // Audit fields
     EXPECT_TRUE(db.columnExists("Components", "CreatedOn"));
     EXPECT_TRUE(db.columnExists("Components", "ModifiedOn"));
 
-    // Verify SchemaVersion has baseline entry
+    // SchemaVersion baseline
     int version = db.getMaxSchemaVersion();
     EXPECT_GE(version, 1);
 }
@@ -44,23 +44,34 @@ TEST_F(SchemaManagerTest, Reinitialize_DoesNotDuplicateTables) {
 TEST_F(SchemaManagerTest, Migration_AddsNewColumnsAndTables) {
     ASSERT_TRUE(schemaMgr.initialize(res)) << res.toString();
 
-    // Migration 2: DatasheetLink column
+    // Migration 2: DatasheetLink
     EXPECT_TRUE(db.columnExists("Components", "DatasheetLink"));
 
-    // Migration 3: Capacitor-related tables
+    // Migration 3: Capacitor tables
     EXPECT_TRUE(db.tableExists("CapacitorDielectric"));
     EXPECT_TRUE(db.tableExists("CapacitorPackage"));
     EXPECT_TRUE(db.tableExists("Capacitors"));
     EXPECT_TRUE(db.tableExists("Electrolytics"));
 
-    // Migration 4: Transistor-related tables
+    // Migration 4: Transistor tables
     EXPECT_TRUE(db.tableExists("TransistorType"));
     EXPECT_TRUE(db.tableExists("TransistorPolarity"));
     EXPECT_TRUE(db.tableExists("TransistorPackage"));
     EXPECT_TRUE(db.tableExists("Transistors"));
     EXPECT_TRUE(db.tableExists("BJTs"));
 
+    // Migration 5: Seeds should exist
+    EXPECT_TRUE(db.rowExists("Categories", "Name='Fuse'", res));
+    EXPECT_TRUE(db.rowExists("Manufacturers", "Name='Rubycon'", res));
+    EXPECT_TRUE(db.rowExists("ResistorComposition", "Name='Carbon Film'", res));
+    EXPECT_TRUE(db.rowExists("ResistorPackage", "Name='Axial leaded'", res));
+    EXPECT_TRUE(db.rowExists("CapacitorDielectric", "Name='C0G/NP0'", res));
+    EXPECT_TRUE(db.rowExists("CapacitorPackage", "Name='Radial leaded'", res));
+    EXPECT_TRUE(db.rowExists("TransistorType", "Name='MOSFET'", res));
+    EXPECT_TRUE(db.rowExists("TransistorPolarity", "Name='NPN'", res));
+    EXPECT_TRUE(db.rowExists("TransistorPackage", "Name='TO-92'", res));
+
     // SchemaVersion should reflect latest migration
     int version = db.getMaxSchemaVersion();
-    EXPECT_GE(version, 4);
+    EXPECT_GE(version, 5);
 }

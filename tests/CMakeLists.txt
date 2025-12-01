@@ -5,8 +5,8 @@ project(InventoryBackendTests LANGUAGES CXX)
 add_executable(${PROJECT_NAME}
     src/DatabaseTests.cpp
     src/SchemaManagerTests.cpp
-    src/ComponentManagerTest.cpp
-    src/CategoryManagerTest.cpp
+    src/ComponentManagerTests.cpp
+    src/CategoryManagerTests.cpp
     src/ManufacturerManagerTests.cpp
     src/ResistorPackageManagerTests.cpp
     src/ResistorCompositionManagerTests.cpp

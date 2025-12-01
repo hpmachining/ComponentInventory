@@ -9,61 +9,62 @@ protected:
 
 // 1. AddCategory_InsertsRow
 TEST_F(CategoryManagerTest, AddCategory_InsertsRow) {
-    Category cat("Resistor", "Test category");
+    // Use a unique test-only name to avoid collision with seeded categories
+    Category cat("TestCategory_Add", "Category for add test");
     ASSERT_TRUE(catMgr.addCategory(cat, res)) << res.toString();
 
-    int insertedCatId = catMgr.getByName("Resistor", res);
+    int insertedCatId = catMgr.getByName("TestCategory_Add", res);
     ASSERT_GT(insertedCatId, 0);
 
     Category fetched;
     ASSERT_TRUE(catMgr.getCategoryById(insertedCatId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedCatId);
-    EXPECT_EQ(fetched.name, "Resistor");
-    EXPECT_EQ(fetched.description, "Test category");
+    EXPECT_EQ(fetched.name, "TestCategory_Add");
+    EXPECT_EQ(fetched.description, "Category for add test");
 }
 
 // 2. GetCategoryById_ReturnsCorrectCategory
 TEST_F(CategoryManagerTest, GetCategoryById_ReturnsCorrectCategory) {
-    Category cat("Capacitor", "Another test category");
+    // Again, use a unique name
+    Category cat("TestCategory_Get", "Category for get test");
     ASSERT_TRUE(catMgr.addCategory(cat, res)) << res.toString();
 
-    int insertedCatId = catMgr.getByName("Capacitor", res);
+    int insertedCatId = catMgr.getByName("TestCategory_Get", res);
     ASSERT_GT(insertedCatId, 0);
 
     Category fetched;
     ASSERT_TRUE(catMgr.getCategoryById(insertedCatId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedCatId);
-    EXPECT_EQ(fetched.name, "Capacitor");
-    EXPECT_EQ(fetched.description, "Another test category");
+    EXPECT_EQ(fetched.name, "TestCategory_Get");
+    EXPECT_EQ(fetched.description, "Category for get test");
 }
 
 // 3. ListCategories_ReturnsAllCategories
 TEST_F(CategoryManagerTest, ListCategories_ReturnsAllCategories) {
-    ASSERT_TRUE(catMgr.addCategory(Category("Inductor", "Test category A"), res)) << res.toString();
-    ASSERT_TRUE(catMgr.addCategory(Category("Transformer", "Test category B"), res)) << res.toString();
+    // Add two unique categories
+    ASSERT_TRUE(catMgr.addCategory(Category("TestCategory_ListA", "Category A"), res)) << res.toString();
+    ASSERT_TRUE(catMgr.addCategory(Category("TestCategory_ListB", "Category B"), res)) << res.toString();
 
     std::vector<Category> cats;
     ASSERT_TRUE(catMgr.listCategories(cats, res)) << res.toString();
 
-    EXPECT_GE(cats.size(), 2);
-
-    bool foundInductor = false, foundTransformer = false;
+    bool foundA = false, foundB = false;
     for (const auto& c : cats) {
-        if (c.name == "Inductor") foundInductor = true;
-        if (c.name == "Transformer") foundTransformer = true;
+        if (c.name == "TestCategory_ListA") foundA = true;
+        if (c.name == "TestCategory_ListB") foundB = true;
     }
-    EXPECT_TRUE(foundInductor);
-    EXPECT_TRUE(foundTransformer);
+    EXPECT_TRUE(foundA);
+    EXPECT_TRUE(foundB);
 }
 
 // 4. DeleteCategory_RemovesRow
 TEST_F(CategoryManagerTest, DeleteCategory_RemovesRow) {
-    Category cat("Diode", "Category to delete");
+    Category cat("TestCategory_Delete", "Category to delete");
     ASSERT_TRUE(catMgr.addCategory(cat, res)) << res.toString();
 
-    int insertedCatId = catMgr.getByName("Diode", res);
+    int insertedCatId = catMgr.getByName("TestCategory_Delete", res);
     ASSERT_GT(insertedCatId, 0);
 
     ASSERT_TRUE(catMgr.deleteCategory(insertedCatId, res)) << res.toString();

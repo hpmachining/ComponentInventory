@@ -143,3 +143,18 @@ int Database::countRows(const std::string& tableName, const std::string& whereCl
     sqlite3_finalize(stmt);
     return count;
 }
+
+bool Database::rowExists(const std::string& tableName, const std::string& condition, DbResult& result) {
+    std::string sql = "SELECT 1 FROM " + tableName + " WHERE " + condition + " LIMIT 1;";
+    sqlite3_stmt* stmt = nullptr;
+
+    if (!prepare(sql, stmt, result)) {
+        return false; // preparation failed, result already set
+    }
+
+    int rc = sqlite3_step(stmt);
+    bool exists = (rc == SQLITE_ROW);
+
+    sqlite3_finalize(stmt);
+    return exists;
+}
