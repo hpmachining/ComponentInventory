@@ -366,6 +366,8 @@ bool SchemaManager::initialize(DbResult& result) {
             ComponentId INTEGER PRIMARY KEY,
             PackageId INTEGER,
             TypeId INTEGER,
+            CurrentRating REAL,   -- amps
+            VoltageRating REAL,   -- volts
             FOREIGN KEY(ComponentId) REFERENCES Components(Id) ON DELETE CASCADE,
             FOREIGN KEY(PackageId) REFERENCES FusePackage(Id),
             FOREIGN KEY(TypeId) REFERENCES FuseType(Id)
@@ -396,7 +398,7 @@ bool SchemaManager::initialize(DbResult& result) {
             sqlite3_bind_int(insertStmt, 1, 6);
             sqlite3_bind_text(insertStmt, 2, currentTimestamp().c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(insertStmt, 3,
-                "Added Fuse support: created FusePackage, FuseType, and Fuses tables with baseline seeds.",
+                "Added Fuse support: created FusePackage, FuseType, and Fuses tables with baseline seeds, including current and voltage ratings.",
                 -1, SQLITE_TRANSIENT);
 
             if (sqlite3_step(insertStmt) != SQLITE_DONE) {

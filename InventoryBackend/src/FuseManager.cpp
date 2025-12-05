@@ -4,13 +4,15 @@
 FuseManager::FuseManager(Database& db) : db_(db) {}
 
 bool FuseManager::addFuse(const Fuse& fuse, DbResult& res) {
-    const char* sql = "INSERT INTO Fuses (ComponentId, PackageId, TypeId) VALUES (?,?,?);";
+    const char* sql = "INSERT INTO Fuses (ComponentId, PackageId, TypeId, CurrentRating, VoltageRating) VALUES (?,?,?,?,?);";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
 
     sqlite3_bind_int(stmt, 1, fuse.componentId);
     sqlite3_bind_int(stmt, 2, fuse.packageId);
     sqlite3_bind_int(stmt, 3, fuse.typeId);
+    sqlite3_bind_double(stmt, 4, fuse.currentRating);
+    sqlite3_bind_double(stmt, 5, fuse.voltageRating);
 
     bool ok = (sqlite3_step(stmt) == SQLITE_DONE);
     if (!ok) res.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
@@ -19,7 +21,7 @@ bool FuseManager::addFuse(const Fuse& fuse, DbResult& res) {
 }
 
 bool FuseManager::getFuseByComponentId(int componentId, Fuse& fuse, DbResult& res) {
-    const char* sql = "SELECT ComponentId, PackageId, TypeId FROM Fuses WHERE ComponentId=?;";
+    const char* sql = "SELECT ComponentId, PackageId, TypeId, CurrentRating, VoltageRating FROM Fuses WHERE ComponentId=?;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
 
@@ -29,6 +31,8 @@ bool FuseManager::getFuseByComponentId(int componentId, Fuse& fuse, DbResult& re
         fuse.componentId = sqlite3_column_int(stmt, 0);
         fuse.packageId = sqlite3_column_int(stmt, 1);
         fuse.typeId = sqlite3_column_int(stmt, 2);
+        fuse.currentRating = sqlite3_column_double(stmt, 3);
+        fuse.voltageRating = sqlite3_column_double(stmt, 4);
         sqlite3_finalize(stmt);
         return true;
     }
@@ -37,13 +41,15 @@ bool FuseManager::getFuseByComponentId(int componentId, Fuse& fuse, DbResult& re
 }
 
 bool FuseManager::updateFuse(const Fuse& fuse, DbResult& res) {
-    const char* sql = "UPDATE Fuses SET PackageId=?, TypeId=? WHERE ComponentId=?;";
+    const char* sql = "UPDATE Fuses SET PackageId=?, TypeId=?, CurrentRating=?, VoltageRating=? WHERE ComponentId=?;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
 
     sqlite3_bind_int(stmt, 1, fuse.packageId);
     sqlite3_bind_int(stmt, 2, fuse.typeId);
-    sqlite3_bind_int(stmt, 3, fuse.componentId);
+    sqlite3_bind_double(stmt, 3, fuse.currentRating);
+    sqlite3_bind_double(stmt, 4, fuse.voltageRating);
+    sqlite3_bind_int(stmt, 5, fuse.componentId);
 
     bool ok = (sqlite3_step(stmt) == SQLITE_DONE);
     if (!ok) res.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
@@ -64,7 +70,7 @@ bool FuseManager::deleteFuse(int componentId, DbResult& res) {
 }
 
 bool FuseManager::listFuses(std::vector<Fuse>& fuses, DbResult& res) {
-    const char* sql = "SELECT ComponentId, PackageId, TypeId FROM Fuses;";
+    const char* sql = "SELECT ComponentId, PackageId, TypeId, CurrentRating, VoltageRating FROM Fuses;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
 
@@ -73,6 +79,8 @@ bool FuseManager::listFuses(std::vector<Fuse>& fuses, DbResult& res) {
         f.componentId = sqlite3_column_int(stmt, 0);
         f.packageId = sqlite3_column_int(stmt, 1);
         f.typeId = sqlite3_column_int(stmt, 2);
+        f.currentRating = sqlite3_column_double(stmt, 3);
+        f.voltageRating = sqlite3_column_double(stmt, 4);
         fuses.push_back(f);
     }
     sqlite3_finalize(stmt);

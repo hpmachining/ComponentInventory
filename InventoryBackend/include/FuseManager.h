@@ -7,6 +7,8 @@ struct Fuse {
     int componentId{ 0 };
     int packageId{ 0 };
     int typeId{ 0 };
+    double currentRating{ 0.0 };
+    double voltageRating{ 0.0 };
 };
 
 class FuseManager {
@@ -18,7 +20,7 @@ public:
     bool updateFuse(const Fuse& fuse, DbResult& res);
     bool deleteFuse(int componentId, DbResult& res);
 
-    // New: list all fuses
+    // List all fuses
     bool listFuses(std::vector<Fuse>& fuses, DbResult& res);
 
     // Lookup helpers

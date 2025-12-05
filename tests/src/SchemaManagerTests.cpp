@@ -83,6 +83,10 @@ TEST_F(SchemaManagerTest, Migration_AddsNewColumnsAndTables) {
     EXPECT_TRUE(db.rowExists("FuseType", "Name='Slow-blow'", res));
     EXPECT_TRUE(db.rowExists("FuseType", "Name='Resettable (polyfuse)'", res));
 
+    // New: Fuse ratings columns
+    EXPECT_TRUE(db.columnExists("Fuses", "CurrentRating"));
+    EXPECT_TRUE(db.columnExists("Fuses", "VoltageRating"));
+
     // SchemaVersion should reflect latest migration
     int version = db.getMaxSchemaVersion();
     EXPECT_GE(version, 6);
