@@ -408,5 +408,83 @@ bool SchemaManager::initialize(DbResult& result) {
         }
     }
 
+    if (version < 7) {
+        const char* migration7 = R"SQL(
+    -- Create Diode lookup tables
+    CREATE TABLE IF NOT EXISTS DiodeType (
+        Id INTEGER PRIMARY KEY,
+        Name TEXT UNIQUE NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS DiodePackage (
+        Id INTEGER PRIMARY KEY,
+        Name TEXT UNIQUE NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS DiodePolarity (
+        Id INTEGER PRIMARY KEY,
+        Name TEXT UNIQUE NOT NULL
+    );
+
+    -- Create Diodes table linked to Components
+    CREATE TABLE IF NOT EXISTS Diodes (
+        ComponentId INTEGER PRIMARY KEY,
+        PackageId INTEGER,
+        TypeId INTEGER,
+        PolarityId INTEGER,
+        ForwardVoltage REAL,      -- typical Vf in volts
+        MaxCurrent REAL,          -- maximum forward current in amps
+        MaxReverseVoltage REAL,   -- maximum reverse voltage in volts
+        ReverseLeakage REAL,      -- leakage current in microamps/milliamps
+        FOREIGN KEY(ComponentId) REFERENCES Components(Id) ON DELETE CASCADE,
+        FOREIGN KEY(PackageId) REFERENCES DiodePackage(Id),
+        FOREIGN KEY(TypeId) REFERENCES DiodeType(Id),
+        FOREIGN KEY(PolarityId) REFERENCES DiodePolarity(Id)
+    );
+
+    -- Seed Diode types
+    INSERT OR IGNORE INTO DiodeType (Name) VALUES
+        ('Rectifier'),
+        ('Zener'),
+        ('Schottky'),
+        ('LED'),
+        ('TVS');
+
+    -- Seed Diode packages
+    INSERT OR IGNORE INTO DiodePackage (Name) VALUES
+        ('Axial leaded'),
+        ('Radial leaded'),
+        ('SMD SOD-123'),
+        ('SMD SOD-323'),
+        ('SMD DO-214'),
+        ('TO-220');
+
+    -- Seed Diode polarity options
+    INSERT OR IGNORE INTO DiodePolarity (Name) VALUES
+        ('Anode-Cathode'),
+        ('Cathode-Anode');
+    )SQL";
+
+        if (!db_.exec(migration7, result)) return false;
+
+        sqlite3_stmt* insertStmt = nullptr;
+        if (db_.prepare(
+            "INSERT INTO SchemaVersion (Version, AppliedOn, Description) VALUES (?,?,?);",
+            insertStmt,
+            result)) {
+
+            sqlite3_bind_int(insertStmt, 1, 7);
+            sqlite3_bind_text(insertStmt, 2, currentTimestamp().c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(insertStmt, 3,
+                "Added Diode support: created DiodeType, DiodePackage, DiodePolarity, and Diodes tables with baseline seeds.",
+                -1, SQLITE_TRANSIENT);
+
+            if (sqlite3_step(insertStmt) != SQLITE_DONE) {
+                result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+            }
+            sqlite3_finalize(insertStmt);
+        }
+    }
+
     return true;
 }

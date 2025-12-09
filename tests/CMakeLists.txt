@@ -17,7 +17,8 @@ add_executable(${PROJECT_NAME}
     src/ElectrolyticManagerTests.cpp
     src/BJTManagerTests.cpp
     src/TransistorManagerTests.cpp
-    src/FuseManagerTests.cpp)
+    src/FuseManagerTests.cpp 
+    src/DiodeManagerTest.cpp)
 
 # Link against backend and gtest
 find_package(GTest CONFIG REQUIRED)

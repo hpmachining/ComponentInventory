@@ -26,7 +26,11 @@ target_sources(${PROJECT_NAME}
         src/BJTManager.cpp
         src/FuseManager.cpp 
         src/FusePackageManager.cpp
-        src/FuseTypeManager.cpp)
+        src/FuseTypeManager.cpp 
+        src/DiodeManager.cpp 
+        src/DiodePackageManager.cpp
+        src/DiodeTypeManager.cpp
+        src/DiodePolarityManager.cpp)
 
 # Public headers live directly in include/
 target_include_directories(${PROJECT_NAME}
