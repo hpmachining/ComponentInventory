@@ -11,8 +11,15 @@ add_executable(ComponentInventoryUI
     include/mainwindow.h
 )
 
-target_include_directories(ComponentInventoryUI PRIVATE include)
-target_link_libraries(ComponentInventoryUI PRIVATE Qt6::Widgets Qt6::Sql)
+target_include_directories(ComponentInventoryUI PRIVATE
+    include
+    ../InventoryBackend/include
+)
+
+target_link_libraries(ComponentInventoryUI PRIVATE
+    InventoryBackend
+    Qt6::Widgets
+)
 
 install(TARGETS ComponentInventoryUI DESTINATION bin)
 
