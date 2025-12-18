@@ -20,12 +20,12 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionNewDb"/>
     <addaction name="actionOpenDb"/>
@@ -35,12 +35,12 @@
    </widget>
    <widget class="QMenu" name="menuDatabase">
     <property name="title">
-     <string>Database</string>
+     <string>&amp;Database</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>

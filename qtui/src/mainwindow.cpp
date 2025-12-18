@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget* parent)
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
+    setWindowTitle(tr("Component Inventory"));
     statusBar()->showMessage(tr("Ready"));
     disableDbActions();
 
@@ -42,9 +42,6 @@ void MainWindow::onActionAbout()
 
 void MainWindow::onActionNewDb()
 {
-    if (!closeDb())
-        return;
-
     QString fileName = QFileDialog::getSaveFileName(
         this,
         tr("Create New Database"),
@@ -61,14 +58,14 @@ void MainWindow::onActionNewDb()
         return;
     }
 
+    if (!closeDb())
+        return;
+
     connectDb(fileName);
 }
 
 void MainWindow::onActionOpenDb()
 {
-    if (!closeDb())
-        return;
-
     QString fileName = QFileDialog::getOpenFileName(
         this,
         tr("Open Database"),
@@ -84,6 +81,9 @@ void MainWindow::onActionOpenDb()
             tr("Database not found."));
         return;
     }
+
+    if (!closeDb())
+        return;
 
     connectDb(fileName);
 }
