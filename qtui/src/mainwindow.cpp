@@ -29,6 +29,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    closeDb();          // cleanup logic
+    event->accept();    // allow the window to close
+}
+
 // --- Slots ---
 
 void MainWindow::onActionExit()
@@ -56,9 +62,28 @@ void MainWindow::onActionNewDb()
         return;
 
     if (QFileInfo::exists(fileName)) {
-        QMessageBox::warning(this, tr("Exists"),
-            tr("Database already exists."));
-        return;
+        auto response = QMessageBox::warning(
+            this,
+            tr("Overwrite Database"),
+            tr("The selected database already exists.\n\n"
+                "This will permanently delete all data in the database.\n"
+                "This action cannot be undone.\n\n"
+                "Are you sure you want to continue?"),
+            QMessageBox::Yes | QMessageBox::Cancel,
+            QMessageBox::Cancel
+        );
+
+        if (response != QMessageBox::Yes)
+            return;
+
+        if (!QFile::remove(fileName)) {
+            QMessageBox::critical(
+                this,
+                tr("Error"),
+                tr("Failed to delete the existing database file.")
+            );
+            return;
+        }
     }
 
     if (!closeDb())
@@ -97,6 +122,16 @@ void MainWindow::onActionCloseDb()
 }
 
 // --- Database lifecycle helpers ---
+
+void MainWindow::clearComponentView()
+{
+    if (ui->tableViewComponents->model()) {
+        ui->tableViewComponents->setModel(nullptr); // disconnect model
+    }
+
+    delete componentModel_;  // free the old model
+    componentModel_ = nullptr;
+}
 
 bool MainWindow::connectDb(const QString& fileName)
 {
@@ -152,7 +187,7 @@ bool MainWindow::closeDb()
     statusBar()->showMessage(tr("Database disconnected"));
 
     disableDbActions();
-    // clearDbViews();
+    clearComponentView();
 
     return true;
 }

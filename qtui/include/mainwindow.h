@@ -4,6 +4,7 @@
 #include "DbResult.h"
 #include "ComponentTableModel.h"
 #include <QMainWindow>
+#include <QCloseEvent>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -16,6 +17,9 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
+
+protected:
+    void closeEvent(QCloseEvent* event) override;
 
 private slots:
     void onActionExit();
@@ -33,6 +37,8 @@ private:
 
     // UI models
     ComponentTableModel* componentModel_ = nullptr;
+    void clearComponentView();
+
     // Helpers
     bool connectDb(const QString& fileName);
 	bool closeDb();
