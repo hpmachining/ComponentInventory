@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "SchemaManager.h"
+#include "ComponentTableModel.h"
+#include "DevDataSeeder.h"
 #include <QMessageBox>
 #include <QStatusBar>
 #include <QFileDialog>
@@ -10,7 +12,8 @@ MainWindow::MainWindow(QWidget* parent)
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    setWindowTitle(tr("Component Inventory"));
+
+    updateWindowTitle();
     statusBar()->showMessage(tr("Ready"));
     disableDbActions();
 
@@ -118,13 +121,20 @@ bool MainWindow::connectDb(const QString& fileName)
         db_.reset();
         return false;
     }
+#ifdef QT_DEBUG
+    DevDataSeeder::seedComponents(*db_);
+#endif
+
+    componentModel_ = new ComponentTableModel(db_.get(), this);
+    ui->tableViewComponents->setModel(componentModel_);
+    ui->tableViewComponents->resizeColumnsToContents();
 
     currentDbPath_ = fileName;
-    setWindowTitle(tr("Inventory – %1")
-        .arg(QFileInfo(fileName).fileName()));
+    updateWindowTitle(QFileInfo(fileName).fileName());
 
     enableDbActions();
     statusBar()->showMessage(tr("Connected to %1").arg(fileName));
+
     return true;
 }
 
@@ -138,7 +148,7 @@ bool MainWindow::closeDb()
     db_.reset();
     currentDbPath_.clear();
 
-    setWindowTitle(tr("Inventory"));
+    updateWindowTitle();
     statusBar()->showMessage(tr("Database disconnected"));
 
     disableDbActions();
@@ -157,4 +167,14 @@ void MainWindow::enableDbActions()
 void MainWindow::disableDbActions()
 {
     ui->actionCloseDb->setEnabled(false);
+}
+
+void MainWindow::updateWindowTitle(const QString& dbName)
+{
+    if (dbName.isEmpty())
+        setWindowTitle(tr(kAppTitle));
+    else
+        setWindowTitle(tr("%1 – %2")
+            .arg(tr(kAppTitle))
+            .arg(dbName));
 }
