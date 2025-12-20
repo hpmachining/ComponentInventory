@@ -1,27 +1,22 @@
 #include "ComponentTableModel.h"
-#include "ComponentManager.h"
-#include "DbResult.h"
 
-ComponentTableModel::ComponentTableModel(Database* db, QObject* parent)
-    : QAbstractTableModel(parent), db_(db)
+ComponentTableModel::ComponentTableModel(QObject* parent)
+    : QAbstractTableModel(parent)
 {
-    reload();
 }
 
-void ComponentTableModel::reload()
+void ComponentTableModel::setComponents(std::vector<Component>&& comps)
 {
     beginResetModel();
-
-    components_.clear();
-
-    if (db_) {
-        ComponentManager mgr(*db_);
-        DbResult result;
-        mgr.listComponents(components_, result);
-        // If needed later: handle result.error here
-    }
-
+    components_ = std::move(comps);
     endResetModel();
+}
+
+int ComponentTableModel::componentIdAt(int row) const
+{
+    if (row < 0 || row >= static_cast<int>(components_.size()))
+        return -1;
+    return components_[row].id;
 }
 
 int ComponentTableModel::rowCount(const QModelIndex&) const
@@ -31,7 +26,7 @@ int ComponentTableModel::rowCount(const QModelIndex&) const
 
 int ComponentTableModel::columnCount(const QModelIndex&) const
 {
-    return 10; // matches SELECT in listComponents()
+    return 10;
 }
 
 QVariant ComponentTableModel::data(const QModelIndex& index, int role) const

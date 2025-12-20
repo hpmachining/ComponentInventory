@@ -18,6 +18,9 @@ MainWindow::MainWindow(QWidget* parent)
     statusBar()->showMessage(tr("Ready"));
     disableDatabaseActions();
 
+    componentModel_ = new ComponentTableModel(this);
+    ui->componentView->setModel(componentModel_);
+
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onActionExit);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onActionAbout);
     connect(ui->actionNewDatabase, &QAction::triggered, this, &MainWindow::onActionNewDatabase);
@@ -89,12 +92,28 @@ void MainWindow::onActionCloseDatabase()
 
 void MainWindow::clearComponentView()
 {
-    if (ui->tableViewComponents->model()) {
-        ui->tableViewComponents->setModel(nullptr); // disconnect model
+    if (componentModel_)
+        componentModel_->setComponents({});
+}
+
+void MainWindow::reloadComponents()
+{
+    if (!inventory_ || !componentModel_)
+        return;
+
+    std::vector<Component> comps;
+    DbResult result;
+
+    if (!inventory_->components().listComponents(comps, result)) {
+        QMessageBox::critical(
+            this,
+            tr("Error"),
+            QString::fromStdString(result.message)
+        );
+        return;
     }
 
-    delete componentModel_;  // free the old model
-    componentModel_ = nullptr;
+    componentModel_->setComponents(std::move(comps));
 }
 
 bool MainWindow::createNewDatabase(const QString& fileName)
@@ -161,7 +180,10 @@ bool MainWindow::openDatabase(const QString& fileName)
 
     currentDatabasePath_ = fileName;
     enableDatabaseActions();
+    updateWindowTitle(QFileInfo(fileName).fileName());
     statusBar()->showMessage(tr("Connected to %1").arg(fileName));
+
+    reloadComponents();
     return true;
 }
 

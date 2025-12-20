@@ -133,7 +133,10 @@ bool ComponentManager::listComponents(std::vector<Component>& comps, DbResult& r
         comp.id = sqlite3_column_int(stmt, 0);
         comp.categoryId = sqlite3_column_int(stmt, 1);
         comp.partNumber = safeColumnText(stmt, 2);
-        comp.manufacturerId = sqlite3_column_int(stmt, 3);
+        if (comp.manufacturerId > 0)
+            sqlite3_bind_int(stmt, 3, comp.manufacturerId);
+        else
+            sqlite3_bind_null(stmt, 3);
         comp.description = safeColumnText(stmt, 4);
         comp.notes = safeColumnText(stmt, 5);
         comp.quantity = sqlite3_column_int(stmt, 6);
@@ -161,6 +164,7 @@ int ComponentManager::getByPartNumber(const std::string& partNumber, DbResult& r
         id = sqlite3_column_int(stmt, 0);
     }
 
-    sqlite3_finalize(stmt);
+    db_.finalize(stmt);
+    result.clear();
     return id;
 }

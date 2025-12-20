@@ -43,6 +43,8 @@ private:
     ComponentTableModel* componentModel_ = nullptr;
     void clearComponentView();
 
+    void reloadComponents();
+
     // Helpers
     bool createNewDatabase(const QString& fileName);
     bool openExistingDatabase(const QString& fileName);
