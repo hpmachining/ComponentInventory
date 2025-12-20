@@ -61,35 +61,7 @@ void MainWindow::onActionNewDb()
     if (fileName.isEmpty())
         return;
 
-    if (QFileInfo::exists(fileName)) {
-        auto response = QMessageBox::warning(
-            this,
-            tr("Overwrite Database"),
-            tr("The selected database already exists.\n\n"
-                "This will permanently delete all data in the database.\n"
-                "This action cannot be undone.\n\n"
-                "Are you sure you want to continue?"),
-            QMessageBox::Yes | QMessageBox::Cancel,
-            QMessageBox::Cancel
-        );
-
-        if (response != QMessageBox::Yes)
-            return;
-
-        if (!QFile::remove(fileName)) {
-            QMessageBox::critical(
-                this,
-                tr("Error"),
-                tr("Failed to delete the existing database file.")
-            );
-            return;
-        }
-    }
-
-    if (!closeDb())
-        return;
-
-    connectDb(fileName);
+    createNewDb(fileName);
 }
 
 void MainWindow::onActionOpenDb()
@@ -104,16 +76,7 @@ void MainWindow::onActionOpenDb()
     if (fileName.isEmpty())
         return;
 
-    if (!QFileInfo::exists(fileName)) {
-        QMessageBox::critical(this, tr("Missing"),
-            tr("Database not found."));
-        return;
-    }
-
-    if (!closeDb())
-        return;
-
-    connectDb(fileName);
+    openExistingDb(fileName);
 }
 
 void MainWindow::onActionCloseDb()
@@ -131,6 +94,50 @@ void MainWindow::clearComponentView()
 
     delete componentModel_;  // free the old model
     componentModel_ = nullptr;
+}
+
+bool MainWindow::createNewDb(const QString& fileName)
+{
+    if (QFileInfo::exists(fileName)) {
+        auto response = QMessageBox::warning(
+            this,
+            tr("Overwrite Database"),
+            tr("The selected database already exists.\n\n"
+                "This will permanently delete all data.\n"
+                "This action cannot be undone.\n\n"
+                "Are you sure you want to continue?"),
+            QMessageBox::Yes | QMessageBox::Cancel,
+            QMessageBox::Cancel
+        );
+
+        if (response != QMessageBox::Yes)
+            return false;
+
+        if (!QFile::remove(fileName)) {
+            QMessageBox::critical(this, tr("Error"),
+                tr("Failed to delete the existing database file."));
+            return false;
+        }
+    }
+
+    if (!closeDb())
+        return false;
+
+    return connectDb(fileName);
+}
+
+bool MainWindow::openExistingDb(const QString& fileName)
+{
+    if (!QFileInfo::exists(fileName)) {
+        QMessageBox::critical(this, tr("Missing"),
+            tr("Database not found."));
+        return false;
+    }
+
+    if (!closeDb())
+        return false;
+
+    return connectDb(fileName);
 }
 
 bool MainWindow::connectDb(const QString& fileName)
@@ -156,13 +163,14 @@ bool MainWindow::connectDb(const QString& fileName)
         db_.reset();
         return false;
     }
-#ifdef QT_DEBUG
-    DevDataSeeder::seedComponents(*db_);
-#endif
-
-    componentModel_ = new ComponentTableModel(db_.get(), this);
-    ui->tableViewComponents->setModel(componentModel_);
-    ui->tableViewComponents->resizeColumnsToContents();
+//#ifdef QT_DEBUG
+//    DevDataSeeder::seedComponents(*db_);
+//#endif
+//
+//	// view components (test code)
+//    componentModel_ = new ComponentTableModel(db_.get(), this);
+//    ui->tableViewComponents->setModel(componentModel_);
+//    ui->tableViewComponents->resizeColumnsToContents();
 
     currentDbPath_ = fileName;
     updateWindowTitle(QFileInfo(fileName).fileName());

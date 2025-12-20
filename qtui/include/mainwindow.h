@@ -40,6 +40,8 @@ private:
     void clearComponentView();
 
     // Helpers
+    bool createNewDb(const QString& fileName);
+    bool openExistingDb(const QString& fileName);
     bool connectDb(const QString& fileName);
 	bool closeDb();
     void enableDbActions();
