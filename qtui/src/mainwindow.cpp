@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QStatusBar>
 #include <QFileDialog>
+#include <QVBoxLayout>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -14,13 +15,29 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
 
+    // --- Setup central widget and layout for resizable table ---
+    QWidget* central = new QWidget(this);
+    setCentralWidget(central);
+
+    QVBoxLayout* layout = new QVBoxLayout(central);
+    layout->addWidget(ui->componentView);
+    layout->setContentsMargins(0, 0, 0, 0); // optional: remove outer margins
+
+    // --- Table model ---
+    componentModel_ = new ComponentTableModel(this); // db set later via InventoryService
+    ui->componentView->setModel(componentModel_);
+
+    // --- Stretch headers for nice resizing ---
+    ui->componentView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    for (int i = 1; i < ui->componentView->model()->columnCount(); ++i)
+        ui->componentView->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
+
+    // --- Window & status ---
     updateWindowTitle();
     statusBar()->showMessage(tr("Ready"));
     disableDatabaseActions();
 
-    componentModel_ = new ComponentTableModel(this);
-    ui->componentView->setModel(componentModel_);
-
+    // --- Connect actions ---
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onActionExit);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onActionAbout);
     connect(ui->actionNewDatabase, &QAction::triggered, this, &MainWindow::onActionNewDatabase);
