@@ -31,6 +31,8 @@ private slots:
     void onActionNewDatabase();
     void onActionOpenDatabase();
     void onActionCloseDatabase();
+    void onActionAddTestComponent();
+    void onActionDeleteComponent();
 
 private:
     Ui::MainWindow* ui;

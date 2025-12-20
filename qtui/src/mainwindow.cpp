@@ -43,6 +43,8 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionNewDatabase, &QAction::triggered, this, &MainWindow::onActionNewDatabase);
     connect(ui->actionOpenDatabase, &QAction::triggered, this, &MainWindow::onActionOpenDatabase);
     connect(ui->actionCloseDatabase, &QAction::triggered, this, &MainWindow::onActionCloseDatabase);
+	connect(ui->actionAddTestComponent, &QAction::triggered, this, &MainWindow::onActionAddTestComponent);
+	connect(ui->actionDeleteComponent, &QAction::triggered, this, &MainWindow::onActionDeleteComponent);
 }
 
 MainWindow::~MainWindow()
@@ -103,6 +105,48 @@ void MainWindow::onActionOpenDatabase()
 void MainWindow::onActionCloseDatabase()
 {
     closeDatabase();
+}
+
+void MainWindow::onActionAddTestComponent()
+{
+    if (!inventory_)
+        return;
+
+    Component c;
+    c.partNumber = "TEST-" + std::to_string(QDateTime::currentSecsSinceEpoch());
+    c.categoryId = 1;        // Resistor
+    c.manufacturerId = 1;    // Generic
+    c.description = "Phase 1 test component";
+    c.quantity = 1;
+
+    DbResult result;
+    if (!inventory_->components().addComponent(c, result)) {
+        QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+        return;
+    }
+
+    reloadComponents();
+}
+
+void MainWindow::onActionDeleteComponent()
+{
+    if (!inventory_ || !componentModel_)
+        return;
+
+    QModelIndex idx = ui->componentView->currentIndex();
+    if (!idx.isValid())
+        return;
+
+    int row = idx.row();
+    int id = componentModel_->componentIdAt(row);
+
+    DbResult result;
+    if (!inventory_->components().deleteComponent(id, result)) {
+        QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+        return;
+    }
+
+    reloadComponents();
 }
 
 // --- Database lifecycle helpers ---

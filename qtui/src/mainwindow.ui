@@ -48,6 +48,8 @@
     <property name="title">
      <string>&amp;Database</string>
     </property>
+    <addaction name="actionAddTestComponent"/>
+    <addaction name="actionDeleteComponent"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -86,6 +88,16 @@
   <action name="actionCloseDatabase">
    <property name="text">
     <string>&amp;Close Database</string>
+   </property>
+  </action>
+  <action name="actionAddTestComponent">
+   <property name="text">
+    <string>&amp;Add Test Component</string>
+   </property>
+  </action>
+  <action name="actionDeleteComponent">
+   <property name="text">
+    <string>&amp;Delete Component</string>
    </property>
   </action>
  </widget>
