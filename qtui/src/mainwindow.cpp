@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "SchemaManager.h"
+#include "InventoryService.h"
 #include "ComponentTableModel.h"
 #include "DevDataSeeder.h"
 #include <QMessageBox>
@@ -15,13 +16,13 @@ MainWindow::MainWindow(QWidget* parent)
 
     updateWindowTitle();
     statusBar()->showMessage(tr("Ready"));
-    disableDbActions();
+    disableDatabaseActions();
 
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onActionExit);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onActionAbout);
-    connect(ui->actionNewDb, &QAction::triggered, this, &MainWindow::onActionNewDb);
-    connect(ui->actionOpenDb, &QAction::triggered, this, &MainWindow::onActionOpenDb);
-    connect(ui->actionCloseDb, &QAction::triggered, this, &MainWindow::onActionCloseDb);
+    connect(ui->actionNewDatabase, &QAction::triggered, this, &MainWindow::onActionNewDatabase);
+    connect(ui->actionOpenDatabase, &QAction::triggered, this, &MainWindow::onActionOpenDatabase);
+    connect(ui->actionCloseDatabase, &QAction::triggered, this, &MainWindow::onActionCloseDatabase);
 }
 
 MainWindow::~MainWindow()
@@ -31,7 +32,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    closeDb();          // cleanup logic
+    closeDatabase();          // cleanup logic
     event->accept();    // allow the window to close
 }
 
@@ -49,7 +50,7 @@ void MainWindow::onActionAbout()
         tr("ComponentInventory\n\nQt6 front end for your SQLite database."));
 }
 
-void MainWindow::onActionNewDb()
+void MainWindow::onActionNewDatabase()
 {
     QString fileName = QFileDialog::getSaveFileName(
         this,
@@ -61,10 +62,10 @@ void MainWindow::onActionNewDb()
     if (fileName.isEmpty())
         return;
 
-    createNewDb(fileName);
+    createNewDatabase(fileName);
 }
 
-void MainWindow::onActionOpenDb()
+void MainWindow::onActionOpenDatabase()
 {
     QString fileName = QFileDialog::getOpenFileName(
         this,
@@ -76,12 +77,12 @@ void MainWindow::onActionOpenDb()
     if (fileName.isEmpty())
         return;
 
-    openExistingDb(fileName);
+    openExistingDatabase(fileName);
 }
 
-void MainWindow::onActionCloseDb()
+void MainWindow::onActionCloseDatabase()
 {
-    closeDb();
+    closeDatabase();
 }
 
 // --- Database lifecycle helpers ---
@@ -96,7 +97,7 @@ void MainWindow::clearComponentView()
     componentModel_ = nullptr;
 }
 
-bool MainWindow::createNewDb(const QString& fileName)
+bool MainWindow::createNewDatabase(const QString& fileName)
 {
     if (QFileInfo::exists(fileName)) {
         auto response = QMessageBox::warning(
@@ -120,13 +121,13 @@ bool MainWindow::createNewDb(const QString& fileName)
         }
     }
 
-    if (!closeDb())
+    if (!closeDatabase())
         return false;
 
-    return connectDb(fileName);
+    return openDatabase(fileName);
 }
 
-bool MainWindow::openExistingDb(const QString& fileName)
+bool MainWindow::openExistingDatabase(const QString& fileName)
 {
     if (!QFileInfo::exists(fileName)) {
         QMessageBox::critical(this, tr("Missing"),
@@ -134,67 +135,50 @@ bool MainWindow::openExistingDb(const QString& fileName)
         return false;
     }
 
-    if (!closeDb())
+    if (!closeDatabase())
         return false;
 
-    return connectDb(fileName);
+    return openDatabase(fileName);
 }
 
-bool MainWindow::connectDb(const QString& fileName)
+bool MainWindow::openDatabase(const QString& fileName)
 {
     DbResult result;
-    db_ = std::make_unique<Database>(fileName.toStdString(), result);
 
-    if (!db_->isOpen()) {
-        QMessageBox::critical(this,
+    inventory_ = InventoryService::open(
+        fileName.toStdString(),
+        result
+    );
+
+    if (!inventory_) {
+        QMessageBox::critical(
+            this,
             tr("Database Error"),
-            tr("Failed to open database:\n%1")
-            .arg(QString::fromStdString(result.message)));
-        db_.reset();
+            QString::fromStdString(result.message)
+        );
         return false;
     }
 
-    SchemaManager schema(*db_);
-    if (!schema.initialize(result)) {
-        QMessageBox::critical(this,
-            tr("Schema Error"),
-            tr("Failed to initialize schema:\n%1")
-            .arg(QString::fromStdString(result.message)));
-        db_.reset();
-        return false;
-    }
-//#ifdef QT_DEBUG
-//    DevDataSeeder::seedComponents(*db_);
-//#endif
-//
-//	// view components (test code)
-//    componentModel_ = new ComponentTableModel(db_.get(), this);
-//    ui->tableViewComponents->setModel(componentModel_);
-//    ui->tableViewComponents->resizeColumnsToContents();
-
-    currentDbPath_ = fileName;
-    updateWindowTitle(QFileInfo(fileName).fileName());
-
-    enableDbActions();
+    currentDatabasePath_ = fileName;
+    enableDatabaseActions();
     statusBar()->showMessage(tr("Connected to %1").arg(fileName));
-
     return true;
 }
 
-bool MainWindow::closeDb()
+bool MainWindow::closeDatabase()
 {
-    if (!db_)
+    if (!inventory_)
         return true;
 
-    // Future: unsaved changes check
+    // Future: prompt for unsaved changes here
 
-    db_.reset();
-    currentDbPath_.clear();
+    inventory_.reset();   // 💥 closes DB via RAII
+    currentDatabasePath_.clear();
 
     updateWindowTitle();
     statusBar()->showMessage(tr("Database disconnected"));
 
-    disableDbActions();
+    disableDatabaseActions();
     clearComponentView();
 
     return true;
@@ -202,14 +186,14 @@ bool MainWindow::closeDb()
 
 // --- UI state helpers ---
 
-void MainWindow::enableDbActions()
+void MainWindow::enableDatabaseActions()
 {
-    ui->actionCloseDb->setEnabled(true);
+    ui->actionCloseDatabase->setEnabled(true);
 }
 
-void MainWindow::disableDbActions()
+void MainWindow::disableDatabaseActions()
 {
-    ui->actionCloseDb->setEnabled(false);
+    ui->actionCloseDatabase->setEnabled(false);
 }
 
 void MainWindow::updateWindowTitle(const QString& dbName)

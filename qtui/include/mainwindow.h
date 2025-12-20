@@ -3,12 +3,15 @@
 #include "Database.h"
 #include "DbResult.h"
 #include "ComponentTableModel.h"
+#include <memory>
 #include <QMainWindow>
 #include <QCloseEvent>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
+
+class InventoryService;
 
 class MainWindow : public QMainWindow
 {
@@ -17,35 +20,36 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
-
+private:
+    std::unique_ptr<InventoryService> inventory_;
 protected:
     void closeEvent(QCloseEvent* event) override;
 
 private slots:
     void onActionExit();
     void onActionAbout();
-    void onActionNewDb();
-    void onActionOpenDb();
-    void onActionCloseDb();
+    void onActionNewDatabase();
+    void onActionOpenDatabase();
+    void onActionCloseDatabase();
 
 private:
     Ui::MainWindow* ui;
     
 	// Database
-    std::unique_ptr<Database> db_;
-    QString currentDbPath_;
+    //std::unique_ptr<Database> db_;
+    QString currentDatabasePath_;
 
     // UI models
     ComponentTableModel* componentModel_ = nullptr;
     void clearComponentView();
 
     // Helpers
-    bool createNewDb(const QString& fileName);
-    bool openExistingDb(const QString& fileName);
-    bool connectDb(const QString& fileName);
-	bool closeDb();
-    void enableDbActions();
-    void disableDbActions();
+    bool createNewDatabase(const QString& fileName);
+    bool openExistingDatabase(const QString& fileName);
+    bool openDatabase(const QString& fileName);
+	bool closeDatabase();
+    void enableDatabaseActions();
+    void disableDatabaseActions();
     static constexpr const char* kAppTitle = "Component Inventory";
     void updateWindowTitle(const QString& dbName = QString());
 
