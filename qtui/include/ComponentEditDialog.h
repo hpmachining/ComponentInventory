@@ -18,6 +18,9 @@ public:
     void setComponent(const Component& c);
     Component component() const;
 
+private slots:
+    void onAccept();
+
 private:
     Ui::ComponentEditDialog* ui_;
     Component component_;
