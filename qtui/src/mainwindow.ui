@@ -43,8 +43,9 @@
     <property name="title">
      <string>&amp;Database</string>
     </property>
-    <addaction name="actionAddTestComponent"/>
+    <addaction name="actionAddComponent"/>
     <addaction name="actionDeleteComponent"/>
+    <addaction name="actionAddTestComponent"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -87,12 +88,17 @@
   </action>
   <action name="actionAddTestComponent">
    <property name="text">
-    <string>&amp;Add Test Component</string>
+    <string>Add &amp;Test Component</string>
    </property>
   </action>
   <action name="actionDeleteComponent">
    <property name="text">
     <string>&amp;Delete Component</string>
+   </property>
+  </action>
+  <action name="actionAddComponent">
+   <property name="text">
+    <string>&amp;Add Component</string>
    </property>
   </action>
  </widget>

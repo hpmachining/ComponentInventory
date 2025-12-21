@@ -1,8 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "ui_ComponentEditDialog.h"
 #include "SchemaManager.h"
 #include "InventoryService.h"
 #include "ComponentTableModel.h"
+#include "ComponentEditDialog.h"
 #include "DevDataSeeder.h"
 #include <QMessageBox>
 #include <QStatusBar>
@@ -45,6 +47,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionCloseDatabase, &QAction::triggered, this, &MainWindow::onActionCloseDatabase);
 	connect(ui->actionAddTestComponent, &QAction::triggered, this, &MainWindow::onActionAddTestComponent);
 	connect(ui->actionDeleteComponent, &QAction::triggered, this, &MainWindow::onActionDeleteComponent);
+    connect(ui->actionAddComponent, &QAction::triggered, this, &MainWindow::onActionAddComponent);
 }
 
 MainWindow::~MainWindow()
@@ -107,25 +110,31 @@ void MainWindow::onActionCloseDatabase()
     closeDatabase();
 }
 
-void MainWindow::onActionAddTestComponent()
+void MainWindow::onActionAddComponent()
 {
-    if (!inventory_)
-        return;
+    if (!inventory_) return; // DB not open
 
+    ComponentEditDialog dialog(this);
+
+    // Start with a blank component
     Component c;
-    c.partNumber = "TEST-" + std::to_string(QDateTime::currentSecsSinceEpoch());
-    c.categoryId = 1;        // Resistor
-    c.manufacturerId = 1;    // Generic
-    c.description = "Phase 1 test component";
-    c.quantity = 1;
 
-    DbResult result;
-    if (!inventory_->components().addComponent(c, result)) {
-        QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
-        return;
+    dialog.setComponent(c);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        c = dialog.component();
+
+        DbResult result;
+        if (!inventory_->components().addComponent(c, result)) {
+            QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+            return;
+        }
+
+        // Refresh the table
+        reloadComponents();
+
+        statusBar()->showMessage(tr("Component added"), 3000);
     }
-
-    reloadComponents();
 }
 
 void MainWindow::onActionDeleteComponent()
@@ -142,6 +151,27 @@ void MainWindow::onActionDeleteComponent()
 
     DbResult result;
     if (!inventory_->components().deleteComponent(id, result)) {
+        QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+        return;
+    }
+
+    reloadComponents();
+}
+
+void MainWindow::onActionAddTestComponent()
+{
+    if (!inventory_)
+        return;
+
+    Component c;
+    c.partNumber = "TEST-" + std::to_string(QDateTime::currentSecsSinceEpoch());
+    c.categoryId = 1;        // Resistor
+    c.manufacturerId = 1;    // Generic
+    c.description = "Phase 1 test component";
+    c.quantity = 1;
+
+    DbResult result;
+    if (!inventory_->components().addComponent(c, result)) {
         QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
         return;
     }
@@ -272,11 +302,17 @@ bool MainWindow::closeDatabase()
 void MainWindow::enableDatabaseActions()
 {
     ui->actionCloseDatabase->setEnabled(true);
+    ui->actionAddComponent->setEnabled(true);
+    ui->actionDeleteComponent->setEnabled(true);
+    ui->actionAddTestComponent->setEnabled(true);
 }
 
 void MainWindow::disableDatabaseActions()
 {
     ui->actionCloseDatabase->setEnabled(false);
+    ui->actionAddComponent->setEnabled(false);
+	ui->actionDeleteComponent->setEnabled(false);
+	ui->actionAddTestComponent->setEnabled(false);
 }
 
 void MainWindow::updateWindowTitle(const QString& dbName)

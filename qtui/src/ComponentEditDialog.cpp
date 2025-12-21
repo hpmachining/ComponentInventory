@@ -40,19 +40,14 @@ void ComponentEditDialog::setComponent(const Component& c)
 {
     component_ = c;
 
-    ui_->partNumberEdit->setText(
-        QString::fromStdString(c.partNumber)
-    );
-
-    ui_->descriptionEdit->setText(
-        QString::fromStdString(c.description)
-    );
-
+    ui_->partNumberEdit->setText(QString::fromStdString(c.partNumber));
+    ui_->descriptionEdit->setText(QString::fromStdString(c.description));
     ui_->quantitySpin->setValue(c.quantity);
+    ui_->notesEdit->setPlainText(QString::fromStdString(c.notes));
 
-    ui_->notesEdit->setPlainText(
-        QString::fromStdString(c.notes)
-    );
+    // Add these lines for Phase 2
+    ui_->categorySpin->setValue(c.categoryId);       // QSpinBox for category
+    ui_->manufacturerSpin->setValue(c.manufacturerId); // QSpinBox for manufacturer
 }
 
 Component ComponentEditDialog::component() const
@@ -63,6 +58,8 @@ Component ComponentEditDialog::component() const
     c.description = ui_->descriptionEdit->text().toStdString();
     c.quantity = ui_->quantitySpin->value();
     c.notes = ui_->notesEdit->toPlainText().toStdString();
+	c.categoryId = ui_->categorySpin->value();
+	c.manufacturerId = ui_->manufacturerSpin->value();
 
     return c;
 }

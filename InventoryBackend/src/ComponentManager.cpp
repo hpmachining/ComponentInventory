@@ -15,7 +15,10 @@ bool ComponentManager::addComponent(const Component& comp, DbResult& result) {
 
     sqlite3_bind_int(stmt, 1, comp.categoryId);
     sqlite3_bind_text(stmt, 2, comp.partNumber.c_str(), -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(stmt, 3, comp.manufacturerId);
+    if (comp.manufacturerId > 0)
+        sqlite3_bind_int(stmt, 3, comp.manufacturerId);
+    else
+        sqlite3_bind_null(stmt, 3);
     sqlite3_bind_text(stmt, 4, comp.description.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 5, comp.notes.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 6, comp.quantity);
@@ -133,10 +136,7 @@ bool ComponentManager::listComponents(std::vector<Component>& comps, DbResult& r
         comp.id = sqlite3_column_int(stmt, 0);
         comp.categoryId = sqlite3_column_int(stmt, 1);
         comp.partNumber = safeColumnText(stmt, 2);
-        if (comp.manufacturerId > 0)
-            sqlite3_bind_int(stmt, 3, comp.manufacturerId);
-        else
-            sqlite3_bind_null(stmt, 3);
+        comp.manufacturerId = sqlite3_column_int(stmt, 3);
         comp.description = safeColumnText(stmt, 4);
         comp.notes = safeColumnText(stmt, 5);
         comp.quantity = sqlite3_column_int(stmt, 6);
