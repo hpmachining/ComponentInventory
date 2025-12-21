@@ -9,9 +9,10 @@ add_executable(ComponentInventoryUI
     src/mainwindow.cpp
     src/mainwindow.ui
     include/mainwindow.h
-    "include/ComponentTableModel.h"
-    "src/ComponentTableModel.cpp" 
-    "src/DevDataSeeder.cpp")
+    include/ComponentTableModel.h
+    src/ComponentTableModel.cpp
+    src/DevDataSeeder.cpp
+    src/ComponentEditDialog.ui "include/ComponentEditDialog.h" "src/ComponentEditDialog.cpp")
 
 target_include_directories(ComponentInventoryUI PRIVATE
     include
