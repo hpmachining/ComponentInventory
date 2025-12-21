@@ -2,6 +2,8 @@
 #include "ui_ComponentEditDialog.h"
 #include "InventoryService.h"
 #include <QMessageBox>
+#include <QDialogButtonBox>
+#include <QPushButton>
 
 ComponentEditDialog::ComponentEditDialog(
     InventoryService& inventory,
@@ -16,27 +18,23 @@ ComponentEditDialog::ComponentEditDialog(
 
     populateCombos();
 
-    connect(ui_->buttonBox, &QDialogButtonBox::accepted,
-        this, &ComponentEditDialog::onAccept);
+    // Disable OK initially
+    ui_->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+
+    // Live validation
+    connect(ui_->partNumberEdit, &QLineEdit::textChanged,
+        this, &ComponentEditDialog::updateOkButtonState);
+
+    connect(ui_->categoryCombo, &QComboBox::currentIndexChanged,
+        this, &ComponentEditDialog::updateOkButtonState);
+
+    connect(ui_->manufacturerCombo, &QComboBox::currentIndexChanged,
+        this, &ComponentEditDialog::updateOkButtonState);
 }
 
 ComponentEditDialog::~ComponentEditDialog()
 {
     delete ui_;
-}
-
-void ComponentEditDialog::onAccept()
-{
-    if (ui_->partNumberEdit->text().trimmed().isEmpty()) {
-        QMessageBox::warning(
-            this,
-            tr("Missing Field"),
-            tr("Part Number is required.")
-        );
-        return;
-    }
-
-    accept();
 }
 
 void ComponentEditDialog::setComponent(const Component& c)
@@ -110,4 +108,15 @@ void ComponentEditDialog::populateCombos()
             );
         }
     }
+}
+
+bool ComponentEditDialog::isValid() const
+{
+    return !ui_->partNumberEdit->text().trimmed().isEmpty();
+}
+
+void ComponentEditDialog::updateOkButtonState()
+{
+    ui_->buttonBox->button(QDialogButtonBox::Ok)
+        ->setEnabled(isValid());
 }

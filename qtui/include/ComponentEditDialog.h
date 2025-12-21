@@ -24,10 +24,11 @@ public:
     Component component() const;
 
 private slots:
-    void onAccept();
+    void updateOkButtonState();
 
 private:
-	void populateCombos();
+    bool isValid() const;
+    void populateCombos();
 
     Ui::ComponentEditDialog* ui_;
     InventoryService& inventory_;
