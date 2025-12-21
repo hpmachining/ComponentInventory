@@ -24,10 +24,8 @@ ComponentEditDialog::ComponentEditDialog(
     // Live validation
     connect(ui_->partNumberEdit, &QLineEdit::textChanged,
         this, &ComponentEditDialog::updateOkButtonState);
-
     connect(ui_->categoryCombo, &QComboBox::currentIndexChanged,
         this, &ComponentEditDialog::updateOkButtonState);
-
     connect(ui_->manufacturerCombo, &QComboBox::currentIndexChanged,
         this, &ComponentEditDialog::updateOkButtonState);
 }
@@ -95,18 +93,17 @@ void ComponentEditDialog::populateCombos()
 
     // ---- Manufacturers ----
     ui_->manufacturerCombo->clear();
-
     std::vector<Manufacturer> manufacturers;
     if (inventory_.manufacturers().listManufacturers(manufacturers, result)) {
-        // Optional: allow "no manufacturer"
-        ui_->manufacturerCombo->addItem(tr("<None>"), QVariant());
-
         for (const auto& m : manufacturers) {
             ui_->manufacturerCombo->addItem(
                 QString::fromStdString(m.name),
                 m.id
             );
         }
+        int genericIndex = ui_->manufacturerCombo->findText("Generic");
+        if (genericIndex >= 0)
+            ui_->manufacturerCombo->setCurrentIndex(genericIndex);
     }
 }
 

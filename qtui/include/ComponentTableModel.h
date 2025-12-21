@@ -19,6 +19,11 @@ public:
     void setComponents(std::vector<Component>&& comps);
     int componentIdAt(int row) const;
 
+    void setCategoryLookup(std::unordered_map<int, QString> lookup);
+    void setManufacturerLookup(std::unordered_map<int, QString> lookup);
+
 private:
     std::vector<Component> components_;
+    std::unordered_map<int, QString> categoryNames_;
+    std::unordered_map<int, QString> manufacturerNames_;
 };

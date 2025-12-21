@@ -193,19 +193,35 @@ void MainWindow::reloadComponents()
     if (!inventory_ || !componentModel_)
         return;
 
-    std::vector<Component> comps;
     DbResult result;
 
-    if (!inventory_->components().listComponents(comps, result)) {
-        QMessageBox::critical(
-            this,
-            tr("Error"),
-            QString::fromStdString(result.message)
-        );
+    // Load components
+    std::vector<Component> components;
+    if (!inventory_->components().listComponents(components, result)) {
+        QMessageBox::critical(this, tr("Error"),
+            QString::fromStdString(result.toString()));
         return;
     }
 
-    componentModel_->setComponents(std::move(comps));
+    // Load categories
+    std::vector<Category> categories;
+    inventory_->categories().listCategories(categories, result);
+
+    std::unordered_map<int, QString> categoryMap;
+    for (const auto& c : categories)
+        categoryMap[c.id] = QString::fromStdString(c.name);
+
+    // Load manufacturers
+    std::vector<Manufacturer> manufacturers;
+    inventory_->manufacturers().listManufacturers(manufacturers, result);
+
+    std::unordered_map<int, QString> manufacturerMap;
+    for (const auto& m : manufacturers)
+        manufacturerMap[m.id] = QString::fromStdString(m.name);
+
+    componentModel_->setCategoryLookup(std::move(categoryMap));
+    componentModel_->setManufacturerLookup(std::move(manufacturerMap));
+    componentModel_->setComponents(std::move(components));
 }
 
 bool MainWindow::createNewDatabase(const QString& fileName)

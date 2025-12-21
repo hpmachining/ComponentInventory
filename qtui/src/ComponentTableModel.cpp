@@ -19,6 +19,22 @@ int ComponentTableModel::componentIdAt(int row) const
     return components_[row].id;
 }
 
+void ComponentTableModel::setCategoryLookup(
+    std::unordered_map<int, QString> lookup)
+{
+    beginResetModel();
+    categoryNames_ = std::move(lookup);
+    endResetModel();
+}
+
+void ComponentTableModel::setManufacturerLookup(
+    std::unordered_map<int, QString> lookup)
+{
+    beginResetModel();
+    manufacturerNames_ = std::move(lookup);
+    endResetModel();
+}
+
 int ComponentTableModel::rowCount(const QModelIndex&) const
 {
     return static_cast<int>(components_.size());
@@ -29,7 +45,8 @@ int ComponentTableModel::columnCount(const QModelIndex&) const
     return 10;
 }
 
-QVariant ComponentTableModel::data(const QModelIndex& index, int role) const
+QVariant ComponentTableModel::data(
+    const QModelIndex& index, int role) const
 {
     if (!index.isValid() || role != Qt::DisplayRole)
         return {};
@@ -38,16 +55,31 @@ QVariant ComponentTableModel::data(const QModelIndex& index, int role) const
 
     switch (index.column()) {
     case 0: return c.id;
-    case 1: return c.categoryId;
+
+    case 1: { // Category name
+        auto it = categoryNames_.find(c.categoryId);
+        return it != categoryNames_.end()
+            ? it->second
+            : QString("<Unknown>");
+    }
+
     case 2: return QString::fromStdString(c.partNumber);
-    case 3: return c.manufacturerId;
+
+    case 3: { // Manufacturer name
+        auto it = manufacturerNames_.find(c.manufacturerId);
+        return it != manufacturerNames_.end()
+            ? it->second
+            : QString("<Unknown>");
+    }
+
     case 4: return QString::fromStdString(c.description);
     case 5: return QString::fromStdString(c.notes);
     case 6: return c.quantity;
     case 7: return QString::fromStdString(c.datasheetLink);
     case 8: return QString::fromStdString(c.createdOn);
     case 9: return QString::fromStdString(c.modifiedOn);
-    default: return {};
+    default:
+        return {};
     }
 }
 
