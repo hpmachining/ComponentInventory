@@ -114,11 +114,10 @@ void MainWindow::onActionAddComponent()
 {
     if (!inventory_) return; // DB not open
 
-    ComponentEditDialog dialog(this);
+    ComponentEditDialog dialog(*inventory_, this);
 
     // Start with a blank component
     Component c;
-
     dialog.setComponent(c);
 
     if (dialog.exec() == QDialog::Accepted) {
@@ -126,13 +125,15 @@ void MainWindow::onActionAddComponent()
 
         DbResult result;
         if (!inventory_->components().addComponent(c, result)) {
-            QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+            QMessageBox::critical(
+                this,
+                tr("Error"),
+                QString::fromStdString(result.toString())
+            );
             return;
         }
 
-        // Refresh the table
         reloadComponents();
-
         statusBar()->showMessage(tr("Component added"), 3000);
     }
 }

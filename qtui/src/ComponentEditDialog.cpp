@@ -1,20 +1,23 @@
 #include "ComponentEditDialog.h"
 #include "ui_ComponentEditDialog.h"
+#include "InventoryService.h"
 #include <QMessageBox>
 
-ComponentEditDialog::ComponentEditDialog(QWidget* parent)
-    : QDialog(parent),
-    ui_(new Ui::ComponentEditDialog)
+ComponentEditDialog::ComponentEditDialog(
+    InventoryService& inventory,
+    QWidget* parent
+)
+    : QDialog(parent)
+    , ui_(new Ui::ComponentEditDialog)
+    , inventory_(inventory)
 {
     ui_->setupUi(this);
+    setWindowTitle(tr("Add Component"));
 
-    // Optional but recommended
-    setWindowTitle(tr("Edit Component"));
+    populateCombos();
 
-    // OK / Cancel are auto-wired if you used QDialogButtonBox
     connect(ui_->buttonBox, &QDialogButtonBox::accepted,
         this, &ComponentEditDialog::onAccept);
-
 }
 
 ComponentEditDialog::~ComponentEditDialog()
@@ -45,9 +48,15 @@ void ComponentEditDialog::setComponent(const Component& c)
     ui_->quantitySpin->setValue(c.quantity);
     ui_->notesEdit->setPlainText(QString::fromStdString(c.notes));
 
-    // Add these lines for Phase 2
-    ui_->categorySpin->setValue(c.categoryId);       // QSpinBox for category
-    ui_->manufacturerSpin->setValue(c.manufacturerId); // QSpinBox for manufacturer
+    // Select category by ID
+    int catIndex = ui_->categoryCombo->findData(c.categoryId);
+    if (catIndex >= 0)
+        ui_->categoryCombo->setCurrentIndex(catIndex);
+
+    // Select manufacturer by ID
+    int manIndex = ui_->manufacturerCombo->findData(c.manufacturerId);
+    if (manIndex >= 0)
+        ui_->manufacturerCombo->setCurrentIndex(manIndex);
 }
 
 Component ComponentEditDialog::component() const
@@ -58,8 +67,47 @@ Component ComponentEditDialog::component() const
     c.description = ui_->descriptionEdit->text().toStdString();
     c.quantity = ui_->quantitySpin->value();
     c.notes = ui_->notesEdit->toPlainText().toStdString();
-	c.categoryId = ui_->categorySpin->value();
-	c.manufacturerId = ui_->manufacturerSpin->value();
+
+    c.categoryId =
+        ui_->categoryCombo->currentData().toInt();
+
+    QVariant manData = ui_->manufacturerCombo->currentData();
+    c.manufacturerId =
+        manData.isValid() ? manData.toInt() : 0;
 
     return c;
+}
+
+void ComponentEditDialog::populateCombos()
+{
+    DbResult result;
+
+    // ---- Categories ----
+    ui_->categoryCombo->clear();
+
+    std::vector<Category> categories;
+    if (inventory_.categories().listCategories(categories, result)) {
+        for (const auto& c : categories) {
+            ui_->categoryCombo->addItem(
+                QString::fromStdString(c.name),
+                c.id   // stored as user data
+            );
+        }
+    }
+
+    // ---- Manufacturers ----
+    ui_->manufacturerCombo->clear();
+
+    std::vector<Manufacturer> manufacturers;
+    if (inventory_.manufacturers().listManufacturers(manufacturers, result)) {
+        // Optional: allow "no manufacturer"
+        ui_->manufacturerCombo->addItem(tr("<None>"), QVariant());
+
+        for (const auto& m : manufacturers) {
+            ui_->manufacturerCombo->addItem(
+                QString::fromStdString(m.name),
+                m.id
+            );
+        }
+    }
 }

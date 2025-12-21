@@ -10,6 +10,8 @@
 InventoryService::InventoryService(std::unique_ptr<Database> db)
     : db_(std::move(db))
     , componentMgr_(*db_)
+    , categoryMgr_(*db_)
+    , manufacturerMgr_(*db_)
 {
 }
 
@@ -53,4 +55,14 @@ InventoryService::openInternal(const std::string& path, DbResult& result)
 ComponentManager& InventoryService::components()
 {
     return componentMgr_;
+}
+
+CategoryManager& InventoryService::categories()
+{
+    return categoryMgr_;
+}
+
+ManufacturerManager& InventoryService::manufacturers()
+{
+    return manufacturerMgr_;
 }

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ComponentManager.h"
+#include "CategoryManager.h"
+#include "ManufacturerManager.h"
 #include <memory>
 #include <string>
 
@@ -16,6 +18,8 @@ public:
         create(const std::string& path, DbResult& result);
 
     ComponentManager& components();
+    CategoryManager& categories();
+    ManufacturerManager& manufacturers();
 
 private:
     explicit InventoryService(std::unique_ptr<Database> db);
@@ -25,4 +29,6 @@ private:
 
     std::unique_ptr<Database> db_;
     ComponentManager componentMgr_;
+    CategoryManager categoryMgr_;
+    ManufacturerManager manufacturerMgr_;
 };

@@ -7,12 +7,17 @@ namespace Ui {
     class ComponentEditDialog;
 }
 
+class InventoryService;
+
 class ComponentEditDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit ComponentEditDialog(QWidget* parent = nullptr);
+    explicit ComponentEditDialog(
+        InventoryService& inventory,
+        QWidget* parent = nullptr
+    );
     ~ComponentEditDialog();
 
     void setComponent(const Component& c);
@@ -22,6 +27,9 @@ private slots:
     void onAccept();
 
 private:
+	void populateCombos();
+
     Ui::ComponentEditDialog* ui_;
+    InventoryService& inventory_;
     Component component_;
 };

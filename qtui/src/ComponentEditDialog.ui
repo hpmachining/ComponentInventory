@@ -66,30 +66,10 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
-      <widget class="QSpinBox" name="categorySpin">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>1000</number>
-       </property>
-      </widget>
-     </item>
      <item row="4" column="0">
       <widget class="QLabel" name="manufacturerLabel">
        <property name="text">
         <string>Manufacturer</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QSpinBox" name="manufacturerSpin">
-       <property name="minimum">
-        <number>0</number>
-       </property>
-       <property name="maximum">
-        <number>1000</number>
        </property>
       </widget>
      </item>
@@ -102,6 +82,12 @@
      </item>
      <item row="5" column="1">
       <widget class="QLineEdit" name="datasheetEdit"/>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="categoryCombo"/>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="manufacturerCombo"/>
      </item>
     </layout>
    </item>
@@ -137,6 +123,15 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>partNumberEdit</tabstop>
+  <tabstop>descriptionEdit</tabstop>
+  <tabstop>quantitySpin</tabstop>
+  <tabstop>categoryCombo</tabstop>
+  <tabstop>manufacturerCombo</tabstop>
+  <tabstop>datasheetEdit</tabstop>
+  <tabstop>notesEdit</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

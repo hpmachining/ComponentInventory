@@ -39,7 +39,6 @@ private:
     Ui::MainWindow* ui;
     
 	// Database
-    //std::unique_ptr<Database> db_;
     QString currentDatabasePath_;
 
     // UI models
