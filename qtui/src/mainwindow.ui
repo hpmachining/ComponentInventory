@@ -44,6 +44,7 @@
      <string>&amp;Database</string>
     </property>
     <addaction name="actionAddComponent"/>
+    <addaction name="actionEditComponent"/>
     <addaction name="actionDeleteComponent"/>
     <addaction name="actionAddTestComponent"/>
    </widget>
@@ -99,6 +100,11 @@
   <action name="actionAddComponent">
    <property name="text">
     <string>&amp;Add Component</string>
+   </property>
+  </action>
+  <action name="actionEditComponent">
+   <property name="text">
+    <string>&amp;Edit Component</string>
    </property>
   </action>
  </widget>

@@ -34,6 +34,25 @@ MainWindow::MainWindow(QWidget* parent)
     for (int i = 1; i < ui->componentView->model()->columnCount(); ++i)
         ui->componentView->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
 
+    ui->componentView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->componentView->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->componentView->setStyleSheet(
+        "QTableView::item:hover {"
+        "  background: rgba(30, 144, 255, 40);"
+        "}"
+        "QTableView::item:selected {"
+        "  background: palette(highlight);"
+        "  color: palette(highlighted-text);"
+        "}"
+        "QTableView::item:selected:!active {"
+        "  background: palette(highlight);"
+        "  color: palette(highlighted-text);"
+        "}"
+        "QTableView::item {"
+        "  border: none;"
+        "}"
+    );
+
     // --- Window & status ---
     updateWindowTitle();
     statusBar()->showMessage(tr("Ready"));
@@ -48,6 +67,8 @@ MainWindow::MainWindow(QWidget* parent)
 	connect(ui->actionAddTestComponent, &QAction::triggered, this, &MainWindow::onActionAddTestComponent);
 	connect(ui->actionDeleteComponent, &QAction::triggered, this, &MainWindow::onActionDeleteComponent);
     connect(ui->actionAddComponent, &QAction::triggered, this, &MainWindow::onActionAddComponent);
+    connect(ui->actionEditComponent, &QAction::triggered, this, &MainWindow::onActionEditComponent);
+    connect(ui->componentView, &QTableView::doubleClicked, this, &MainWindow::onActionEditComponent);
 }
 
 MainWindow::~MainWindow()
@@ -138,25 +159,92 @@ void MainWindow::onActionAddComponent()
     }
 }
 
+//void MainWindow::onActionDeleteComponent()
+//{
+//    if (!inventory_ || !componentModel_)
+//        return;
+//
+//    auto index = ui->componentView->currentIndex();
+//    if (!index.isValid())
+//        return;
+//
+//    int row = index.row();
+//    int componentId = componentModel_->componentIdAt(row);
+//
+//    auto reply = QMessageBox::question(this,
+//        tr("Delete Component"),
+//        tr("Are you sure you want to delete this component?"),
+//        QMessageBox::Yes | QMessageBox::No);
+//
+//    if (reply != QMessageBox::Yes)
+//        return;
+//
+//    DbResult result;
+//    if (!inventory_->components().deleteComponent(componentId, result)) {
+//        QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+//        return;
+//    }
+//
+//    reloadComponents();
+//    statusBar()->showMessage(tr("Component deleted"), 3000);
+//}
+
 void MainWindow::onActionDeleteComponent()
 {
     if (!inventory_ || !componentModel_)
         return;
 
-    QModelIndex idx = ui->componentView->currentIndex();
-    if (!idx.isValid())
+    auto selection = ui->componentView->selectionModel();
+    if (!selection || !selection->hasSelection()) {
+        QMessageBox::information(
+            this,
+            tr("Delete Component"),
+            tr("Please select a component to delete.")
+        );
+        return;
+    }
+
+    int row = selection->selectedRows().first().row();
+    int componentId = componentModel_->componentIdAt(row);
+
+    // Pull display values from the model
+    QString partNumber =
+        componentModel_->data(componentModel_->index(row, 2), Qt::DisplayRole).toString();
+    QString category =
+        componentModel_->data(componentModel_->index(row, 1), Qt::DisplayRole).toString();
+    QString manufacturer =
+        componentModel_->data(componentModel_->index(row, 3), Qt::DisplayRole).toString();
+
+    QString message = tr(
+        "Are you sure you want to delete this component?\n\n"
+        "Part Number: %1\n"
+        "Category: %2\n"
+        "Manufacturer: %3"
+    ).arg(partNumber, category, manufacturer);
+
+    auto reply = QMessageBox::warning(
+        this,
+        tr("Confirm Delete"),
+        message,
+        QMessageBox::Yes | QMessageBox::Cancel,
+        QMessageBox::Cancel
+    );
+
+    if (reply != QMessageBox::Yes)
         return;
 
-    int row = idx.row();
-    int id = componentModel_->componentIdAt(row);
-
     DbResult result;
-    if (!inventory_->components().deleteComponent(id, result)) {
-        QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+    if (!inventory_->components().deleteComponent(componentId, result)) {
+        QMessageBox::critical(
+            this,
+            tr("Error"),
+            QString::fromStdString(result.toString())
+        );
         return;
     }
 
     reloadComponents();
+    statusBar()->showMessage(tr("Component deleted"), 3000);
 }
 
 void MainWindow::onActionAddTestComponent()
@@ -178,6 +266,39 @@ void MainWindow::onActionAddTestComponent()
     }
 
     reloadComponents();
+}
+
+void MainWindow::onActionEditComponent()
+{
+    if (!inventory_ || !componentModel_)
+        return;
+
+    auto index = ui->componentView->currentIndex();
+    if (!index.isValid())
+        return;
+
+    int row = index.row();
+    int componentId = componentModel_->componentIdAt(row);
+
+    DbResult result;
+    Component c;
+    if (!inventory_->components().getComponentById(componentId, c, result)) {
+        QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+        return;
+    }
+
+    ComponentEditDialog dialog(*inventory_, this);
+    dialog.setComponent(c);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        c = dialog.component();
+        if (!inventory_->components().updateComponent(c, result)) {
+            QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+            return;
+        }
+        reloadComponents();
+        statusBar()->showMessage(tr("Component updated"), 3000);
+    }
 }
 
 // --- Database lifecycle helpers ---
@@ -320,6 +441,7 @@ void MainWindow::enableDatabaseActions()
 {
     ui->actionCloseDatabase->setEnabled(true);
     ui->actionAddComponent->setEnabled(true);
+    ui->actionEditComponent->setEnabled(true);
     ui->actionDeleteComponent->setEnabled(true);
     ui->actionAddTestComponent->setEnabled(true);
 }
@@ -328,6 +450,7 @@ void MainWindow::disableDatabaseActions()
 {
     ui->actionCloseDatabase->setEnabled(false);
     ui->actionAddComponent->setEnabled(false);
+    ui->actionEditComponent->setEnabled(false);
 	ui->actionDeleteComponent->setEnabled(false);
 	ui->actionAddTestComponent->setEnabled(false);
 }

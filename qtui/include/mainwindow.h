@@ -34,6 +34,7 @@ private slots:
     void onActionAddComponent();
     void onActionDeleteComponent();
     void onActionAddTestComponent();
+	void onActionEditComponent();
 
 private:
     Ui::MainWindow* ui;
