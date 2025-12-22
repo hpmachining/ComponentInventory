@@ -94,14 +94,7 @@ jobs:
     # -------------------------
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
-      run: |
-        cmake -B build \
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-          -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} \
-          -DCMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}" \
-          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
-          -S ${{ github.workspace }}
+      run: cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}" -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake -S ${{ github.workspace }}
 
     # -------------------------
     # Build
