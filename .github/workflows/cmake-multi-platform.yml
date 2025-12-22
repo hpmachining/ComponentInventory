@@ -82,7 +82,36 @@ jobs:
     # -------------------------
     - name: Configure CMake (Linux)
       if: runner.os == 'Linux'
-      run: >
-        cmake -B build
-        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DCMAKE_C_COMPILER
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} \
+          -S ${{ github.workspace }}
+
+    # -------------------------
+    # Configure CMake (Windows)
+    # -------------------------
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        cmake -B build \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} \
+          -DCMAKE_PREFIX_PATH="${{ env.QT_ROOT_DIR }}" \
+          -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
+          -S ${{ github.workspace }}
+
+    # -------------------------
+    # Build
+    # -------------------------
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }}
+
+    # -------------------------
+    # Test
+    # -------------------------
+    - name: Test
+      working-directory: build
+      run: ctest --build-config ${{ matrix.build_type }}
