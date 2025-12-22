@@ -11,20 +11,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        build_type: [Release]
-        compiler: [gcc, clang, msvc]
         include:
           - os: ubuntu-latest
-            compiler: gcc
+            build_type: Release
             c_compiler: gcc
             cxx_compiler: g++
           - os: ubuntu-latest
-            compiler: clang
+            build_type: Release
             c_compiler: clang
             cxx_compiler: clang++
           - os: windows-latest
-            compiler: msvc
+            build_type: Release
             c_compiler: cl
             cxx_compiler: cl
 
@@ -47,10 +44,10 @@ jobs:
           libsqlite3-dev \
           libgtest-dev
 
-        # Build GTest (Ubuntu ships only source)
-        sudo cmake -S /usr/src/gtest -B /usr/src/gtest/build
-        sudo cmake --build /usr/src/gtest/build
-        sudo cp /usr/src/gtest/build/*.a /usr/lib
+        # Build GTest (correct path on GitHub runners)
+        sudo cmake -S /usr/src/googletest/googletest -B /usr/src/googletest/build
+        sudo cmake --build /usr/src/googletest/build
+        sudo cp /usr/src/googletest/build/*.a /usr/lib
 
     # -------------------------
     # Windows: vcpkg manifest
@@ -69,13 +66,23 @@ jobs:
     # -------------------------
     # Configure CMake
     # -------------------------
-    - name: Configure CMake
+    - name: Configure CMake (Linux)
+      if: runner.os == 'Linux'
       run: >
         cmake -B build
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }}
-        ${{ runner.os == 'Windows' && '-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake' || '' }}
+        -S ${{ github.workspace }}
+
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: >
+        cmake -B build
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }}
+        -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
         -S ${{ github.workspace }}
 
     # -------------------------
