@@ -19,5 +19,6 @@
 !qtui/**
 
 !.github/
-!.github/**
+!.github/workflows/
+!.github/workflows/**
 
