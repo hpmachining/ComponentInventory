@@ -16,28 +16,41 @@ MainWindow::MainWindow(QWidget* parent)
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    
+
+    // Allow clearing selection by clicking empty table space
     ui->componentView->viewport()->installEventFilter(this);
 
-    // --- Setup central widget and layout for resizable table ---
+    // --- Header appearance ---
+    // Force bold header font regardless of focus/selection state
+    QFont headerFont = ui->componentView->horizontalHeader()->font();
+    headerFont.setBold(true);
+    ui->componentView->horizontalHeader()->setFont(headerFont);
+
+    // --- Central widget & layout ---
     QWidget* central = new QWidget(this);
     setCentralWidget(central);
 
     QVBoxLayout* layout = new QVBoxLayout(central);
     layout->addWidget(ui->componentView);
-    layout->setContentsMargins(0, 0, 0, 0); // optional: remove outer margins
+    layout->setContentsMargins(0, 0, 0, 0);
 
     // --- Table model ---
-    componentModel_ = new ComponentTableModel(this); // db set later via InventoryService
+    componentModel_ = new ComponentTableModel(this); // DB set later via InventoryService
     ui->componentView->setModel(componentModel_);
 
-    // --- Stretch headers for nice resizing ---
-    ui->componentView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    for (int i = 1; i < ui->componentView->model()->columnCount(); ++i)
-        ui->componentView->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Stretch);
+    // --- Header resize behavior ---
+    ui->componentView->horizontalHeader()
+        ->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 
+    for (int i = 1; i < ui->componentView->model()->columnCount(); ++i)
+        ui->componentView->horizontalHeader()
+        ->setSectionResizeMode(i, QHeaderView::Stretch);
+
+    // --- Selection behavior ---
     ui->componentView->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->componentView->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    // --- Table styling ---
     ui->componentView->setStyleSheet(
         "QTableView::item:hover {"
         "  background: rgba(30, 144, 255, 40);"
@@ -60,16 +73,39 @@ MainWindow::MainWindow(QWidget* parent)
     statusBar()->showMessage(tr("Ready"));
     disableDatabaseActions();
 
-    // --- Connect actions ---
+    // --- Context-sensitive Edit/Delete actions ---
+    // Enable only when a row is selected
+    connect(ui->componentView->selectionModel(),
+        &QItemSelectionModel::selectionChanged,
+        this,
+        [this]()
+        {
+            const bool hasSelection =
+                ui->componentView->selectionModel()->hasSelection();
+
+            ui->actionEditComponent->setEnabled(hasSelection);
+            ui->actionDeleteComponent->setEnabled(hasSelection);
+        });
+
+    // --- Keyboard shortcuts ---
+    // Enter / Return edits selected component
+    ui->actionEditComponent->setShortcut(Qt::Key_Return);
+
+    // Delete key deletes selected component
+    ui->actionDeleteComponent->setShortcut(Qt::Key_Delete);
+
+    // --- Action connections ---
     connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onActionExit);
     connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onActionAbout);
     connect(ui->actionNewDatabase, &QAction::triggered, this, &MainWindow::onActionNewDatabase);
     connect(ui->actionOpenDatabase, &QAction::triggered, this, &MainWindow::onActionOpenDatabase);
     connect(ui->actionCloseDatabase, &QAction::triggered, this, &MainWindow::onActionCloseDatabase);
-	connect(ui->actionAddTestComponent, &QAction::triggered, this, &MainWindow::onActionAddTestComponent);
-	connect(ui->actionDeleteComponent, &QAction::triggered, this, &MainWindow::onActionDeleteComponent);
+    connect(ui->actionAddTestComponent, &QAction::triggered, this, &MainWindow::onActionAddTestComponent);
     connect(ui->actionAddComponent, &QAction::triggered, this, &MainWindow::onActionAddComponent);
     connect(ui->actionEditComponent, &QAction::triggered, this, &MainWindow::onActionEditComponent);
+    connect(ui->actionDeleteComponent, &QAction::triggered, this, &MainWindow::onActionDeleteComponent);
+
+    // Double-click row → edit
     connect(ui->componentView, &QTableView::doubleClicked, this, &MainWindow::onActionEditComponent);
 }
 
@@ -435,8 +471,6 @@ void MainWindow::enableDatabaseActions()
 {
     ui->actionCloseDatabase->setEnabled(true);
     ui->actionAddComponent->setEnabled(true);
-    ui->actionEditComponent->setEnabled(true);
-    ui->actionDeleteComponent->setEnabled(true);
     ui->actionAddTestComponent->setEnabled(true);
 }
 
