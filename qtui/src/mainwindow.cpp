@@ -16,6 +16,8 @@ MainWindow::MainWindow(QWidget* parent)
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    
+    ui->componentView->viewport()->installEventFilter(this);
 
     // --- Setup central widget and layout for resizable table ---
     QWidget* central = new QWidget(this);
@@ -80,6 +82,28 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
     closeDatabase();          // cleanup logic
     event->accept();    // allow the window to close
+}
+
+bool MainWindow::eventFilter(QObject* obj, QEvent* event)
+{
+    if (obj == ui->componentView->viewport() &&
+        event->type() == QEvent::MouseButtonPress)
+    {
+        auto* mouseEvent = static_cast<QMouseEvent*>(event);
+
+        // Which index is under the mouse?
+        QModelIndex index =
+            ui->componentView->indexAt(mouseEvent->pos());
+
+        if (!index.isValid())
+        {
+            // Clicked empty space → deselect
+            ui->componentView->selectionModel()->clearSelection();
+            ui->componentView->clearFocus(); // optional, feels good
+        }
+    }
+
+    return QMainWindow::eventFilter(obj, event);
 }
 
 // --- Slots ---
@@ -158,36 +182,6 @@ void MainWindow::onActionAddComponent()
         statusBar()->showMessage(tr("Component added"), 3000);
     }
 }
-
-//void MainWindow::onActionDeleteComponent()
-//{
-//    if (!inventory_ || !componentModel_)
-//        return;
-//
-//    auto index = ui->componentView->currentIndex();
-//    if (!index.isValid())
-//        return;
-//
-//    int row = index.row();
-//    int componentId = componentModel_->componentIdAt(row);
-//
-//    auto reply = QMessageBox::question(this,
-//        tr("Delete Component"),
-//        tr("Are you sure you want to delete this component?"),
-//        QMessageBox::Yes | QMessageBox::No);
-//
-//    if (reply != QMessageBox::Yes)
-//        return;
-//
-//    DbResult result;
-//    if (!inventory_->components().deleteComponent(componentId, result)) {
-//        QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
-//        return;
-//    }
-//
-//    reloadComponents();
-//    statusBar()->showMessage(tr("Component deleted"), 3000);
-//}
 
 void MainWindow::onActionDeleteComponent()
 {

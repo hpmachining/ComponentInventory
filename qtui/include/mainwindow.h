@@ -24,6 +24,7 @@ private:
     std::unique_ptr<InventoryService> inventory_;
 protected:
     void closeEvent(QCloseEvent* event) override;
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private slots:
     void onActionExit();
