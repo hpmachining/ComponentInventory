@@ -25,6 +25,19 @@ public:
         message = msg;
     }
 
+    // New helper for enum class codes
+    template <typename EnumT>
+    void setError(EnumT c, const std::string& msg) {
+        static_assert(std::is_enum_v<EnumT>, "EnumT must be an enum");
+        setError(static_cast<int>(c), msg);
+    }
+
+    template <typename EnumT>
+    void setWarning(EnumT c, const std::string& msg) {
+        static_assert(std::is_enum_v<EnumT>, "EnumT must be an enum");
+        setWarning(static_cast<int>(c), msg);
+    }
+
     bool hasError() const { return severity == Error; }
     bool hasWarning() const { return severity == Warning; }
     bool ok() const { return severity == None; }

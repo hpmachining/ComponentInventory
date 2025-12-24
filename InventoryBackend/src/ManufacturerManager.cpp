@@ -123,3 +123,53 @@ int ManufacturerManager::getByName(const std::string& name, DbResult& result) {
     sqlite3_finalize(stmt);
     return id;
 }
+
+bool ManufacturerManager::listLookup(
+    std::vector<LookupItem>& items,
+    DbResult& result)
+{
+    std::vector<Manufacturer> mans;
+    if (!listManufacturers(mans, result))
+        return false;
+
+    items.clear();
+    items.reserve(mans.size());
+
+    for (const auto& m : mans) {
+        items.push_back({ m.id, m.name });
+    }
+    return true;
+}
+
+bool ManufacturerManager::addByName(
+    const std::string& name,
+    DbResult& result)
+{
+    result.clear();
+
+    const std::string trimmed = trim(name);
+    if (trimmed.empty()) {
+        result.setError(
+            LookupError::EmptyName,
+            "Manufacturer name cannot be empty"
+        );
+        return false;
+    }
+
+    int existingId = getByName(trimmed, result);
+    if (result.ok() && existingId >= 0) {
+        result.setError(
+            LookupError::AlreadyExists,
+            "Manufacturer already exists"
+        );
+        return false;
+    }
+
+    Manufacturer man;
+    man.name = trimmed;
+
+    if (!addManufacturer(man, result))
+        return false;
+
+    return true;
+}

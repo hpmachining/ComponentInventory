@@ -80,31 +80,34 @@ void ComponentEditDialog::populateCombos()
 
     // ---- Categories ----
     ui_->categoryCombo->clear();
+    std::vector<LookupItem> categories;
 
-    std::vector<Category> categories;
-    if (inventory_.categories().listCategories(categories, result)) {
+    if (inventory_.categories().listLookup(categories, result)) {
         for (const auto& c : categories) {
             ui_->categoryCombo->addItem(
                 QString::fromStdString(c.name),
-                c.id   // stored as user data
+                c.id
             );
         }
     }
 
     // ---- Manufacturers ----
     ui_->manufacturerCombo->clear();
-    std::vector<Manufacturer> manufacturers;
-    if (inventory_.manufacturers().listManufacturers(manufacturers, result)) {
+    std::vector<LookupItem> manufacturers;
+
+    if (inventory_.manufacturers().listLookup(manufacturers, result)) {
         for (const auto& m : manufacturers) {
             ui_->manufacturerCombo->addItem(
                 QString::fromStdString(m.name),
                 m.id
             );
         }
-        int genericIndex = ui_->manufacturerCombo->findText("Generic");
-        if (genericIndex >= 0)
-            ui_->manufacturerCombo->setCurrentIndex(genericIndex);
     }
+
+    int genericIndex =
+        ui_->manufacturerCombo->findText("Generic");
+    if (genericIndex >= 0)
+        ui_->manufacturerCombo->setCurrentIndex(genericIndex);
 }
 
 bool ComponentEditDialog::isValid() const

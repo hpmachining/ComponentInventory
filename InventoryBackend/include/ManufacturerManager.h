@@ -2,6 +2,7 @@
 #include "Database.h"
 #include "DbResult.h"
 #include "Manufacturer.h"
+#include "LookupItem.h"
 #include <vector>
 
 class ManufacturerManager {
@@ -14,6 +15,9 @@ public:
     bool deleteManufacturer(int id, DbResult& result);
     bool listManufacturers(std::vector<Manufacturer>& mans, DbResult& result);
 	int getByName(const std::string& name, DbResult& result);
+
+    bool listLookup(std::vector<LookupItem>& items, DbResult& result);
+    bool addByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

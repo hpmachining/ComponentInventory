@@ -115,3 +115,55 @@ int CategoryManager::getByName(const std::string& name, DbResult& result) {
     sqlite3_finalize(stmt);
     return id;
 }
+
+bool CategoryManager::listLookup(
+    std::vector<LookupItem>& items,
+    DbResult& result)
+{
+    std::vector<Category> cats;
+    if (!listCategories(cats, result))
+        return false;
+
+    items.clear();
+    items.reserve(cats.size());
+
+    for (const auto& c : cats) {
+        items.push_back({ c.id, c.name });
+    }
+    return true;
+}
+
+bool CategoryManager::addByName(
+    const std::string& name,
+    DbResult& result)
+{
+    result.clear();
+
+    const std::string trimmed = trim(name);
+    if (trimmed.empty()) {
+        result.setError(
+            LookupError::EmptyName,
+            "Category name cannot be empty"
+        );
+        return false;
+    }
+
+    // Optional: enforce uniqueness here if desired
+    // (assuming getByName returns id or -1)
+    int existingId = getByName(trimmed, result);
+    if (result.ok() && existingId >= 0) {
+        result.setError(
+            LookupError::AlreadyExists,
+            "Category already exists"
+        );
+        return false;
+    }
+
+    Category cat;
+    cat.name = trimmed;
+
+    if (!addCategory(cat, result))
+        return false;
+
+    return true;
+}

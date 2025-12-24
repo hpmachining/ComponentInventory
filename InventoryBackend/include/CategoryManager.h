@@ -2,6 +2,8 @@
 #include "Database.h"
 #include "DbResult.h"
 #include "Category.h"
+#include "LookupItem.h"
+#include <string>
 #include <vector>
 
 class CategoryManager {
@@ -14,6 +16,9 @@ public:
     bool deleteCategory(int id, DbResult& result);
     bool listCategories(std::vector<Category>& cats, DbResult& result);
 	int getByName(const std::string& name, DbResult& result);
+
+	bool listLookup(std::vector<LookupItem>& items, DbResult& result);
+	bool addByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;
