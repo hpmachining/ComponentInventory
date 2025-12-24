@@ -1,5 +1,6 @@
 #include "BackendTestFixture.h"
 #include "ManufacturerManager.h"
+#include "LookupItem.h"
 
 class ManufacturerManagerTest : public BackendTestFixture {
 protected:
@@ -75,4 +76,47 @@ TEST_F(ManufacturerManagerTest, DeleteManufacturer_RemovesRow) {
     Manufacturer fetched;
     bool gotMan = manMgr.getManufacturerById(insertedManId, fetched, res);
     EXPECT_FALSE(gotMan);  // should not exist anymore
+}
+
+// 5. ListLookup_ReturnsAllManufacturers
+TEST_F(ManufacturerManagerTest, ListLookup_ReturnsAllManufacturers) {
+    ASSERT_TRUE(manMgr.addByName("ManA", res)) << res.toString();
+    ASSERT_TRUE(manMgr.addByName("ManB", res)) << res.toString();
+
+    std::vector<LookupItem> items;
+    ASSERT_TRUE(manMgr.listLookup(items, res)) << res.toString();
+
+    bool foundA = false, foundB = false;
+    for (const auto& i : items) {
+        if (i.name == "ManA") foundA = true;
+        if (i.name == "ManB") foundB = true;
+    }
+
+    EXPECT_TRUE(foundA);
+    EXPECT_TRUE(foundB);
+}
+
+// 6. AddByName_ValidatesInput
+TEST_F(ManufacturerManagerTest, AddByName_ValidatesInput) {
+    // Normal add
+    ASSERT_TRUE(manMgr.addByName("NewMan", res)) << res.toString();
+
+    // Duplicate add
+    ASSERT_FALSE(manMgr.addByName("NewMan", res));
+    EXPECT_TRUE(res.hasError());
+
+    // Empty name
+    ASSERT_FALSE(manMgr.addByName("", res));
+    EXPECT_TRUE(res.hasError());
+
+    // Name with whitespace only
+    ASSERT_FALSE(manMgr.addByName("   ", res));
+    EXPECT_TRUE(res.hasError());
+
+    // Leading/trailing whitespace trimmed
+    ASSERT_TRUE(manMgr.addByName("  TrimMan  ", res)) << res.toString();
+
+    // Verify trimmed name exists
+    int id = manMgr.getByName("TrimMan", res);
+    EXPECT_GT(id, 0);
 }

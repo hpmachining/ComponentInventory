@@ -1,5 +1,6 @@
 #include "BackendTestFixture.h"
 #include "CategoryManager.h"
+#include "LookupItem.h"
 
 class CategoryManagerTest : public BackendTestFixture {
 protected:
@@ -72,4 +73,47 @@ TEST_F(CategoryManagerTest, DeleteCategory_RemovesRow) {
     Category fetched;
     bool gotCategory = catMgr.getCategoryById(insertedCatId, fetched, res);
     EXPECT_FALSE(gotCategory);
+}
+
+// 5. ListLookup_ReturnsAllCategories
+TEST_F(CategoryManagerTest, ListLookup_ReturnsAllCategories) {
+    ASSERT_TRUE(catMgr.addByName("CatA", res)) << res.toString();
+    ASSERT_TRUE(catMgr.addByName("CatB", res)) << res.toString();
+
+    std::vector<LookupItem> items;
+    ASSERT_TRUE(catMgr.listLookup(items, res)) << res.toString();
+
+    bool foundA = false, foundB = false;
+    for (const auto& i : items) {
+        if (i.name == "CatA") foundA = true;
+        if (i.name == "CatB") foundB = true;
+    }
+
+    EXPECT_TRUE(foundA);
+    EXPECT_TRUE(foundB);
+}
+
+// 6. AddByName_ValidatesInput
+TEST_F(CategoryManagerTest, AddByName_ValidatesInput) {
+    // Normal add
+    ASSERT_TRUE(catMgr.addByName("NewCat", res)) << res.toString();
+
+    // Duplicate add
+    ASSERT_FALSE(catMgr.addByName("NewCat", res));
+    EXPECT_TRUE(res.hasError());
+
+    // Empty name
+    ASSERT_FALSE(catMgr.addByName("", res));
+    EXPECT_TRUE(res.hasError());
+
+    // Name with whitespace only
+    ASSERT_FALSE(catMgr.addByName("   ", res));
+    EXPECT_TRUE(res.hasError());
+
+    // Leading/trailing whitespace trimmed
+    ASSERT_TRUE(catMgr.addByName("  TrimCat  ", res)) << res.toString();
+
+    // Verify trimmed name exists
+    int id = catMgr.getByName("TrimCat", res);
+    EXPECT_GT(id, 0);
 }
