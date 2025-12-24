@@ -12,7 +12,7 @@ add_executable(ComponentInventoryUI
     include/ComponentTableModel.h
     src/ComponentTableModel.cpp
     src/DevDataSeeder.cpp
-    src/ComponentEditDialog.ui "include/ComponentEditDialog.h" "src/ComponentEditDialog.cpp")
+    src/ComponentEditDialog.ui "include/ComponentEditDialog.h" "src/ComponentEditDialog.cpp" "include/AddLookupDialog.h" "src/AddLookupDialog.cpp")
 
 target_include_directories(ComponentInventoryUI PRIVATE
     include
