@@ -16,6 +16,9 @@ ComponentEditDialog::ComponentEditDialog(
     ui_->setupUi(this);
     setWindowTitle(tr("Add Component"));
 
+    // Make Tab move focus instead of inserting a tab
+	ui_->notesEdit->setTabChangesFocus(true);
+
     populateCombos();
 
     // Disable OK initially
@@ -73,6 +76,7 @@ Component ComponentEditDialog::component() const
 
     return c;
 }
+
 
 void ComponentEditDialog::populateCombos()
 {
