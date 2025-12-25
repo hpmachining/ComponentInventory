@@ -11,13 +11,13 @@ protected:
 // 1. AddManufacturer_InsertsRow
 TEST_F(ManufacturerManagerTest, AddManufacturer_InsertsRow) {
     Manufacturer man("AcmeCorp", "USA", "http://acme.example.com", "Test manufacturer");
-    ASSERT_TRUE(manMgr.addManufacturer(man, res)) << res.toString();
+    ASSERT_TRUE(manMgr.add(man, res)) << res.toString();
 
-    int insertedManId = manMgr.getByName("AcmeCorp", res);
+    int insertedManId = manMgr.getIdByName("AcmeCorp", res);
     ASSERT_GT(insertedManId, 0);
 
     Manufacturer fetched;
-    ASSERT_TRUE(manMgr.getManufacturerById(insertedManId, fetched, res)) << res.toString();
+    ASSERT_TRUE(manMgr.getById(insertedManId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedManId);
     EXPECT_EQ(fetched.name, "AcmeCorp");
@@ -29,13 +29,13 @@ TEST_F(ManufacturerManagerTest, AddManufacturer_InsertsRow) {
 // 2. GetManufacturerById_ReturnsCorrectManufacturer
 TEST_F(ManufacturerManagerTest, GetManufacturerById_ReturnsCorrectManufacturer) {
     Manufacturer man("Globex", "Germany", "http://globex.example.com", "Another test manufacturer");
-    ASSERT_TRUE(manMgr.addManufacturer(man, res)) << res.toString();
+    ASSERT_TRUE(manMgr.add(man, res)) << res.toString();
 
-    int insertedManId = manMgr.getByName("Globex", res);
+    int insertedManId = manMgr.getIdByName("Globex", res);
     ASSERT_GT(insertedManId, 0);
 
     Manufacturer fetched;
-    ASSERT_TRUE(manMgr.getManufacturerById(insertedManId, fetched, res)) << res.toString();
+    ASSERT_TRUE(manMgr.getById(insertedManId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedManId);
     EXPECT_EQ(fetched.name, "Globex");
@@ -46,11 +46,11 @@ TEST_F(ManufacturerManagerTest, GetManufacturerById_ReturnsCorrectManufacturer) 
 
 // 3. ListManufacturers_ReturnsAllManufacturers
 TEST_F(ManufacturerManagerTest, ListManufacturers_ReturnsAllManufacturers) {
-    ASSERT_TRUE(manMgr.addManufacturer(Manufacturer("FooInc", "Canada", "http://foo.example.com", "Test A"), res)) << res.toString();
-    ASSERT_TRUE(manMgr.addManufacturer(Manufacturer("BarLtd", "UK", "http://bar.example.com", "Test B"), res)) << res.toString();
+    ASSERT_TRUE(manMgr.add(Manufacturer("FooInc", "Canada", "http://foo.example.com", "Test A"), res)) << res.toString();
+    ASSERT_TRUE(manMgr.add(Manufacturer("BarLtd", "UK", "http://bar.example.com", "Test B"), res)) << res.toString();
 
     std::vector<Manufacturer> mans;
-    ASSERT_TRUE(manMgr.listManufacturers(mans, res)) << res.toString();
+    ASSERT_TRUE(manMgr.list(mans, res)) << res.toString();
 
     EXPECT_GE(mans.size(), 2);
 
@@ -66,15 +66,15 @@ TEST_F(ManufacturerManagerTest, ListManufacturers_ReturnsAllManufacturers) {
 // 4. DeleteManufacturer_RemovesRow
 TEST_F(ManufacturerManagerTest, DeleteManufacturer_RemovesRow) {
     Manufacturer man("DeleteMe", "France", "http://deleteme.example.com", "To be deleted");
-    ASSERT_TRUE(manMgr.addManufacturer(man, res)) << res.toString();
+    ASSERT_TRUE(manMgr.add(man, res)) << res.toString();
 
-    int insertedManId = manMgr.getByName("DeleteMe", res);
+    int insertedManId = manMgr.getIdByName("DeleteMe", res);
     ASSERT_GT(insertedManId, 0);
 
-    ASSERT_TRUE(manMgr.deleteManufacturer(insertedManId, res)) << res.toString();
+    ASSERT_TRUE(manMgr.remove(insertedManId, res)) << res.toString();
 
     Manufacturer fetched;
-    bool gotMan = manMgr.getManufacturerById(insertedManId, fetched, res);
+    bool gotMan = manMgr.getById(insertedManId, fetched, res);
     EXPECT_FALSE(gotMan);  // should not exist anymore
 }
 
@@ -117,7 +117,7 @@ TEST_F(ManufacturerManagerTest, AddByName_ValidatesInput) {
     ASSERT_TRUE(manMgr.addByName("  TrimMan  ", res)) << res.toString();
 
     // Verify trimmed name exists
-    int id = manMgr.getByName("TrimMan", res);
+    int id = manMgr.getIdByName("TrimMan", res);
     EXPECT_GT(id, 0);
 }
 

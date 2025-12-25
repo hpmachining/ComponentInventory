@@ -1,18 +1,31 @@
 #include "CategoryManager.h"
 #include "DbUtils.h"
+
 #include <sqlite3.h>
 
-// Add a new category
-bool CategoryManager::addCategory(const Category& cat, DbResult& result) {
+CategoryManager::CategoryManager(Database& db)
+    : LookupManager(db, "Categories")
+{
+}
+
+bool CategoryManager::add(
+    const Category& cat,
+    DbResult& result)
+{
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("INSERT INTO Categories (Name, Description) VALUES (?, ?);", stmt, result))
+    if (!db_.prepare(
+        "INSERT INTO Categories (Name, Description) VALUES (?, ?);",
+        stmt,
+        result))
         return false;
 
     sqlite3_bind_text(stmt, 1, cat.name.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, cat.description.c_str(), -1, SQLITE_TRANSIENT);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
-        result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+        result.setError(
+            sqlite3_errcode(db_.handle()),
+            sqlite3_errmsg(db_.handle()));
         db_.finalize(stmt);
         return false;
     }
@@ -22,10 +35,16 @@ bool CategoryManager::addCategory(const Category& cat, DbResult& result) {
     return true;
 }
 
-// Get category by ID
-bool CategoryManager::getCategoryById(int id, Category& cat, DbResult& result) {
+bool CategoryManager::getById(
+    int id,
+    Category& cat,
+    DbResult& result)
+{
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ID, Name, Description FROM Categories WHERE ID=?;", stmt, result))
+    if (!db_.prepare(
+        "SELECT ID, Name, Description FROM Categories WHERE ID=?;",
+        stmt,
+        result))
         return false;
 
     sqlite3_bind_int(stmt, 1, id);
@@ -36,7 +55,9 @@ bool CategoryManager::getCategoryById(int id, Category& cat, DbResult& result) {
         cat.description = safeColumnText(stmt, 2);
     }
     else {
-        result.setError(sqlite3_errcode(db_.handle()), "Category not found");
+        result.setError(
+            sqlite3_errcode(db_.handle()),
+            "Category not found");
         db_.finalize(stmt);
         return false;
     }
@@ -46,10 +67,15 @@ bool CategoryManager::getCategoryById(int id, Category& cat, DbResult& result) {
     return true;
 }
 
-// Update category
-bool CategoryManager::updateCategory(const Category& cat, DbResult& result) {
+bool CategoryManager::update(
+    const Category& cat,
+    DbResult& result)
+{
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("UPDATE Categories SET Name=?, Description=? WHERE ID=?;", stmt, result))
+    if (!db_.prepare(
+        "UPDATE Categories SET Name=?, Description=? WHERE ID=?;",
+        stmt,
+        result))
         return false;
 
     sqlite3_bind_text(stmt, 1, cat.name.c_str(), -1, SQLITE_TRANSIENT);
@@ -57,7 +83,9 @@ bool CategoryManager::updateCategory(const Category& cat, DbResult& result) {
     sqlite3_bind_int(stmt, 3, cat.id);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
-        result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+        result.setError(
+            sqlite3_errcode(db_.handle()),
+            sqlite3_errmsg(db_.handle()));
         db_.finalize(stmt);
         return false;
     }
@@ -67,16 +95,23 @@ bool CategoryManager::updateCategory(const Category& cat, DbResult& result) {
     return true;
 }
 
-// Delete category
-bool CategoryManager::deleteCategory(int id, DbResult& result) {
+bool CategoryManager::remove(
+    int id,
+    DbResult& result)
+{
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("DELETE FROM Categories WHERE ID=?;", stmt, result))
+    if (!db_.prepare(
+        "DELETE FROM Categories WHERE ID=?;",
+        stmt,
+        result))
         return false;
 
     sqlite3_bind_int(stmt, 1, id);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
-        result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+        result.setError(
+            sqlite3_errcode(db_.handle()),
+            sqlite3_errmsg(db_.handle()));
         db_.finalize(stmt);
         return false;
     }
@@ -86,10 +121,17 @@ bool CategoryManager::deleteCategory(int id, DbResult& result) {
     return true;
 }
 
-// List all categories
-bool CategoryManager::listCategories(std::vector<Category>& cats, DbResult& result) {
+bool CategoryManager::list(
+    std::vector<Category>& cats,
+    DbResult& result)
+{
+    cats.clear();
+
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ID, Name, Description FROM Categories;", stmt, result))
+    if (!db_.prepare(
+        "SELECT ID, Name, Description FROM Categories ORDER BY Name;",
+        stmt,
+        result))
         return false;
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -97,73 +139,10 @@ bool CategoryManager::listCategories(std::vector<Category>& cats, DbResult& resu
         cat.id = sqlite3_column_int(stmt, 0);
         cat.name = safeColumnText(stmt, 1);
         cat.description = safeColumnText(stmt, 2);
-        cats.push_back(cat);
+        cats.push_back(std::move(cat));
     }
 
     db_.finalize(stmt);
     result.clear();
-    return true;
-}
-
-int CategoryManager::getByName(const std::string& name, DbResult& result) {
-    sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ID FROM Categories WHERE Name=?;", stmt, result)) return -1;
-    sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
-
-    int id = -1;
-    if (sqlite3_step(stmt) == SQLITE_ROW) id = sqlite3_column_int(stmt, 0);
-    sqlite3_finalize(stmt);
-    return id;
-}
-
-bool CategoryManager::listLookup(
-    std::vector<LookupItem>& items,
-    DbResult& result)
-{
-    std::vector<Category> cats;
-    if (!listCategories(cats, result))
-        return false;
-
-    items.clear();
-    items.reserve(cats.size());
-
-    for (const auto& c : cats) {
-        items.push_back({ c.id, c.name });
-    }
-    return true;
-}
-
-bool CategoryManager::addByName(
-    const std::string& name,
-    DbResult& result)
-{
-    result.clear();
-
-    const std::string trimmed = trim(name);
-    if (trimmed.empty()) {
-        result.setError(
-            LookupError::EmptyName,
-            "Category name cannot be empty"
-        );
-        return false;
-    }
-
-    // Optional: enforce uniqueness here if desired
-    // (assuming getByName returns id or -1)
-    int existingId = getByName(trimmed, result);
-    if (result.ok() && existingId >= 0) {
-        result.setError(
-            LookupError::AlreadyExists,
-            "Category already exists"
-        );
-        return false;
-    }
-
-    Category cat;
-    cat.name = trimmed;
-
-    if (!addCategory(cat, result))
-        return false;
-
     return true;
 }

@@ -356,7 +356,7 @@ void MainWindow::reloadComponents()
 
     // Load categories
     std::vector<Category> categories;
-    inventory_->categories().listCategories(categories, result);
+    inventory_->categories().list(categories, result);
 
     std::unordered_map<int, QString> categoryMap;
     for (const auto& c : categories)
@@ -364,7 +364,7 @@ void MainWindow::reloadComponents()
 
     // Load manufacturers
     std::vector<Manufacturer> manufacturers;
-    inventory_->manufacturers().listManufacturers(manufacturers, result);
+    inventory_->manufacturers().list(manufacturers, result);
 
     std::unordered_map<int, QString> manufacturerMap;
     for (const auto& m : manufacturers)

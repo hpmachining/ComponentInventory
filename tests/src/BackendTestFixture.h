@@ -36,10 +36,10 @@ protected:
         ASSERT_TRUE(schema.initialize(res));
 
         // Use canonical seeded values from Migration 5
-        catId = catMgr.getByName("Resistor", res);
+        catId = catMgr.getIdByName("Resistor", res);
         ASSERT_GT(catId, 0);
 
-        manId = manMgr.getByName("Generic", res);
+        manId = manMgr.getIdByName("Generic", res);
         ASSERT_GT(manId, 0);
 
         // No need to seed transistor/resistor/capacitor lookups here —

@@ -3,7 +3,7 @@
 #include <sqlite3.h>
 
 // Add a new manufacturer
-bool ManufacturerManager::addManufacturer(const Manufacturer& man, DbResult& result) {
+bool ManufacturerManager::add(const Manufacturer& man, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("INSERT INTO Manufacturers (Name, Country, Website, Notes) VALUES (?, ?, ?, ?);", stmt, result))
         return false;
@@ -13,7 +13,8 @@ bool ManufacturerManager::addManufacturer(const Manufacturer& man, DbResult& res
     sqlite3_bind_text(stmt, 3, man.website.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 4, man.notes.c_str(), -1, SQLITE_TRANSIENT);
 
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
+    int rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
         result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
         db_.finalize(stmt);
         return false;
@@ -25,7 +26,7 @@ bool ManufacturerManager::addManufacturer(const Manufacturer& man, DbResult& res
 }
 
 // Get manufacturer by ID
-bool ManufacturerManager::getManufacturerById(int id, Manufacturer& man, DbResult& result) {
+bool ManufacturerManager::getById(int id, Manufacturer& man, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name, Country, Website, Notes FROM Manufacturers WHERE ID=?;", stmt, result))
         return false;
@@ -51,7 +52,7 @@ bool ManufacturerManager::getManufacturerById(int id, Manufacturer& man, DbResul
 }
 
 // Update manufacturer
-bool ManufacturerManager::updateManufacturer(const Manufacturer& man, DbResult& result) {
+bool ManufacturerManager::update(const Manufacturer& man, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("UPDATE Manufacturers SET Name=?, Country=?, Website=?, Notes=? WHERE ID=?;", stmt, result))
         return false;
@@ -62,7 +63,8 @@ bool ManufacturerManager::updateManufacturer(const Manufacturer& man, DbResult& 
     sqlite3_bind_text(stmt, 4, man.notes.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 5, man.id);
 
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
+    int rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
         result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
         db_.finalize(stmt);
         return false;
@@ -74,14 +76,15 @@ bool ManufacturerManager::updateManufacturer(const Manufacturer& man, DbResult& 
 }
 
 // Delete manufacturer
-bool ManufacturerManager::deleteManufacturer(int id, DbResult& result) {
+bool ManufacturerManager::remove(int id, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("DELETE FROM Manufacturers WHERE ID=?;", stmt, result))
         return false;
 
     sqlite3_bind_int(stmt, 1, id);
 
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
+    int rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
         result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
         db_.finalize(stmt);
         return false;
@@ -93,7 +96,7 @@ bool ManufacturerManager::deleteManufacturer(int id, DbResult& result) {
 }
 
 // List all manufacturers
-bool ManufacturerManager::listManufacturers(std::vector<Manufacturer>& mans, DbResult& result) {
+bool ManufacturerManager::list(std::vector<Manufacturer>& mans, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name, Country, Website, Notes FROM Manufacturers;", stmt, result))
         return false;
@@ -110,66 +113,5 @@ bool ManufacturerManager::listManufacturers(std::vector<Manufacturer>& mans, DbR
 
     db_.finalize(stmt);
     result.clear();
-    return true;
-}
-
-int ManufacturerManager::getByName(const std::string& name, DbResult& result) {
-    sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ID FROM Manufacturers WHERE Name=?;", stmt, result)) return -1;
-    sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
-
-    int id = -1;
-    if (sqlite3_step(stmt) == SQLITE_ROW) id = sqlite3_column_int(stmt, 0);
-    sqlite3_finalize(stmt);
-    return id;
-}
-
-bool ManufacturerManager::listLookup(
-    std::vector<LookupItem>& items,
-    DbResult& result)
-{
-    std::vector<Manufacturer> mans;
-    if (!listManufacturers(mans, result))
-        return false;
-
-    items.clear();
-    items.reserve(mans.size());
-
-    for (const auto& m : mans) {
-        items.push_back({ m.id, m.name });
-    }
-    return true;
-}
-
-bool ManufacturerManager::addByName(
-    const std::string& name,
-    DbResult& result)
-{
-    result.clear();
-
-    const std::string trimmed = trim(name);
-    if (trimmed.empty()) {
-        result.setError(
-            LookupError::EmptyName,
-            "Manufacturer name cannot be empty"
-        );
-        return false;
-    }
-
-    int existingId = getByName(trimmed, result);
-    if (result.ok() && existingId >= 0) {
-        result.setError(
-            LookupError::AlreadyExists,
-            "Manufacturer already exists"
-        );
-        return false;
-    }
-
-    Manufacturer man;
-    man.name = trimmed;
-
-    if (!addManufacturer(man, result))
-        return false;
-
     return true;
 }

@@ -12,13 +12,13 @@ protected:
 TEST_F(CategoryManagerTest, AddCategory_InsertsRow) {
     // Use a unique test-only name to avoid collision with seeded categories
     Category cat("TestCategory_Add", "Category for add test");
-    ASSERT_TRUE(catMgr.addCategory(cat, res)) << res.toString();
+    ASSERT_TRUE(catMgr.add(cat, res)) << res.toString();
 
-    int insertedCatId = catMgr.getByName("TestCategory_Add", res);
+    int insertedCatId = catMgr.getIdByName("TestCategory_Add", res);
     ASSERT_GT(insertedCatId, 0);
 
     Category fetched;
-    ASSERT_TRUE(catMgr.getCategoryById(insertedCatId, fetched, res)) << res.toString();
+    ASSERT_TRUE(catMgr.getById(insertedCatId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedCatId);
     EXPECT_EQ(fetched.name, "TestCategory_Add");
@@ -29,13 +29,13 @@ TEST_F(CategoryManagerTest, AddCategory_InsertsRow) {
 TEST_F(CategoryManagerTest, GetCategoryById_ReturnsCorrectCategory) {
     // Again, use a unique name
     Category cat("TestCategory_Get", "Category for get test");
-    ASSERT_TRUE(catMgr.addCategory(cat, res)) << res.toString();
+    ASSERT_TRUE(catMgr.add(cat, res)) << res.toString();
 
-    int insertedCatId = catMgr.getByName("TestCategory_Get", res);
+    int insertedCatId = catMgr.getIdByName("TestCategory_Get", res);
     ASSERT_GT(insertedCatId, 0);
 
     Category fetched;
-    ASSERT_TRUE(catMgr.getCategoryById(insertedCatId, fetched, res)) << res.toString();
+    ASSERT_TRUE(catMgr.getById(insertedCatId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.id, insertedCatId);
     EXPECT_EQ(fetched.name, "TestCategory_Get");
@@ -45,11 +45,11 @@ TEST_F(CategoryManagerTest, GetCategoryById_ReturnsCorrectCategory) {
 // 3. ListCategories_ReturnsAllCategories
 TEST_F(CategoryManagerTest, ListCategories_ReturnsAllCategories) {
     // Add two unique categories
-    ASSERT_TRUE(catMgr.addCategory(Category("TestCategory_ListA", "Category A"), res)) << res.toString();
-    ASSERT_TRUE(catMgr.addCategory(Category("TestCategory_ListB", "Category B"), res)) << res.toString();
+    ASSERT_TRUE(catMgr.add(Category("TestCategory_ListA", "Category A"), res)) << res.toString();
+    ASSERT_TRUE(catMgr.add(Category("TestCategory_ListB", "Category B"), res)) << res.toString();
 
     std::vector<Category> cats;
-    ASSERT_TRUE(catMgr.listCategories(cats, res)) << res.toString();
+    ASSERT_TRUE(catMgr.list(cats, res)) << res.toString();
 
     bool foundA = false, foundB = false;
     for (const auto& c : cats) {
@@ -63,15 +63,15 @@ TEST_F(CategoryManagerTest, ListCategories_ReturnsAllCategories) {
 // 4. DeleteCategory_RemovesRow
 TEST_F(CategoryManagerTest, DeleteCategory_RemovesRow) {
     Category cat("TestCategory_Delete", "Category to delete");
-    ASSERT_TRUE(catMgr.addCategory(cat, res)) << res.toString();
+    ASSERT_TRUE(catMgr.add(cat, res)) << res.toString();
 
-    int insertedCatId = catMgr.getByName("TestCategory_Delete", res);
+    int insertedCatId = catMgr.getIdByName("TestCategory_Delete", res);
     ASSERT_GT(insertedCatId, 0);
 
-    ASSERT_TRUE(catMgr.deleteCategory(insertedCatId, res)) << res.toString();
+    ASSERT_TRUE(catMgr.remove(insertedCatId, res)) << res.toString();
 
     Category fetched;
-    bool gotCategory = catMgr.getCategoryById(insertedCatId, fetched, res);
+    bool gotCategory = catMgr.getById(insertedCatId, fetched, res);
     EXPECT_FALSE(gotCategory);
 }
 
@@ -114,7 +114,7 @@ TEST_F(CategoryManagerTest, AddByName_ValidatesInput) {
     ASSERT_TRUE(catMgr.addByName("  TrimCat  ", res)) << res.toString();
 
     // Verify trimmed name exists
-    int id = catMgr.getByName("TrimCat", res);
+    int id = catMgr.getIdByName("TrimCat", res);
     EXPECT_GT(id, 0);
 }
 

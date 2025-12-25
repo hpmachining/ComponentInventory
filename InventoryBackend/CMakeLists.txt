@@ -32,7 +32,8 @@ target_sources(${PROJECT_NAME}
         src/DiodeTypeManager.cpp
         src/DiodePolarityManager.cpp
         include/InventoryService.h
-        src/InventoryService.cpp)
+        src/InventoryService.cpp
+        src/LookupManager.cpp)
 
 # Public headers live directly in include/
 target_include_directories(${PROJECT_NAME}

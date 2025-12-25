@@ -1,25 +1,19 @@
 #pragma once
+
+#include "LookupManager.h"
 #include "Database.h"
 #include "DbResult.h"
 #include "Category.h"
-#include "LookupItem.h"
-#include <string>
+
 #include <vector>
 
-class CategoryManager {
+class CategoryManager : public LookupManager {
 public:
-    CategoryManager(Database& db) : db_(db) {}
+    explicit CategoryManager(Database& db);
 
-    bool addCategory(const Category& cat, DbResult& result);
-    bool getCategoryById(int id, Category& cat, DbResult& result);
-    bool updateCategory(const Category& cat, DbResult& result);
-    bool deleteCategory(int id, DbResult& result);
-    bool listCategories(std::vector<Category>& cats, DbResult& result);
-	int getByName(const std::string& name, DbResult& result);
-
-	bool listLookup(std::vector<LookupItem>& items, DbResult& result);
-	bool addByName(const std::string& name, DbResult& result);
-
-private:
-    Database& db_;
+    bool add(const Category& cat, DbResult& result);
+    bool getById(int id, Category& cat, DbResult& result);
+    bool update(const Category& cat, DbResult& result);
+    bool remove(int id, DbResult& result);
+    bool list(std::vector<Category>& cats, DbResult& result);
 };
