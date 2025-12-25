@@ -29,18 +29,28 @@ inline std::string safeColumnText(sqlite3_stmt* stmt, int colIndex) {
     return text ? reinterpret_cast<const char*>(text) : "";
 }
 
-inline std::string trim(const std::string& s)
+inline std::string normalizeWhitespace(const std::string& s)
 {
-    size_t start = 0;
-    while (start < s.size() && std::isspace(static_cast<unsigned char>(s[start])))
-        ++start;
+    std::string result;
+    result.reserve(s.size());
 
-    if (start == s.size())
-        return {};
+    bool inSpace = true; // Treat leading space as start
+    for (char c : s) {
+        if (std::isspace(static_cast<unsigned char>(c))) {
+            if (!inSpace) {  // only insert one space for a sequence
+                result.push_back(' ');
+                inSpace = true;
+            }
+        }
+        else {
+            result.push_back(c);
+            inSpace = false;
+        }
+    }
 
-    size_t end = s.size() - 1;
-    while (end > start && std::isspace(static_cast<unsigned char>(s[end])))
-        --end;
+    // Remove trailing space if any
+    if (!result.empty() && result.back() == ' ')
+        result.pop_back();
 
-    return s.substr(start, end - start + 1);
+    return result;
 }

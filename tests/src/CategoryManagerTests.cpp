@@ -125,3 +125,16 @@ TEST_F(CategoryManagerTest, AddByName_IsCaseInsensitive) {
     EXPECT_FALSE(catMgr.addByName("casetest", res));
     EXPECT_EQ(res.code, static_cast<int>(LookupError::AlreadyExists));
 }
+
+// 8. AddByName_NormalizesWhitespace
+TEST_F(CategoryManagerTest, AddByName_NormalizesWhitespace) {
+    ASSERT_TRUE(catMgr.addByName("Test   Category  Name", res)) << res.toString();
+
+    // Verify the name is stored normalized
+    int id = catMgr.getIdByName("Test Category Name", res);
+    EXPECT_GT(id, 0);
+
+    // Adding with extra internal spaces again should be detected as duplicate
+    EXPECT_FALSE(catMgr.addByName("Test Category   Name", res));
+    EXPECT_EQ(res.code, static_cast<int>(LookupError::AlreadyExists));
+}

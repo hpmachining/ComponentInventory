@@ -128,3 +128,15 @@ TEST_F(ManufacturerManagerTest, AddByName_IsCaseInsensitive) {
     EXPECT_FALSE(manMgr.addByName("casetest", res));
     EXPECT_EQ(res.code, static_cast<int>(LookupError::AlreadyExists));
 }
+
+TEST_F(ManufacturerManagerTest, AddByName_NormalizesWhitespace) {
+    ASSERT_TRUE(manMgr.addByName("Test   Manufacturer  Name", res)) << res.toString();
+
+    // Verify the name is stored normalized
+    int id = manMgr.getIdByName("Test Manufacturer Name", res);
+    EXPECT_GT(id, 0);
+
+    // Adding with extra internal spaces again should be detected as duplicate
+    EXPECT_FALSE(manMgr.addByName("Test Manufacturer   Name", res));
+    EXPECT_EQ(res.code, static_cast<int>(LookupError::AlreadyExists));
+}

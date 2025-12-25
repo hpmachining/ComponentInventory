@@ -60,7 +60,7 @@ bool LookupManager::addByName(const std::string& rawName, DbResult& result)
     result.clear();
 
     // Trim and validate
-    const std::string name = trim(rawName);
+    const std::string name = normalizeWhitespace(rawName);
     if (name.empty()) {
         result.setError(
             LookupError::EmptyName,            // uses your DbResult enum overload
