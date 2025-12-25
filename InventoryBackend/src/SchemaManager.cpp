@@ -32,13 +32,13 @@ bool SchemaManager::initialize(DbResult& result) {
         const char* baseline = R"SQL(
             CREATE TABLE IF NOT EXISTS Categories (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                Name TEXT NOT NULL UNIQUE,
+                Name TEXT NOT NULL UNIQUE COLLATE NOCASE,
                 Description TEXT
             );
 
             CREATE TABLE IF NOT EXISTS Manufacturers (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                Name TEXT NOT NULL UNIQUE,
+                Name TEXT NOT NULL UNIQUE COLLATE NOCASE,
                 Country TEXT,
                 Website TEXT,
                 Notes TEXT
@@ -46,7 +46,7 @@ bool SchemaManager::initialize(DbResult& result) {
 
             CREATE TABLE IF NOT EXISTS Components (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                PartNumber TEXT NOT NULL,
+                PartNumber TEXT NOT NULL COLLATE NOCASE,
                 Description TEXT,
                 CategoryID INTEGER NOT NULL,
                 ManufacturerID INTEGER,
@@ -60,12 +60,12 @@ bool SchemaManager::initialize(DbResult& result) {
 
             CREATE TABLE IF NOT EXISTS ResistorComposition (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                Name TEXT NOT NULL UNIQUE
+                Name TEXT NOT NULL UNIQUE COLLATE NOCASE
             );
 
             CREATE TABLE IF NOT EXISTS ResistorPackage (
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                Name TEXT NOT NULL UNIQUE
+                Name TEXT NOT NULL UNIQUE COLLATE NOCASE
             );
 
             CREATE TABLE IF NOT EXISTS Resistors (
@@ -149,12 +149,12 @@ bool SchemaManager::initialize(DbResult& result) {
         -- Lookup tables
         CREATE TABLE IF NOT EXISTS CapacitorDielectric (
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            Name TEXT NOT NULL UNIQUE
+            Name TEXT NOT NULL UNIQUE COLLATE NOCASE
         );
 
         CREATE TABLE IF NOT EXISTS CapacitorPackage (
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            Name TEXT NOT NULL UNIQUE
+            Name TEXT NOT NULL UNIQUE COLLATE NOCASE
         );
 
         -- General capacitor attributes
@@ -209,17 +209,17 @@ bool SchemaManager::initialize(DbResult& result) {
         -- Lookup tables for transistors
         CREATE TABLE IF NOT EXISTS TransistorType (
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            Name TEXT NOT NULL UNIQUE
+            Name TEXT NOT NULL UNIQUE COLLATE NOCASE
         );
 
         CREATE TABLE IF NOT EXISTS TransistorPolarity (
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            Name TEXT NOT NULL UNIQUE
+            Name TEXT NOT NULL UNIQUE COLLATE NOCASE
         );
 
         CREATE TABLE IF NOT EXISTS TransistorPackage (
             ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            Name TEXT NOT NULL UNIQUE
+            Name TEXT NOT NULL UNIQUE COLLATE NOCASE
         );
 
         -- Base transistor table

@@ -120,3 +120,11 @@ TEST_F(ManufacturerManagerTest, AddByName_ValidatesInput) {
     int id = manMgr.getByName("TrimMan", res);
     EXPECT_GT(id, 0);
 }
+
+// 7. AddByName_IsCaseInsensitive
+TEST_F(ManufacturerManagerTest, AddByName_IsCaseInsensitive) {
+    ASSERT_TRUE(manMgr.addByName("CaseTest", res)) << res.toString();
+
+    EXPECT_FALSE(manMgr.addByName("casetest", res));
+    EXPECT_EQ(res.code, static_cast<int>(LookupError::AlreadyExists));
+}

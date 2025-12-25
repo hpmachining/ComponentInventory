@@ -117,3 +117,11 @@ TEST_F(CategoryManagerTest, AddByName_ValidatesInput) {
     int id = catMgr.getByName("TrimCat", res);
     EXPECT_GT(id, 0);
 }
+
+// 7. AddByName_IsCaseInsensitive
+TEST_F(CategoryManagerTest, AddByName_IsCaseInsensitive) {
+    ASSERT_TRUE(catMgr.addByName("CaseTest", res)) << res.toString();
+
+    EXPECT_FALSE(catMgr.addByName("casetest", res));
+    EXPECT_EQ(res.code, static_cast<int>(LookupError::AlreadyExists));
+}
