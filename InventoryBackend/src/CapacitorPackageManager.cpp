@@ -3,7 +3,7 @@
 
 CapacitorPackageManager::CapacitorPackageManager(Database& db) : db_(db) {}
 
-bool CapacitorPackageManager::addPackage(const CapacitorPackage& pkg, DbResult& result) {
+bool CapacitorPackageManager::add(const CapacitorPackage& pkg, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("INSERT INTO CapacitorPackage (Name) VALUES (?);", stmt, result))
         return false;
@@ -15,33 +15,31 @@ bool CapacitorPackageManager::addPackage(const CapacitorPackage& pkg, DbResult& 
         db_.finalize(stmt);
         return false;
     }
+
     db_.finalize(stmt);
     result.clear();
     return true;
 }
 
-bool CapacitorPackageManager::getPackageById(int id, CapacitorPackage& pkg, DbResult& result) {
+bool CapacitorPackageManager::getById(int id, CapacitorPackage& pkg, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM CapacitorPackage WHERE ID=?;", stmt, result))
         return false;
 
     sqlite3_bind_int(stmt, 1, id);
 
+    bool ok = false;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         pkg.id = sqlite3_column_int(stmt, 0);
         pkg.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        ok = true;
     }
-    else {
-        result.setError(sqlite3_errcode(db_.handle()), "Package not found");
-        db_.finalize(stmt);
-        return false;
-    }
+
     db_.finalize(stmt);
-    result.clear();
-    return true;
+    return ok;
 }
 
-bool CapacitorPackageManager::listPackages(std::vector<CapacitorPackage>& pkgs, DbResult& result) {
+bool CapacitorPackageManager::list(std::vector<CapacitorPackage>& pkgs, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM CapacitorPackage;", stmt, result))
         return false;
@@ -52,12 +50,13 @@ bool CapacitorPackageManager::listPackages(std::vector<CapacitorPackage>& pkgs, 
         pkg.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         pkgs.push_back(pkg);
     }
+
     db_.finalize(stmt);
     result.clear();
     return true;
 }
 
-bool CapacitorPackageManager::deletePackage(int id, DbResult& result) {
+bool CapacitorPackageManager::remove(int id, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("DELETE FROM CapacitorPackage WHERE ID=?;", stmt, result))
         return false;
@@ -69,6 +68,7 @@ bool CapacitorPackageManager::deletePackage(int id, DbResult& result) {
         db_.finalize(stmt);
         return false;
     }
+
     db_.finalize(stmt);
     result.clear();
     return true;
@@ -76,11 +76,15 @@ bool CapacitorPackageManager::deletePackage(int id, DbResult& result) {
 
 int CapacitorPackageManager::getByName(const std::string& name, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ID FROM CapacitorPackage WHERE Name=?;", stmt, result)) return -1;
+    if (!db_.prepare("SELECT ID FROM CapacitorPackage WHERE Name=?;", stmt, result))
+        return -1;
+
     sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
 
     int id = -1;
-    if (sqlite3_step(stmt) == SQLITE_ROW) id = sqlite3_column_int(stmt, 0);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+        id = sqlite3_column_int(stmt, 0);
+
     sqlite3_finalize(stmt);
     return id;
 }

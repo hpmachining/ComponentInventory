@@ -11,18 +11,18 @@ struct CapacitorPackage {
     std::string name;
 
     CapacitorPackage() : id(0), name("") {}
-    CapacitorPackage(const std::string& n) : id(0), name(n) {}
+    explicit CapacitorPackage(const std::string& n) : id(0), name(n) {}
 };
 
 class CapacitorPackageManager {
 public:
     explicit CapacitorPackageManager(Database& db);
 
-    bool addPackage(const CapacitorPackage& pkg, DbResult& result);
-    bool getPackageById(int id, CapacitorPackage& pkg, DbResult& result);
-    bool listPackages(std::vector<CapacitorPackage>& pkgs, DbResult& result);
-    bool deletePackage(int id, DbResult& result);
-	int getByName(const std::string& name, DbResult& result);
+    bool add(const CapacitorPackage& pkg, DbResult& result);
+    bool getById(int id, CapacitorPackage& pkg, DbResult& result);
+    bool list(std::vector<CapacitorPackage>& pkgs, DbResult& result);
+    bool remove(int id, DbResult& result);
+    int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;
