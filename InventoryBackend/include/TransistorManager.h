@@ -9,7 +9,9 @@ struct Transistor {
     int polarityId;
     int packageId;
 
-    Transistor() : componentId(0), typeId(0), polarityId(0), packageId(0) {}
+    Transistor()
+        : componentId(0), typeId(0), polarityId(0), packageId(0) {
+    }
 
     Transistor(int componentId_, int typeId_, int polarityId_, int packageId_)
         : componentId(componentId_),
@@ -23,10 +25,10 @@ class TransistorManager {
 public:
     explicit TransistorManager(Database& db);
 
-    bool addTransistor(const Transistor& t, DbResult& result);
-    bool getTransistorById(int componentId, Transistor& t, DbResult& result);
-    bool listTransistors(std::vector<Transistor>& ts, DbResult& result);
-    bool deleteTransistor(int componentId, DbResult& result);
+    bool add(const Transistor& t, DbResult& result);
+    bool getById(int componentId, Transistor& t, DbResult& result);
+    bool list(std::vector<Transistor>& ts, DbResult& result);
+    bool remove(int componentId, DbResult& result);
 
 private:
     Database& db_;

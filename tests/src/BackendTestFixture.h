@@ -41,9 +41,5 @@ protected:
 
         manId = manMgr.getIdByName("Generic", res);
         ASSERT_GT(manId, 0);
-
-        // No need to seed transistor/resistor/capacitor lookups here —
-        // Migration 5 already inserted BJT, NPN, TO-92, Carbon Film, Radial leaded, C0G/NP0, etc.
-        // Tests can resolve IDs with getByName when needed.
     }
 };

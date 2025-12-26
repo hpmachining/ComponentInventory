@@ -23,6 +23,7 @@ add_executable(${PROJECT_NAME}
 # Link against backend and gtest
 find_package(GTest CONFIG REQUIRED)
 
+
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         InventoryBackend

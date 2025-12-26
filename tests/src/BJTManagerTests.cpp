@@ -36,7 +36,7 @@ TEST_F(BJTManagerTest, AddBJT_InsertsRow) {
     ASSERT_GT(pkgId, 0);
 
     Transistor t(compId, typeId, polId, pkgId);
-    ASSERT_TRUE(transistorMgr.addTransistor(t, res));
+    ASSERT_TRUE(transistorMgr.add(t, res));
 
     BJT b(compId, 40.0, 0.2, 0.5, 200.0, 100e6);
     EXPECT_TRUE(bjtMgr.add(b, res));
@@ -60,7 +60,7 @@ TEST_F(BJTManagerTest, UpdateBJT_ChangesPersist) {
     ASSERT_GT(pkgId, 0);
 
     Transistor t(compId, typeId, polId, pkgId);
-    ASSERT_TRUE(transistorMgr.addTransistor(t, res));
+    ASSERT_TRUE(transistorMgr.add(t, res));
 
     BJT b(compId, 40.0, 0.2, 0.5, 150.0, 80e6);
     ASSERT_TRUE(bjtMgr.add(b, res));
@@ -87,7 +87,7 @@ TEST_F(BJTManagerTest, DeleteBJT_RemovesRow) {
     ASSERT_GT(pkgId, 0);
 
     Transistor t(compId, typeId, polId, pkgId);
-    ASSERT_TRUE(transistorMgr.addTransistor(t, res));
+    ASSERT_TRUE(transistorMgr.add(t, res));
 
     BJT b(compId, 40.0, 0.2, 0.5, 100.0, 50e6);
     ASSERT_TRUE(bjtMgr.add(b, res));
@@ -111,7 +111,7 @@ TEST_F(BJTManagerTest, ListBJTs_ReturnsAll) {
     int pkgId = pkgMgr.getByName("TO-92", res);
     ASSERT_GT(pkgId, 0);
 
-    ASSERT_TRUE(transistorMgr.addTransistor(Transistor(compId1, typeId, polId1, pkgId), res));
+    ASSERT_TRUE(transistorMgr.add(Transistor(compId1, typeId, polId1, pkgId), res));
     ASSERT_TRUE(bjtMgr.add(BJT(compId1, 40.0, 0.2, 0.5, 100.0, 50e6), res));
 
     Component c2("2N3055", "Unit test transistor", catId, manId, 1);
@@ -121,7 +121,7 @@ TEST_F(BJTManagerTest, ListBJTs_ReturnsAll) {
     int polId2 = polMgr.getByName("NPN", res);
     ASSERT_GT(polId2, 0);
 
-    ASSERT_TRUE(transistorMgr.addTransistor(Transistor(compId2, typeId, polId2, pkgId), res));
+    ASSERT_TRUE(transistorMgr.add(Transistor(compId2, typeId, polId2, pkgId), res));
     ASSERT_TRUE(bjtMgr.add(BJT(compId2, 60.0, 0.5, 1.0, 200.0, 80e6), res));
 
     std::vector<BJT> bjts;
@@ -143,7 +143,7 @@ TEST_F(BJTManagerTest, ListLookup_ReturnsAllItems) {
     int pkgId = pkgMgr.getByName("TO-92", res);
     ASSERT_GT(pkgId, 0);
 
-    ASSERT_TRUE(transistorMgr.addTransistor(Transistor(compId1, typeId, polId1, pkgId), res));
+    ASSERT_TRUE(transistorMgr.add(Transistor(compId1, typeId, polId1, pkgId), res));
     ASSERT_TRUE(bjtMgr.add(BJT(compId1, 40.0, 0.2, 0.5, 100.0, 50e6), res));
 
     // --- Component 2 ---
@@ -154,7 +154,7 @@ TEST_F(BJTManagerTest, ListLookup_ReturnsAllItems) {
     int polId2 = polMgr.getByName("NPN", res);
     ASSERT_GT(polId2, 0);
 
-    ASSERT_TRUE(transistorMgr.addTransistor(Transistor(compId2, typeId, polId2, pkgId), res));
+    ASSERT_TRUE(transistorMgr.add(Transistor(compId2, typeId, polId2, pkgId), res));
     ASSERT_TRUE(bjtMgr.add(BJT(compId2, 60.0, 0.5, 1.0, 200.0, 80e6), res));
 
     // --- Call listLookup ---
