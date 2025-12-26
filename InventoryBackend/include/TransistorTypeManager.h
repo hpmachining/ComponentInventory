@@ -16,11 +16,12 @@ class TransistorTypeManager {
 public:
     explicit TransistorTypeManager(Database& db);
 
-    bool addType(const TransistorType& type, DbResult& result);
-    bool getTypeById(int id, TransistorType& type, DbResult& result);
-    bool listTypes(std::vector<TransistorType>& types, DbResult& result);
-    bool deleteType(int id, DbResult& result);
-	int getByName(const std::string& name, DbResult& result);
+    // Generic CRUD method names
+    bool add(const TransistorType& type, DbResult& result);
+    bool getById(int id, TransistorType& type, DbResult& result);
+    bool list(std::vector<TransistorType>& types, DbResult& result);
+    bool remove(int id, DbResult& result);
+    int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;
