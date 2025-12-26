@@ -4,32 +4,43 @@
 #include <vector>
 
 struct Diode {
-    int componentId{ 0 };
-    int packageId{ 0 };
-    int typeId{ 0 };
-    int polarityId{ 0 };
-    double forwardVoltage{ 0.0 };     // volts
-    double maxCurrent{ 0.0 };         // amps
-    double maxReverseVoltage{ 0.0 };  // volts
-    double reverseLeakage{ 0.0 };     // µA or mA
+    int componentId;
+    int packageId;
+    int typeId;
+    int polarityId;
+    double forwardVoltage;
+    double maxCurrent;
+    double maxReverseVoltage;
+    double reverseLeakage;
+
+    // Default constructor
+    Diode()
+        : componentId(0), packageId(0), typeId(0), polarityId(0),
+        forwardVoltage(0.0), maxCurrent(0.0),
+        maxReverseVoltage(0.0), reverseLeakage(0.0) {
+    }
+
+    // Parameterized constructor
+    Diode(int compId, int pkgId, int typeId, int polId,
+        double fwdV, double maxI, double maxRevV, double revLeak)
+        : componentId(compId), packageId(pkgId),
+        typeId(typeId), polarityId(polId),
+        forwardVoltage(fwdV), maxCurrent(maxI),
+        maxReverseVoltage(maxRevV), reverseLeakage(revLeak) {
+    }
 };
 
 class DiodeManager {
 public:
     explicit DiodeManager(Database& db);
 
-    bool addDiode(const Diode& d, DbResult& res);
-    bool getDiodeByComponentId(int componentId, Diode& d, DbResult& res);
-    bool updateDiode(const Diode& d, DbResult& res);
-    bool deleteDiode(int componentId, DbResult& res);
-    bool listDiodes(std::vector<Diode>& ds, DbResult& res);
-
-    // Lookup helpers
-    int getPackageByName(const std::string& name, DbResult& res);
-    int getTypeByName(const std::string& name, DbResult& res);
-    int getPolarityByName(const std::string& name, DbResult& res);
+    // CRUD operations
+    bool add(const Diode& d, DbResult& res);
+    bool getById(int componentId, Diode& d, DbResult& res);
+    bool update(const Diode& d, DbResult& res);
+    bool remove(int componentId, DbResult& res);
+    bool list(std::vector<Diode>& ds, DbResult& res);
 
 private:
     Database& db_;
-    int resolveIdByName(const std::string& table, const std::string& name, DbResult& res);
 };

@@ -1,10 +1,16 @@
 #include "DiodeManager.h"
 #include <sqlite3.h>
 
-DiodeManager::DiodeManager(Database& db) : db_(db) {}
+DiodeManager::DiodeManager(Database& db)
+    : db_(db) {
+}
 
-bool DiodeManager::addDiode(const Diode& d, DbResult& res) {
-    const char* sql = "INSERT INTO Diodes (ComponentId, PackageId, TypeId, PolarityId, ForwardVoltage, MaxCurrent, MaxReverseVoltage, ReverseLeakage) VALUES (?,?,?,?,?,?,?,?);";
+// --- CRUD ---
+
+bool DiodeManager::add(const Diode& d, DbResult& res) {
+    const char* sql = "INSERT INTO Diodes "
+        "(ComponentId, PackageId, TypeId, PolarityId, ForwardVoltage, MaxCurrent, MaxReverseVoltage, ReverseLeakage) "
+        "VALUES (?,?,?,?,?,?,?,?);";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
 
@@ -23,8 +29,9 @@ bool DiodeManager::addDiode(const Diode& d, DbResult& res) {
     return ok;
 }
 
-bool DiodeManager::getDiodeByComponentId(int componentId, Diode& d, DbResult& res) {
-    const char* sql = "SELECT ComponentId, PackageId, TypeId, PolarityId, ForwardVoltage, MaxCurrent, MaxReverseVoltage, ReverseLeakage FROM Diodes WHERE ComponentId=?;";
+bool DiodeManager::getById(int componentId, Diode& d, DbResult& res) {
+    const char* sql = "SELECT ComponentId, PackageId, TypeId, PolarityId, ForwardVoltage, MaxCurrent, MaxReverseVoltage, ReverseLeakage "
+        "FROM Diodes WHERE ComponentId=?;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
 
@@ -42,12 +49,15 @@ bool DiodeManager::getDiodeByComponentId(int componentId, Diode& d, DbResult& re
         sqlite3_finalize(stmt);
         return true;
     }
+
     sqlite3_finalize(stmt);
     return false;
 }
 
-bool DiodeManager::updateDiode(const Diode& d, DbResult& res) {
-    const char* sql = "UPDATE Diodes SET PackageId=?, TypeId=?, PolarityId=?, ForwardVoltage=?, MaxCurrent=?, MaxReverseVoltage=?, ReverseLeakage=? WHERE ComponentId=?;";
+bool DiodeManager::update(const Diode& d, DbResult& res) {
+    const char* sql = "UPDATE Diodes SET "
+        "PackageId=?, TypeId=?, PolarityId=?, ForwardVoltage=?, MaxCurrent=?, MaxReverseVoltage=?, ReverseLeakage=? "
+        "WHERE ComponentId=?;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
 
@@ -66,7 +76,7 @@ bool DiodeManager::updateDiode(const Diode& d, DbResult& res) {
     return ok;
 }
 
-bool DiodeManager::deleteDiode(int componentId, DbResult& res) {
+bool DiodeManager::remove(int componentId, DbResult& res) {
     const char* sql = "DELETE FROM Diodes WHERE ComponentId=?;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
@@ -78,8 +88,9 @@ bool DiodeManager::deleteDiode(int componentId, DbResult& res) {
     return ok;
 }
 
-bool DiodeManager::listDiodes(std::vector<Diode>& ds, DbResult& res) {
-    const char* sql = "SELECT ComponentId, PackageId, TypeId, PolarityId, ForwardVoltage, MaxCurrent, MaxReverseVoltage, ReverseLeakage FROM Diodes;";
+bool DiodeManager::list(std::vector<Diode>& ds, DbResult& res) {
+    const char* sql = "SELECT ComponentId, PackageId, TypeId, PolarityId, ForwardVoltage, MaxCurrent, MaxReverseVoltage, ReverseLeakage "
+        "FROM Diodes;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
 
@@ -95,30 +106,7 @@ bool DiodeManager::listDiodes(std::vector<Diode>& ds, DbResult& res) {
         d.reverseLeakage = sqlite3_column_double(stmt, 7);
         ds.push_back(d);
     }
+
     sqlite3_finalize(stmt);
     return true;
-}
-
-int DiodeManager::getPackageByName(const std::string& name, DbResult& res) {
-    return resolveIdByName("DiodePackage", name, res);
-}
-
-int DiodeManager::getTypeByName(const std::string& name, DbResult& res) {
-    return resolveIdByName("DiodeType", name, res);
-}
-
-int DiodeManager::getPolarityByName(const std::string& name, DbResult& res) {
-    return resolveIdByName("DiodePolarity", name, res);
-}
-
-int DiodeManager::resolveIdByName(const std::string& table, const std::string& name, DbResult& res) {
-    std::string sql = "SELECT Id FROM " + table + " WHERE Name=?;";
-    sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare(sql.c_str(), stmt, res)) return -1;
-
-    sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
-    int rc = sqlite3_step(stmt);
-    int id = (rc == SQLITE_ROW) ? sqlite3_column_int(stmt, 0) : -1;
-    sqlite3_finalize(stmt);
-    return id;
 }
