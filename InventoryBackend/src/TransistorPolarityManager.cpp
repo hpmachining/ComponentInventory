@@ -2,11 +2,11 @@
 
 TransistorPolarityManager::TransistorPolarityManager(Database& db) : db_(db) {}
 
-bool TransistorPolarityManager::addPolarity(const TransistorPolarity& pol, DbResult& result) {
+bool TransistorPolarityManager::add(const TransistorPolarity& pol, DbResult& result) {
     return db_.exec("INSERT INTO TransistorPolarity (Name) VALUES ('" + pol.name + "');", result);
 }
 
-bool TransistorPolarityManager::getPolarityById(int id, TransistorPolarity& pol, DbResult& result) {
+bool TransistorPolarityManager::getById(int id, TransistorPolarity& pol, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM TransistorPolarity WHERE ID=?;", stmt, result)) return false;
     sqlite3_bind_int(stmt, 1, id);
@@ -21,7 +21,7 @@ bool TransistorPolarityManager::getPolarityById(int id, TransistorPolarity& pol,
     return ok;
 }
 
-bool TransistorPolarityManager::listPolarities(std::vector<TransistorPolarity>& pols, DbResult& result) {
+bool TransistorPolarityManager::list(std::vector<TransistorPolarity>& pols, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM TransistorPolarity;", stmt, result)) return false;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -34,7 +34,7 @@ bool TransistorPolarityManager::listPolarities(std::vector<TransistorPolarity>& 
     return true;
 }
 
-bool TransistorPolarityManager::deletePolarity(int id, DbResult& result) {
+bool TransistorPolarityManager::remove(int id, DbResult& result) {
     return db_.exec("DELETE FROM TransistorPolarity WHERE ID=" + std::to_string(id) + ";", result);
 }
 

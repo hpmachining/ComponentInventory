@@ -16,11 +16,11 @@ class TransistorPolarityManager {
 public:
     explicit TransistorPolarityManager(Database& db);
 
-    bool addPolarity(const TransistorPolarity& pol, DbResult& result);
-    bool getPolarityById(int id, TransistorPolarity& pol, DbResult& result);
-    bool listPolarities(std::vector<TransistorPolarity>& pols, DbResult& result);
-    bool deletePolarity(int id, DbResult& result);
-	int getByName(const std::string& name, DbResult& result);
+    bool add(const TransistorPolarity& pol, DbResult& result);
+    bool getById(int id, TransistorPolarity& pol, DbResult& result);
+    bool list(std::vector<TransistorPolarity>& pols, DbResult& result);
+    bool remove(int id, DbResult& result);
+    int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;
