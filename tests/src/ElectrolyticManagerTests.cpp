@@ -52,7 +52,7 @@ protected:
         cap.polarized = true;
         cap.packageTypeId = pkgId;
         cap.dielectricTypeId = dielId;
-        ASSERT_TRUE(capMgr.addCapacitor(cap, res)) << res.toString();
+        ASSERT_TRUE(capMgr.add(cap, res)) << res.toString();
     }
 };
 

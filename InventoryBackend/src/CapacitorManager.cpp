@@ -1,15 +1,14 @@
 #include "CapacitorManager.h"
-#include "DbUtils.h"   // for safeColumnText
+#include "DbUtils.h"
 #include <sqlite3.h>
 
 CapacitorManager::CapacitorManager(Database& db) : db_(db) {}
 
-// Add a new capacitor
-bool CapacitorManager::addCapacitor(const Capacitor& cap, DbResult& result) {
+// Add capacitor
+bool CapacitorManager::add(const Capacitor& cap, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
-        "INSERT INTO Capacitors (ComponentID, Capacitance, VoltageRating, "
-        "Tolerance, ESR, LeakageCurrent, Polarized, PackageTypeID, DielectricTypeID) "
+        "INSERT INTO Capacitors (ComponentID, Capacitance, VoltageRating, Tolerance, ESR, LeakageCurrent, Polarized, PackageTypeID, DielectricTypeID) "
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
         stmt, result)) {
         return false;
@@ -36,12 +35,11 @@ bool CapacitorManager::addCapacitor(const Capacitor& cap, DbResult& result) {
     return true;
 }
 
-// Get capacitor by ID
-bool CapacitorManager::getCapacitorById(int id, Capacitor& cap, DbResult& result) {
+// Get capacitor by component ID
+bool CapacitorManager::getById(int id, Capacitor& cap, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
-        "SELECT ComponentID, Capacitance, VoltageRating, Tolerance, ESR, "
-        "LeakageCurrent, Polarized, PackageTypeID, DielectricTypeID "
+        "SELECT ComponentID, Capacitance, VoltageRating, Tolerance, ESR, LeakageCurrent, Polarized, PackageTypeID, DielectricTypeID "
         "FROM Capacitors WHERE ComponentID=?;",
         stmt, result)) {
         return false;
@@ -71,16 +69,11 @@ bool CapacitorManager::getCapacitorById(int id, Capacitor& cap, DbResult& result
     return true;
 }
 
-bool CapacitorManager::getCapacitorByComponentId(int componentId, Capacitor& cap, DbResult& result) {
-    return getCapacitorById(componentId, cap, result);
-}
-
 // Update capacitor
-bool CapacitorManager::updateCapacitor(const Capacitor& cap, DbResult& result) {
+bool CapacitorManager::update(const Capacitor& cap, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
-        "UPDATE Capacitors SET Capacitance=?, VoltageRating=?, Tolerance=?, ESR=?, "
-        "LeakageCurrent=?, Polarized=?, PackageTypeID=?, DielectricTypeID=? "
+        "UPDATE Capacitors SET Capacitance=?, VoltageRating=?, Tolerance=?, ESR=?, LeakageCurrent=?, Polarized=?, PackageTypeID=?, DielectricTypeID=? "
         "WHERE ComponentID=?;",
         stmt, result)) {
         return false;
@@ -108,7 +101,7 @@ bool CapacitorManager::updateCapacitor(const Capacitor& cap, DbResult& result) {
 }
 
 // Delete capacitor
-bool CapacitorManager::deleteCapacitor(int id, DbResult& result) {
+bool CapacitorManager::remove(int id, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("DELETE FROM Capacitors WHERE ComponentID=?;", stmt, result)) {
         return false;
@@ -128,11 +121,11 @@ bool CapacitorManager::deleteCapacitor(int id, DbResult& result) {
 }
 
 // List all capacitors
-bool CapacitorManager::listCapacitors(std::vector<Capacitor>& caps, DbResult& result) {
+bool CapacitorManager::list(std::vector<Capacitor>& caps, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
-        "SELECT ComponentID, Capacitance, VoltageRating, Tolerance, ESR, "
-        "LeakageCurrent, Polarized, PackageTypeID, DielectricTypeID FROM Capacitors;",
+        "SELECT ComponentID, Capacitance, VoltageRating, Tolerance, ESR, LeakageCurrent, Polarized, PackageTypeID, DielectricTypeID "
+        "FROM Capacitors;",
         stmt, result)) {
         return false;
     }
@@ -148,7 +141,7 @@ bool CapacitorManager::listCapacitors(std::vector<Capacitor>& caps, DbResult& re
         cap.polarized = sqlite3_column_int(stmt, 6) != 0;
         cap.packageTypeId = sqlite3_column_int(stmt, 7);
         cap.dielectricTypeId = sqlite3_column_int(stmt, 8);
-        caps.push_back(cap);
+        caps.push_back(std::move(cap));
     }
 
     db_.finalize(stmt);

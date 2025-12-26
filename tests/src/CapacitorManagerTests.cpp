@@ -23,14 +23,12 @@ protected:
     void SetUp() override {
         BackendTestFixture::SetUp(); // base fixture seeds lookups
 
-        // Resolve seeded lookup IDs
         pkgId = pkgMgr.getByName("Radial leaded", res);
         ASSERT_GT(pkgId, 0);
 
         dielId = dielMgr.getByName("C0G/NP0", res);
         ASSERT_GT(dielId, 0);
 
-        // Seed a component specific to capacitor tests
         Component comp("C-100nF", "Seed capacitor component", catId, manId, 50, "Seed notes");
         ASSERT_TRUE(compMgr.addComponent(comp, res)) << res.toString();
         compId = compMgr.getByPartNumber("C-100nF", res);
@@ -40,21 +38,11 @@ protected:
 
 // 1. AddCapacitor_InsertsRow
 TEST_F(CapacitorManagerTest, AddCapacitor_InsertsRow) {
-    Capacitor c;
-    c.componentId = compId;
-    c.capacitance = 100e-9;
-    c.voltageRating = 50.0;
-    c.tolerance = 5.0;
-    c.esr = 0.1;
-    c.leakageCurrent = 0.001;
-    c.polarized = false;
-    c.packageTypeId = pkgId;
-    c.dielectricTypeId = dielId;
-
-    ASSERT_TRUE(capMgr.addCapacitor(c, res)) << res.toString();
+    Capacitor c{ compId, 100e-9, 50.0, 5.0, 0.1, 0.001, false, pkgId, dielId };
+    ASSERT_TRUE(capMgr.add(c, res)) << res.toString();
 
     Capacitor fetched;
-    ASSERT_TRUE(capMgr.getCapacitorById(compId, fetched, res)) << res.toString();
+    ASSERT_TRUE(capMgr.getById(compId, fetched, res)) << res.toString();
 
     EXPECT_EQ(fetched.componentId, compId);
     EXPECT_DOUBLE_EQ(fetched.capacitance, 100e-9);
@@ -69,48 +57,28 @@ TEST_F(CapacitorManagerTest, AddCapacitor_InsertsRow) {
 
 // 2. UpdateCapacitor_ChangesPersist
 TEST_F(CapacitorManagerTest, UpdateCapacitor_ChangesPersist) {
-    Capacitor c;
-    c.componentId = compId;
-    c.capacitance = 10e-6;
-    c.voltageRating = 25.0;
-    c.tolerance = 20.0;
-    c.esr = 0.5;
-    c.leakageCurrent = 0.01;
-    c.polarized = true;
-    c.packageTypeId = pkgId;
-    c.dielectricTypeId = dielId;
-
-    ASSERT_TRUE(capMgr.addCapacitor(c, res)) << res.toString();
+    Capacitor c{ compId, 10e-6, 25.0, 20.0, 0.5, 0.01, true, pkgId, dielId };
+    ASSERT_TRUE(capMgr.add(c, res)) << res.toString();
 
     Capacitor updated = c;
     updated.tolerance = 10.0;
     updated.esr = 0.2;
 
-    ASSERT_TRUE(capMgr.updateCapacitor(updated, res)) << res.toString();
+    ASSERT_TRUE(capMgr.update(updated, res)) << res.toString();
 
     Capacitor fetched;
-    ASSERT_TRUE(capMgr.getCapacitorById(compId, fetched, res)) << res.toString();
+    ASSERT_TRUE(capMgr.getById(compId, fetched, res)) << res.toString();
     EXPECT_DOUBLE_EQ(fetched.tolerance, 10.0);
     EXPECT_DOUBLE_EQ(fetched.esr, 0.2);
 }
 
-// 3. DeleteCapacitor_RemovesRow
-TEST_F(CapacitorManagerTest, DeleteCapacitor_RemovesRow) {
-    Capacitor c;
-    c.componentId = compId;
-    c.capacitance = 1e-6;
-    c.voltageRating = 16.0;
-    c.tolerance = 10.0;
-    c.esr = 0.3;
-    c.leakageCurrent = 0.005;
-    c.polarized = true;
-    c.packageTypeId = pkgId;
-    c.dielectricTypeId = dielId;
+// 3. RemoveCapacitor_DeletesRow
+TEST_F(CapacitorManagerTest, RemoveCapacitor_DeletesRow) {
+    Capacitor c{ compId, 1e-6, 16.0, 10.0, 0.3, 0.005, true, pkgId, dielId };
+    ASSERT_TRUE(capMgr.add(c, res)) << res.toString();
 
-    ASSERT_TRUE(capMgr.addCapacitor(c, res)) << res.toString();
-
-    ASSERT_TRUE(capMgr.deleteCapacitor(compId, res)) << res.toString();
+    ASSERT_TRUE(capMgr.remove(compId, res)) << res.toString();
 
     Capacitor fetched;
-    EXPECT_FALSE(capMgr.getCapacitorById(compId, fetched, res));
+    EXPECT_FALSE(capMgr.getById(compId, fetched, res));
 }
