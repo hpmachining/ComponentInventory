@@ -22,7 +22,8 @@ add_executable(${PROJECT_NAME}
     src/FuseManagerTests.cpp 
     src/DiodeManagerTest.cpp 
     src/TransistorPolarityManagerTests.cpp
-    src/DiodePackageManagerTests.cpp)
+    src/DiodePackageManagerTests.cpp
+    src/DiodePolarityManagerTests.cpp)
 
 # Link against backend and gtest
 find_package(GTest CONFIG REQUIRED)
@@ -45,4 +46,3 @@ endif()
 # Register with CTest
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME})
-
