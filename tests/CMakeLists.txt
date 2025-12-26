@@ -17,6 +17,8 @@ add_executable(${PROJECT_NAME}
     src/ElectrolyticManagerTests.cpp
     src/BJTManagerTests.cpp
     src/TransistorManagerTests.cpp
+    src/TransistorTypeManagerTests.cpp
+    src/TransistorPackageManagerTests.cpp
     src/FuseManagerTests.cpp 
     src/DiodeManagerTest.cpp)
 

@@ -16,10 +16,10 @@ class TransistorPackageManager {
 public:
     explicit TransistorPackageManager(Database& db);
 
-    bool addPackage(const TransistorPackage& pkg, DbResult& result);
-    bool getPackageById(int id, TransistorPackage& pkg, DbResult& result);
-    bool listPackages(std::vector<TransistorPackage>& pkgs, DbResult& result);
-    bool deletePackage(int id, DbResult& result);
+    bool add(const TransistorPackage& pkg, DbResult& result);
+    bool getById(int id, TransistorPackage& pkg, DbResult& result);
+    bool list(std::vector<TransistorPackage>& pkgs, DbResult& result);
+    bool remove(int id, DbResult& result);
     int getByName(const std::string& name, DbResult& result);
 
 private:
