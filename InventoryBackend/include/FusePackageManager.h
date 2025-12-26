@@ -2,23 +2,26 @@
 #include "Database.h"
 #include "DbResult.h"
 #include <vector>
+#include <string>
 
 struct FusePackage {
-    int id{ 0 };
+    int id;
     std::string name;
-    FusePackage() = default;
-    explicit FusePackage(const std::string& n) : name(n) {}
+
+    FusePackage() : id(0), name() {}
+    explicit FusePackage(const std::string& n) : id(0), name(n) {}
+    FusePackage(int id, const std::string& n) : id(id), name(n) {}
 };
 
 class FusePackageManager {
 public:
     explicit FusePackageManager(Database& db);
 
-    bool addPackage(const FusePackage& pkg, DbResult& res);
-    bool getPackageById(int id, FusePackage& pkg, DbResult& res);
+    bool add(const FusePackage& pkg, DbResult& res);
+    bool getById(int id, FusePackage& pkg, DbResult& res);
     int  getByName(const std::string& name, DbResult& res);
-    bool listPackages(std::vector<FusePackage>& pkgs, DbResult& res);
-    bool deletePackage(int id, DbResult& res);
+    bool list(std::vector<FusePackage>& pkgs, DbResult& res);
+    bool remove(int id, DbResult& res);
 
 private:
     Database& db_;

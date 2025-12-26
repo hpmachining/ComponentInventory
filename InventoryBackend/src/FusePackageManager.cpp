@@ -3,7 +3,7 @@
 
 FusePackageManager::FusePackageManager(Database& db) : db_(db) {}
 
-bool FusePackageManager::addPackage(const FusePackage& pkg, DbResult& res) {
+bool FusePackageManager::add(const FusePackage& pkg, DbResult& res) {
     const char* sql = "INSERT INTO FusePackage (Name) VALUES (?);";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
@@ -14,7 +14,7 @@ bool FusePackageManager::addPackage(const FusePackage& pkg, DbResult& res) {
     return ok;
 }
 
-bool FusePackageManager::getPackageById(int id, FusePackage& pkg, DbResult& res) {
+bool FusePackageManager::getById(int id, FusePackage& pkg, DbResult& res) {
     const char* sql = "SELECT Id, Name FROM FusePackage WHERE Id=?;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
@@ -41,7 +41,7 @@ int FusePackageManager::getByName(const std::string& name, DbResult& res) {
     return id;
 }
 
-bool FusePackageManager::listPackages(std::vector<FusePackage>& pkgs, DbResult& res) {
+bool FusePackageManager::list(std::vector<FusePackage>& pkgs, DbResult& res) {
     const char* sql = "SELECT Id, Name FROM FusePackage;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
@@ -55,7 +55,7 @@ bool FusePackageManager::listPackages(std::vector<FusePackage>& pkgs, DbResult& 
     return true;
 }
 
-bool FusePackageManager::deletePackage(int id, DbResult& res) {
+bool FusePackageManager::remove(int id, DbResult& res) {
     const char* sql = "DELETE FROM FusePackage WHERE Id=?;";
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(sql, stmt, res)) return false;
