@@ -1,71 +1,72 @@
 #include "BackendTestFixture.h"
 #include "CapacitorDielectricManager.h"
 
+#include <unordered_set>
+
 class CapacitorDielectricManagerTest : public BackendTestFixture {
 protected:
     CapacitorDielectricManager dielMgr;
     CapacitorDielectricManagerTest() : dielMgr(db) {}
 };
 
-// 1. AddDielectric_InsertsRow
-TEST_F(CapacitorDielectricManagerTest, AddDielectric_InsertsRow) {
-    // Use a unique test-only name to avoid collision with seeded dielectrics
+// 1. Add_InsertsRow
+TEST_F(CapacitorDielectricManagerTest, Add_InsertsRow) {
     CapacitorDielectric diel("TestDiel_Add");
-    ASSERT_TRUE(dielMgr.addDielectric(diel, res)) << res.toString();
+    ASSERT_TRUE(dielMgr.add(diel, res));
 
-    int insertedDielId = dielMgr.getByName("TestDiel_Add", res);
-    ASSERT_GT(insertedDielId, 0);
+    int id = dielMgr.getByName("TestDiel_Add", res);
+    ASSERT_GT(id, 0);
 
     CapacitorDielectric fetched;
-    ASSERT_TRUE(dielMgr.getDielectricById(insertedDielId, fetched, res)) << res.toString();
-
-    EXPECT_EQ(fetched.id, insertedDielId);
+    ASSERT_TRUE(dielMgr.getById(id, fetched, res));
+    EXPECT_EQ(fetched.id, id);
     EXPECT_EQ(fetched.name, "TestDiel_Add");
 }
 
-// 2. GetDielectricById_ReturnsCorrectDielectric
-TEST_F(CapacitorDielectricManagerTest, GetDielectricById_ReturnsCorrectDielectric) {
-    CapacitorDielectric diel("TestDiel_Get");
-    ASSERT_TRUE(dielMgr.addDielectric(diel, res)) << res.toString();
-
-    int insertedDielId = dielMgr.getByName("TestDiel_Get", res);
-    ASSERT_GT(insertedDielId, 0);
-
-    CapacitorDielectric fetched;
-    ASSERT_TRUE(dielMgr.getDielectricById(insertedDielId, fetched, res)) << res.toString();
-
-    EXPECT_EQ(fetched.id, insertedDielId);
-    EXPECT_EQ(fetched.name, "TestDiel_Get");
+// 2. Add_DuplicateFails
+TEST_F(CapacitorDielectricManagerTest, Add_DuplicateFails) {
+    CapacitorDielectric diel("DuplicateDiel");
+    ASSERT_TRUE(dielMgr.add(diel, res));
+    EXPECT_FALSE(dielMgr.add(diel, res)); // duplicate
 }
 
-// 3. ListDielectrics_ReturnsAllDielectrics
-TEST_F(CapacitorDielectricManagerTest, ListDielectrics_ReturnsAllDielectrics) {
-    // Add a unique dielectric
-    ASSERT_TRUE(dielMgr.addDielectric(CapacitorDielectric("TestDiel_List"), res)) << res.toString();
+// 3. Remove_RemovesRow
+TEST_F(CapacitorDielectricManagerTest, Remove_RemovesRow) {
+    CapacitorDielectric diel("TestDiel_Remove");
+    ASSERT_TRUE(dielMgr.add(diel, res));
+
+    int id = dielMgr.getByName("TestDiel_Remove", res);
+    ASSERT_GT(id, 0);
+
+    ASSERT_TRUE(dielMgr.remove(id, res));
+
+    CapacitorDielectric fetched;
+    EXPECT_FALSE(dielMgr.getById(id, fetched, res));
+    EXPECT_EQ(dielMgr.getByName("TestDiel_Remove", res), -1);
+}
+
+// 4. List_ReturnsAll
+TEST_F(CapacitorDielectricManagerTest, List_ReturnsAll) {
+    ASSERT_TRUE(dielMgr.add(CapacitorDielectric("Type1"), res));
+    ASSERT_TRUE(dielMgr.add(CapacitorDielectric("Type2"), res));
 
     std::vector<CapacitorDielectric> diels;
-    ASSERT_TRUE(dielMgr.listDielectrics(diels, res)) << res.toString();
+    ASSERT_TRUE(dielMgr.list(diels, res));
 
-    bool foundPolypropylene = false, foundTestDiel = false;
-    for (const auto& d : diels) {
-        if (d.name == "Polypropylene") foundPolypropylene = true; // seeded canonical
-        if (d.name == "TestDiel_List") foundTestDiel = true;      // test-only
-    }
-    EXPECT_TRUE(foundPolypropylene);
-    EXPECT_TRUE(foundTestDiel);
+    std::unordered_set<std::string> names;
+    for (auto& d : diels) names.insert(d.name);
+
+    EXPECT_NE(names.find("Type1"), names.end());
+    EXPECT_NE(names.find("Type2"), names.end());
 }
 
-// 4. DeleteDielectric_RemovesRow
-TEST_F(CapacitorDielectricManagerTest, DeleteDielectric_RemovesRow) {
-    CapacitorDielectric diel("TestDiel_Delete");
-    ASSERT_TRUE(dielMgr.addDielectric(diel, res)) << res.toString();
+// 5. GetByName_NotFoundReturnsMinusOne
+TEST_F(CapacitorDielectricManagerTest, GetByName_NotFoundReturnsMinusOne) {
+    EXPECT_EQ(dielMgr.getByName("NonExistent", res), -1);
+}
 
-    int insertedDielId = dielMgr.getByName("TestDiel_Delete", res);
-    ASSERT_GT(insertedDielId, 0);
-
-    ASSERT_TRUE(dielMgr.deleteDielectric(insertedDielId, res)) << res.toString();
-
-    CapacitorDielectric fetched;
-    bool gotDiel = dielMgr.getDielectricById(insertedDielId, fetched, res);
-    EXPECT_FALSE(gotDiel);  // should not exist anymore
+// 6. GetById_NotFoundReturnsFalse
+TEST_F(CapacitorDielectricManagerTest, GetById_NotFoundReturnsFalse) {
+    CapacitorDielectric diel;
+    EXPECT_FALSE(dielMgr.getById(999999, diel, res));
 }

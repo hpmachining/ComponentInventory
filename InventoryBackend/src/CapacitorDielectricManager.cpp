@@ -3,7 +3,7 @@
 
 CapacitorDielectricManager::CapacitorDielectricManager(Database& db) : db_(db) {}
 
-bool CapacitorDielectricManager::addDielectric(const CapacitorDielectric& diel, DbResult& result) {
+bool CapacitorDielectricManager::add(const CapacitorDielectric& diel, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("INSERT INTO CapacitorDielectric (Name) VALUES (?);", stmt, result))
         return false;
@@ -15,12 +15,13 @@ bool CapacitorDielectricManager::addDielectric(const CapacitorDielectric& diel, 
         db_.finalize(stmt);
         return false;
     }
+
     db_.finalize(stmt);
     result.clear();
     return true;
 }
 
-bool CapacitorDielectricManager::getDielectricById(int id, CapacitorDielectric& diel, DbResult& result) {
+bool CapacitorDielectricManager::getById(int id, CapacitorDielectric& diel, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM CapacitorDielectric WHERE ID=?;", stmt, result))
         return false;
@@ -30,18 +31,16 @@ bool CapacitorDielectricManager::getDielectricById(int id, CapacitorDielectric& 
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         diel.id = sqlite3_column_int(stmt, 0);
         diel.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-    }
-    else {
-        result.setError(sqlite3_errcode(db_.handle()), "Dielectric not found");
         db_.finalize(stmt);
-        return false;
+        result.clear();
+        return true;
     }
     db_.finalize(stmt);
-    result.clear();
-    return true;
+    result.setError(0, "Dielectric not found");
+    return false;
 }
 
-bool CapacitorDielectricManager::listDielectrics(std::vector<CapacitorDielectric>& diels, DbResult& result) {
+bool CapacitorDielectricManager::list(std::vector<CapacitorDielectric>& diels, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM CapacitorDielectric;", stmt, result))
         return false;
@@ -52,12 +51,13 @@ bool CapacitorDielectricManager::listDielectrics(std::vector<CapacitorDielectric
         diel.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
         diels.push_back(diel);
     }
+
     db_.finalize(stmt);
     result.clear();
     return true;
 }
 
-bool CapacitorDielectricManager::deleteDielectric(int id, DbResult& result) {
+bool CapacitorDielectricManager::remove(int id, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("DELETE FROM CapacitorDielectric WHERE ID=?;", stmt, result))
         return false;
@@ -69,6 +69,7 @@ bool CapacitorDielectricManager::deleteDielectric(int id, DbResult& result) {
         db_.finalize(stmt);
         return false;
     }
+
     db_.finalize(stmt);
     result.clear();
     return true;
@@ -76,11 +77,15 @@ bool CapacitorDielectricManager::deleteDielectric(int id, DbResult& result) {
 
 int CapacitorDielectricManager::getByName(const std::string& name, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ID FROM CapacitorDielectric WHERE Name=?;", stmt, result)) return -1;
+    if (!db_.prepare("SELECT ID FROM CapacitorDielectric WHERE Name=?;", stmt, result))
+        return -1;
+
     sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
 
     int id = -1;
-    if (sqlite3_step(stmt) == SQLITE_ROW) id = sqlite3_column_int(stmt, 0);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+        id = sqlite3_column_int(stmt, 0);
+
     sqlite3_finalize(stmt);
     return id;
 }
