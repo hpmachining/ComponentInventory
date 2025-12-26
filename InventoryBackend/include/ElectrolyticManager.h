@@ -6,26 +6,33 @@
 
 // Electrolytic subtype struct
 struct Electrolytic {
-    int componentId;          // FK -> Capacitors.ComponentID
-    double diameter;          // mm
-    double height;            // mm
-    double leadSpacing;       // mm
+    int componentId;    // FK -> Capacitors.ComponentID
+    double diameter;    // mm
+    double height;      // mm
+    double leadSpacing; // mm
 
+    // Default constructor
     Electrolytic()
         : componentId(0), diameter(0.0), height(0.0), leadSpacing(0.0) {
     }
+
+    // Explicit parameterized constructor
+    explicit Electrolytic(int compId, double dia, double h, double lead)
+        : componentId(compId), diameter(dia), height(h), leadSpacing(lead) {
+    }
 };
+
 
 // Manager class for Electrolytics
 class ElectrolyticManager {
 public:
     explicit ElectrolyticManager(Database& db);
 
-    bool addElectrolytic(const Electrolytic& ecap, DbResult& result);
-    bool getElectrolyticById(int id, Electrolytic& ecap, DbResult& result);
-    bool updateElectrolytic(const Electrolytic& ecap, DbResult& result);
-    bool deleteElectrolytic(int id, DbResult& result);
-    bool listElectrolytics(std::vector<Electrolytic>& ecaps, DbResult& result);
+    bool add(const Electrolytic& ecap, DbResult& result);
+    bool getById(int id, Electrolytic& ecap, DbResult& result);
+    bool update(const Electrolytic& ecap, DbResult& result);
+    bool remove(int id, DbResult& result);
+    bool list(std::vector<Electrolytic>& ecaps, DbResult& result);
 
 private:
     Database& db_;
