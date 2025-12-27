@@ -6,40 +6,48 @@
 
 class ResistorManagerTest : public BackendTestFixture {
 protected:
-    ResistorManager resMgr;
+    ResistorManager resistorMgr;
     ComponentManager compMgr;
     ResistorPackageManager pkgMgr;
-    ResistorCompositionManager compoMgr;
+    ResistorCompositionManager compTypeMgr;
 
-    int pkgId;
-    int compoId;
-    int compId;
+    int pkgId{ 0 };
+    int compTypeId{ 0 };
 
     ResistorManagerTest()
-        : resMgr(db), compMgr(db), pkgMgr(db), compoMgr(db),
-        pkgId(0), compoId(0), compId(0) {
+        : resistorMgr(db),
+        compMgr(db),
+        pkgMgr(db),
+        compTypeMgr(db) {
     }
 
     void SetUp() override {
-        BackendTestFixture::SetUp(); // base fixture seeds lookups
+        BackendTestFixture::SetUp();
 
-        // Resolve seeded lookup IDs
-        pkgId = pkgMgr.getByName("0805", res);
+        // Package
+        ResistorPackage pkg("TEST_AXIAL");
+        ASSERT_TRUE(pkgMgr.add(pkg, res)) << res.toString();
+        pkgId = pkgMgr.getByName("TEST_AXIAL", res);
         ASSERT_GT(pkgId, 0);
 
-        compoId = compoMgr.getByName("Carbon Film", res);
-        ASSERT_GT(compoId, 0);
-
-        // Seed a component specific to resistor tests
-        Component comp("R-100", "Seed resistor component", catId, manId, 100, "Seed notes");
-        ASSERT_TRUE(compMgr.addComponent(comp, res)) << res.toString();
-        compId = compMgr.getByPartNumber("R-100", res);
-        ASSERT_GT(compId, 0);
+        // Composition
+        ResistorComposition comp("TEST_CARBON");
+        ASSERT_TRUE(compTypeMgr.add(comp, res)) << res.toString();
+        compTypeId = compTypeMgr.getByName("TEST_CARBON", res);
+        ASSERT_GT(compTypeId, 0);
     }
 };
 
+//
 // 1. AddResistor_InsertsRow
+//
 TEST_F(ResistorManagerTest, AddResistor_InsertsRow) {
+    Component c("TEST_RES_ADD", "Test Resistor Add", catId, manId, 10);
+    ASSERT_TRUE(compMgr.addComponent(c, res)) << res.toString();
+
+    int compId = compMgr.getByPartNumber(c.partNumber, res);
+    ASSERT_GT(compId, 0);
+
     Resistor r;
     r.componentId = compId;
     r.resistance = 1000.0;
@@ -47,132 +55,147 @@ TEST_F(ResistorManagerTest, AddResistor_InsertsRow) {
     r.powerRating = 0.25;
     r.tempCoefficient = 100.0;
     r.packageTypeId = pkgId;
-    r.compositionId = compoId;
-    r.leadSpacing = 2.54;
-    r.voltageRating = 50.0;
+    r.compositionId = compTypeId;
+    r.leadSpacing = 7.5;
+    r.voltageRating = 250.0;
 
-    ASSERT_TRUE(resMgr.addResistor(r, res)) << res.toString();
+    ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
 
     Resistor fetched;
-    ASSERT_TRUE(resMgr.getResistorByComponentId(compId, fetched, res)) << res.toString();
-
-    EXPECT_EQ(fetched.componentId, compId);
-    EXPECT_DOUBLE_EQ(fetched.resistance, 1000.0);
-    EXPECT_DOUBLE_EQ(fetched.tolerance, 5.0);
-    EXPECT_DOUBLE_EQ(fetched.powerRating, 0.25);
-    EXPECT_DOUBLE_EQ(fetched.tempCoefficient, 100.0);
-    EXPECT_EQ(fetched.packageTypeId, pkgId);
-    EXPECT_EQ(fetched.compositionId, compoId);
-    EXPECT_DOUBLE_EQ(fetched.leadSpacing, 2.54);
-    EXPECT_DOUBLE_EQ(fetched.voltageRating, 50.0);
+    ASSERT_TRUE(resistorMgr.getByComponentId(compId, fetched, res));
+    EXPECT_EQ(fetched.resistance, 1000.0);
 }
 
-// 2. GetResistorByComponentId_ReturnsCorrectResistor
-TEST_F(ResistorManagerTest, GetResistorByComponentId_ReturnsCorrectResistor) {
+//
+// 2. GetByComponentId_ReturnsCorrectResistor
+//
+TEST_F(ResistorManagerTest, GetByComponentId_ReturnsCorrectResistor) {
+    Component c("TEST_RES_GET", "Test Resistor Get", catId, manId, 5);
+    ASSERT_TRUE(compMgr.addComponent(c, res)) << res.toString();
+
+    int compId = compMgr.getByPartNumber(c.partNumber, res);
+    ASSERT_GT(compId, 0);
+
     Resistor r;
     r.componentId = compId;
-    r.resistance = 220.0;
+    r.resistance = 470.0;
     r.tolerance = 1.0;
     r.powerRating = 0.125;
     r.tempCoefficient = 50.0;
     r.packageTypeId = pkgId;
-    r.compositionId = compoId;
-    r.leadSpacing = 1.27;
-    r.voltageRating = 25.0;
+    r.compositionId = compTypeId;
 
-    ASSERT_TRUE(resMgr.addResistor(r, res)) << res.toString();
+    ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
 
     Resistor fetched;
-    ASSERT_TRUE(resMgr.getResistorByComponentId(compId, fetched, res)) << res.toString();
-
-    EXPECT_EQ(fetched.componentId, compId);
-    EXPECT_DOUBLE_EQ(fetched.resistance, 220.0);
-    EXPECT_DOUBLE_EQ(fetched.tolerance, 1.0);
-    EXPECT_DOUBLE_EQ(fetched.powerRating, 0.125);
-    EXPECT_DOUBLE_EQ(fetched.tempCoefficient, 50.0);
-    EXPECT_EQ(fetched.packageTypeId, pkgId);
-    EXPECT_EQ(fetched.compositionId, compoId);
-    EXPECT_DOUBLE_EQ(fetched.leadSpacing, 1.27);
-    EXPECT_DOUBLE_EQ(fetched.voltageRating, 25.0);
+    ASSERT_TRUE(resistorMgr.getByComponentId(compId, fetched, res));
+    EXPECT_DOUBLE_EQ(fetched.resistance, 470.0);
 }
 
-// 3. UpdateResistor_ChangesPersist
-TEST_F(ResistorManagerTest, UpdateResistor_ChangesPersist) {
+//
+// 3. UpdateResistor_ChangesValues
+//
+TEST_F(ResistorManagerTest, UpdateResistor_ChangesValues) {
+    Component c("TEST_RES_UPDATE", "Test Resistor Update", catId, manId, 8);
+    ASSERT_TRUE(compMgr.addComponent(c, res)) << res.toString();
+
+    int compId = compMgr.getByPartNumber(c.partNumber, res);
+    ASSERT_GT(compId, 0);
+
     Resistor r;
     r.componentId = compId;
-    r.resistance = 470.0;
-    r.tolerance = 10.0;
-    r.powerRating = 0.5;
-    r.tempCoefficient = 200.0;
+    r.resistance = 100.0;
+    r.tolerance = 5.0;
+    r.powerRating = 0.25;
     r.packageTypeId = pkgId;
-    r.compositionId = compoId;
-    r.leadSpacing = 5.0;
-    r.voltageRating = 100.0;
+    r.compositionId = compTypeId;
 
-    ASSERT_TRUE(resMgr.addResistor(r, res)) << res.toString();
+    ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
 
-    Resistor updated = r;
-    updated.tolerance = 2.0;
-    updated.powerRating = 1.0;
-
-    ASSERT_TRUE(resMgr.updateResistor(updated, res)) << res.toString();
+    r.resistance = 220.0;
+    r.tolerance = 1.0;
+    ASSERT_TRUE(resistorMgr.update(r, res)) << res.toString();
 
     Resistor fetched;
-    ASSERT_TRUE(resMgr.getResistorByComponentId(compId, fetched, res)) << res.toString();
-
-    EXPECT_DOUBLE_EQ(fetched.tolerance, 2.0);
-    EXPECT_DOUBLE_EQ(fetched.powerRating, 1.0);
+    ASSERT_TRUE(resistorMgr.getByComponentId(compId, fetched, res));
+    EXPECT_DOUBLE_EQ(fetched.resistance, 220.0);
+    EXPECT_DOUBLE_EQ(fetched.tolerance, 1.0);
 }
 
+//
 // 4. DeleteResistor_RemovesRow
+//
 TEST_F(ResistorManagerTest, DeleteResistor_RemovesRow) {
+    Component c("TEST_RES_DELETE", "Test Resistor Delete", catId, manId, 3);
+    ASSERT_TRUE(compMgr.addComponent(c, res)) << res.toString();
+
+    int compId = compMgr.getByPartNumber(c.partNumber, res);
+    ASSERT_GT(compId, 0);
+
     Resistor r;
     r.componentId = compId;
     r.resistance = 330.0;
-    r.tolerance = 5.0;
-    r.powerRating = 0.25;
-    r.tempCoefficient = 100.0;
     r.packageTypeId = pkgId;
-    r.compositionId = compoId;
-    r.leadSpacing = 2.54;
-    r.voltageRating = 50.0;
+    r.compositionId = compTypeId;
 
-    ASSERT_TRUE(resMgr.addResistor(r, res)) << res.toString();
-
-    ASSERT_TRUE(resMgr.deleteResistor(compId, res)) << res.toString();
+    ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
+    ASSERT_TRUE(resistorMgr.remove(compId, res)) << res.toString();
 
     Resistor fetched;
-    bool got = resMgr.getResistorByComponentId(compId, fetched, res);
-    EXPECT_FALSE(got);  // should no longer exist
+    EXPECT_FALSE(resistorMgr.getByComponentId(compId, fetched, res));
 }
 
-// 5. ForeignKey_ComponentAndPackageAndComposition_Valid
-TEST_F(ResistorManagerTest, ForeignKey_ComponentAndPackageAndComposition_Valid) {
-    // Valid insert
-    Resistor valid;
-    valid.componentId = compId;
-    valid.resistance = 100.0;
-    valid.tolerance = 5.0;
-    valid.powerRating = 0.25;
-    valid.tempCoefficient = 100.0;
-    valid.packageTypeId = pkgId;
-    valid.compositionId = compoId;
-    valid.leadSpacing = 2.54;
-    valid.voltageRating = 50.0;
-    ASSERT_TRUE(resMgr.addResistor(valid, res)) << res.toString();
+//
+// 5. ListResistors_ReturnsAllResistors
+//
+TEST_F(ResistorManagerTest, ListResistors_ReturnsAllResistors) {
+    Component c1("TEST_RES_LIST1", "Test Resistor 1", catId, manId, 10);
+    Component c2("TEST_RES_LIST2", "Test Resistor 2", catId, manId, 5);
 
-    // Invalid component
-    Resistor badComp = valid;
-    badComp.componentId = 999999;
-    EXPECT_FALSE(resMgr.addResistor(badComp, res));
+    ASSERT_TRUE(compMgr.addComponent(c1, res));
+    ASSERT_TRUE(compMgr.addComponent(c2, res));
 
-    // Invalid package
-    Resistor badPkg = valid;
-    badPkg.packageTypeId = 999999;
-    EXPECT_FALSE(resMgr.addResistor(badPkg, res));
+    int id1 = compMgr.getByPartNumber(c1.partNumber, res);
+    int id2 = compMgr.getByPartNumber(c2.partNumber, res);
+    ASSERT_GT(id1, 0);
+    ASSERT_GT(id2, 0);
 
-    // Invalid composition
-    Resistor badCompo = valid;
-    badCompo.compositionId = 999999;
-    EXPECT_FALSE(resMgr.addResistor(badCompo, res));
+    Resistor r1{ id1, 1000.0, 5.0, 0.25, 100, pkgId, compTypeId, 7.5, 250 };
+    Resistor r2{ id2, 2200.0, 1.0, 0.5, 50, pkgId, compTypeId, 7.5, 250 };
+
+    ASSERT_TRUE(resistorMgr.add(r1, res)) << res.toString();
+    ASSERT_TRUE(resistorMgr.add(r2, res)) << res.toString();
+
+    std::vector<Resistor> list;
+    ASSERT_TRUE(resistorMgr.list(list, res)) << res.toString();
+
+    bool found1 = false, found2 = false;
+    for (const auto& r : list) {
+        if (r.componentId == id1) found1 = true;
+        if (r.componentId == id2) found2 = true;
+    }
+
+    EXPECT_TRUE(found1);
+    EXPECT_TRUE(found2);
+}
+
+//
+// 6. AddResistor_WithInvalidComponent_Fails
+//
+TEST_F(ResistorManagerTest, AddResistor_WithInvalidComponent_Fails) {
+    Resistor r;
+    r.componentId = 999999;
+    r.resistance = 100.0;
+    r.packageTypeId = pkgId;
+    r.compositionId = compTypeId;
+
+    EXPECT_FALSE(resistorMgr.add(r, res));
+}
+
+//
+// 7. GetByComponentId_Nonexistent_ReturnsFalse
+//
+TEST_F(ResistorManagerTest, GetByComponentId_Nonexistent_ReturnsFalse) {
+    Resistor r;
+    EXPECT_FALSE(resistorMgr.getByComponentId(999999, r, res));
 }

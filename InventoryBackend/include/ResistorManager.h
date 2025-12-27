@@ -2,36 +2,28 @@
 #include "Database.h"
 #include "DbResult.h"
 #include <vector>
-#include <string>
 
 struct Resistor {
-    int componentId;            // FK -> Components (base record)
-    double resistance;          // Ohms
-    double tolerance;           // Percent (e.g., 5.0 for ±5%)
-    double powerRating;         // Watts
-    double tempCoefficient;     // ppm/°C
-    int packageTypeId;          // FK -> ResistorPackage(ID)
-    int compositionId;          // FK -> ResistorComposition(ID)
-    double leadSpacing;         // mm
-    double voltageRating;       // Volts
-
-    Resistor()
-        : componentId(0), resistance(0.0), tolerance(0.0),
-        powerRating(0.0), tempCoefficient(0.0),
-        packageTypeId(0), compositionId(0),
-        leadSpacing(0.0), voltageRating(0.0) {
-    }
+    int componentId{ 0 };           // FK -> Components
+    double resistance{ 0.0 };       // Ohms
+    double tolerance{ 0.0 };        // Percent
+    double powerRating{ 0.0 };      // Watts
+    double tempCoefficient{ 0.0 };  // ppm/°C
+    int packageTypeId{ 0 };         // FK -> ResistorPackage
+    int compositionId{ 0 };         // FK -> ResistorComposition
+    double leadSpacing{ 0.0 };      // mm
+    double voltageRating{ 0.0 };    // Volts
 };
 
 class ResistorManager {
 public:
     ResistorManager(Database& db) : db_(db) {}
 
-    bool addResistor(const Resistor& r, DbResult& result);
-    bool getResistorByComponentId(int compId, Resistor& r, DbResult& result);
-    bool updateResistor(const Resistor& r, DbResult& result);
-    bool deleteResistor(int compId, DbResult& result);
-    bool listResistors(std::vector<Resistor>& resistors, DbResult& result);
+    bool add(const Resistor& r, DbResult& result);
+    bool getByComponentId(int compId, Resistor& r, DbResult& result);
+    bool update(const Resistor& r, DbResult& result);
+    bool remove(int compId, DbResult& result);
+    bool list(std::vector<Resistor>& resistors, DbResult& result);
 
 private:
     Database& db_;

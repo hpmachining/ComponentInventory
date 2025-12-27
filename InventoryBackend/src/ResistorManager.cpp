@@ -2,13 +2,16 @@
 #include "DbUtils.h"
 #include <sqlite3.h>
 
-// Add a new resistor
-bool ResistorManager::addResistor(const Resistor& r, DbResult& result) {
+// Add resistor
+bool ResistorManager::add(const Resistor& r, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("INSERT INTO Resistors "
+    const char* sql =
+        "INSERT INTO Resistors "
         "(ComponentID, Resistance, Tolerance, PowerRating, TempCoefficient, "
         "PackageTypeID, CompositionID, LeadSpacing, VoltageRating) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", stmt, result))
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
+    if (!db_.prepare(sql, stmt, result))
         return false;
 
     sqlite3_bind_int(stmt, 1, r.componentId);
@@ -32,12 +35,15 @@ bool ResistorManager::addResistor(const Resistor& r, DbResult& result) {
     return true;
 }
 
-// Get resistor by ComponentID
-bool ResistorManager::getResistorByComponentId(int compId, Resistor& r, DbResult& result) {
+// Get resistor by component ID
+bool ResistorManager::getByComponentId(int compId, Resistor& r, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ComponentID, Resistance, Tolerance, PowerRating, TempCoefficient, "
+    const char* sql =
+        "SELECT ComponentID, Resistance, Tolerance, PowerRating, TempCoefficient, "
         "PackageTypeID, CompositionID, LeadSpacing, VoltageRating "
-        "FROM Resistors WHERE ComponentID=?;", stmt, result))
+        "FROM Resistors WHERE ComponentID=?;";
+
+    if (!db_.prepare(sql, stmt, result))
         return false;
 
     sqlite3_bind_int(stmt, 1, compId);
@@ -65,11 +71,14 @@ bool ResistorManager::getResistorByComponentId(int compId, Resistor& r, DbResult
 }
 
 // Update resistor
-bool ResistorManager::updateResistor(const Resistor& r, DbResult& result) {
+bool ResistorManager::update(const Resistor& r, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("UPDATE Resistors SET Resistance=?, Tolerance=?, PowerRating=?, TempCoefficient=?, "
+    const char* sql =
+        "UPDATE Resistors SET Resistance=?, Tolerance=?, PowerRating=?, TempCoefficient=?, "
         "PackageTypeID=?, CompositionID=?, LeadSpacing=?, VoltageRating=? "
-        "WHERE ComponentID=?;", stmt, result))
+        "WHERE ComponentID=?;";
+
+    if (!db_.prepare(sql, stmt, result))
         return false;
 
     sqlite3_bind_double(stmt, 1, r.resistance);
@@ -94,9 +103,11 @@ bool ResistorManager::updateResistor(const Resistor& r, DbResult& result) {
 }
 
 // Delete resistor
-bool ResistorManager::deleteResistor(int compId, DbResult& result) {
+bool ResistorManager::remove(int compId, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("DELETE FROM Resistors WHERE ComponentID=?;", stmt, result))
+    const char* sql = "DELETE FROM Resistors WHERE ComponentID=?;";
+
+    if (!db_.prepare(sql, stmt, result))
         return false;
 
     sqlite3_bind_int(stmt, 1, compId);
@@ -113,10 +124,13 @@ bool ResistorManager::deleteResistor(int compId, DbResult& result) {
 }
 
 // List all resistors
-bool ResistorManager::listResistors(std::vector<Resistor>& resistors, DbResult& result) {
+bool ResistorManager::list(std::vector<Resistor>& resistors, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ComponentID, Resistance, Tolerance, PowerRating, TempCoefficient, "
-        "PackageTypeID, CompositionID, LeadSpacing, VoltageRating FROM Resistors;", stmt, result))
+    const char* sql =
+        "SELECT ComponentID, Resistance, Tolerance, PowerRating, TempCoefficient, "
+        "PackageTypeID, CompositionID, LeadSpacing, VoltageRating FROM Resistors;";
+
+    if (!db_.prepare(sql, stmt, result))
         return false;
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
