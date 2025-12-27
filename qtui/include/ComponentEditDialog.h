@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QDialog>
-#include "Component.h"
+#include "ComponentManager.h"
 
 namespace Ui {
     class ComponentEditDialog;

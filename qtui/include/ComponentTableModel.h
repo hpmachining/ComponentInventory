@@ -2,7 +2,7 @@
 
 #include <QAbstractTableModel>
 #include <vector>
-#include "Component.h"
+#include "ComponentManager.h"
 
 class ComponentTableModel : public QAbstractTableModel
 {

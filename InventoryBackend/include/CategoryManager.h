@@ -3,9 +3,19 @@
 #include "LookupManager.h"
 #include "Database.h"
 #include "DbResult.h"
-#include "Category.h"
-
 #include <vector>
+#include <string>
+
+struct Category {
+    int id;                  // Primary key
+    std::string name;        // e.g. "Resistor"
+    std::string description; // Optional longer description
+
+    Category() : id(0) {}
+    Category(const std::string& n, const std::string& d = "")
+        : id(0), name(n), description(d) {
+    }
+};
 
 class CategoryManager : public LookupManager {
 public:
