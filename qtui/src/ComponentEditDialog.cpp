@@ -95,9 +95,7 @@ void ComponentEditDialog::populateCombos()
 {
     DbResult result;
 
-    // ========================
     // Categories
-    // ========================
     ui_->categoryCombo->blockSignals(true);
     ui_->categoryCombo->clear();
 
@@ -117,19 +115,14 @@ void ComponentEditDialog::populateCombos()
         }
     }
 
-    // Add the "+ Add New..." option
-    ui_->categoryCombo->addItem(tr("+ Add New..."), kAddNewId);
-
-    // If previous ID not found, fallback to first real category
+    // Fallback to first category if previous not found
     if (indexToSelect < 0 && !categories.empty())
         indexToSelect = 0;
 
     ui_->categoryCombo->setCurrentIndex(indexToSelect);
     ui_->categoryCombo->blockSignals(false);
 
-    // ========================
-    // Manufacturers
-    // ========================
+    // Manufacturers (Add New allowed)
     ui_->manufacturerCombo->blockSignals(true);
     ui_->manufacturerCombo->clear();
 
