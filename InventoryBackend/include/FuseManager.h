@@ -4,30 +4,34 @@
 #include <vector>
 
 struct Fuse {
-    int componentId{ 0 };
-    int packageId{ 0 };
-    int typeId{ 0 };
-    double currentRating{ 0.0 };
-    double voltageRating{ 0.0 };
+    int componentId;
+    int packageId;
+    int typeId;
+    double currentRating;
+    double voltageRating;
+
+    Fuse()
+        : componentId(0), packageId(0), typeId(0),
+        currentRating(0.0), voltageRating(0.0) {
+    }
+
+    Fuse(int compId, int pkgId, int typeId,
+        double current, double voltage)
+        : componentId(compId), packageId(pkgId), typeId(typeId),
+        currentRating(current), voltageRating(voltage) {
+    }
 };
 
 class FuseManager {
 public:
     explicit FuseManager(Database& db);
 
-    bool addFuse(const Fuse& fuse, DbResult& res);
-    bool getFuseByComponentId(int componentId, Fuse& fuse, DbResult& res);
-    bool updateFuse(const Fuse& fuse, DbResult& res);
-    bool deleteFuse(int componentId, DbResult& res);
-
-    // List all fuses
-    bool listFuses(std::vector<Fuse>& fuses, DbResult& res);
-
-    // Lookup helpers
-    int getPackageByName(const std::string& name, DbResult& res);
-    int getTypeByName(const std::string& name, DbResult& res);
+    bool add(const Fuse& fuse, DbResult& res);
+    bool getById(int componentId, Fuse& fuse, DbResult& res);
+    bool update(const Fuse& fuse, DbResult& res);
+    bool remove(int componentId, DbResult& res);
+    bool list(std::vector<Fuse>& fuses, DbResult& res);
 
 private:
     Database& db_;
-    int resolveIdByName(const std::string& table, const std::string& name, DbResult& res);
 };

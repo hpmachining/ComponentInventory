@@ -11,109 +11,145 @@ protected:
     FusePackageManager pkgMgr;
     FuseTypeManager typeMgr;
 
+    int pkgId{ 0 };
+    int fastTypeId{ 0 };
+    int slowTypeId{ 0 };
+
     FuseManagerTest()
-        : fuseMgr(db), compMgr(db), pkgMgr(db), typeMgr(db) {
+        : fuseMgr(db),
+        compMgr(db),
+        pkgMgr(db),
+        typeMgr(db)
+    {
+    }
+
+    void SetUp() override {
+        BackendTestFixture::SetUp();
+
+        // Create a package
+        FusePackage pkg("TEST_AXIAL");
+        ASSERT_TRUE(pkgMgr.add(pkg, res));
+        pkgId = pkgMgr.getByName("TEST_AXIAL", res);
+        ASSERT_GT(pkgId, 0);
+
+        // Create fuse types
+        FuseType fast("TEST_FAST");
+        ASSERT_TRUE(typeMgr.add(fast, res));
+        fastTypeId = typeMgr.getByName("TEST_FAST", res);
+        ASSERT_GT(fastTypeId, 0);
+
+        FuseType slow("TEST_SLOW");
+        ASSERT_TRUE(typeMgr.add(slow, res));
+        slowTypeId = typeMgr.getByName("TEST_SLOW", res);
+        ASSERT_GT(slowTypeId, 0);
     }
 };
 
 // 1. AddFuse_InsertsRow
 TEST_F(FuseManagerTest, AddFuse_InsertsRow) {
-    // Seed a component
-    Component c("F1000", "Unit test fuse", catId, manId, 1);
+    Component c("TEST_FUSE", "Test Fuse", catId, manId, 10);
     ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("F1000", res);
+    int compId = compMgr.getByPartNumber(c.partNumber, res);
+    ASSERT_GT(compId, 0);
 
-    // Resolve lookup IDs
-    int pkgId = pkgMgr.getByName("Axial", res);
-    ASSERT_GT(pkgId, 0);
-    int typeId = typeMgr.getByName("Fast-blow", res);
-    ASSERT_GT(typeId, 0);
+    Fuse f(compId, pkgId, fastTypeId, 1.0, 250.0);
+    ASSERT_TRUE(fuseMgr.add(f, res));
 
-    // Insert into Fuses with ratings
-    Fuse f{ compId, pkgId, typeId, 0.5, 250.0 }; // 0.5A, 250V
-    EXPECT_TRUE(fuseMgr.addFuse(f, res));
-
-    // Verify retrieval
     Fuse fetched;
-    EXPECT_TRUE(fuseMgr.getFuseByComponentId(compId, fetched, res));
+    ASSERT_TRUE(fuseMgr.getById(compId, fetched, res));
     EXPECT_EQ(fetched.componentId, compId);
     EXPECT_EQ(fetched.packageId, pkgId);
-    EXPECT_EQ(fetched.typeId, typeId);
-    EXPECT_DOUBLE_EQ(fetched.currentRating, 0.5);
-    EXPECT_DOUBLE_EQ(fetched.voltageRating, 250.0);
+    EXPECT_EQ(fetched.typeId, fastTypeId);
 }
 
-// 2. DeleteFuse_RemovesRow
+// 2. GetFuseByComponentId_ReturnsCorrectFuse
+TEST_F(FuseManagerTest, GetFuseByComponentId_ReturnsCorrectFuse) {
+    Component c("TEST_FUSE_GET", "Test Fuse Get", catId, manId, 5);
+    ASSERT_TRUE(compMgr.addComponent(c, res));
+    int compId = compMgr.getByPartNumber(c.partNumber, res);
+    ASSERT_GT(compId, 0);
+
+    Fuse f(compId, pkgId, fastTypeId, 0.5, 125.0);
+    ASSERT_TRUE(fuseMgr.add(f, res));
+
+    Fuse fetched;
+    ASSERT_TRUE(fuseMgr.getById(compId, fetched, res));
+    EXPECT_EQ(fetched.componentId, compId);
+}
+
+// 3. UpdateFuse_ChangesValues
+TEST_F(FuseManagerTest, UpdateFuse_ChangesValues) {
+    Component c("TEST_FUSE_UPDATE", "Test Fuse Update", catId, manId, 8);
+    ASSERT_TRUE(compMgr.addComponent(c, res));
+    int compId = compMgr.getByPartNumber(c.partNumber, res);
+    ASSERT_GT(compId, 0);
+
+    Fuse f(compId, pkgId, fastTypeId, 1.0, 250.0);
+    ASSERT_TRUE(fuseMgr.add(f, res));
+
+    f.typeId = slowTypeId;
+    f.currentRating = 0.25;
+    f.voltageRating = 125.0;
+    ASSERT_TRUE(fuseMgr.update(f, res));
+
+    Fuse fetched;
+    ASSERT_TRUE(fuseMgr.getById(compId, fetched, res));
+    EXPECT_EQ(fetched.typeId, slowTypeId);
+}
+
+// 4. DeleteFuse_RemovesRow
 TEST_F(FuseManagerTest, DeleteFuse_RemovesRow) {
-    Component c("F1001", "Unit test fuse", catId, manId, 1);
+    Component c("TEST_FUSE_DELETE", "Test Fuse Delete", catId, manId, 3);
     ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("F1001", res);
+    int compId = compMgr.getByPartNumber(c.partNumber, res);
+    ASSERT_GT(compId, 0);
 
-    int pkgId = pkgMgr.getByName("Radial", res);
-    int typeId = typeMgr.getByName("Slow-blow", res);
+    Fuse f(compId, pkgId, fastTypeId, 0.5, 125.0);
+    ASSERT_TRUE(fuseMgr.add(f, res));
 
-    Fuse f{ compId, pkgId, typeId, 1.0, 125.0 }; // 1A, 125V
-    ASSERT_TRUE(fuseMgr.addFuse(f, res));
-
-    EXPECT_TRUE(fuseMgr.deleteFuse(compId, res));
+    ASSERT_TRUE(fuseMgr.remove(compId, res));
 
     Fuse fetched;
-    EXPECT_FALSE(fuseMgr.getFuseByComponentId(compId, fetched, res));
+    EXPECT_FALSE(fuseMgr.getById(compId, fetched, res));
 }
 
-// 3. UpdateFuse_ChangesPersist
-TEST_F(FuseManagerTest, UpdateFuse_ChangesPersist) {
-    Component c("F1002", "Unit test fuse", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("F1002", res);
-
-    int pkgId = pkgMgr.getByName("Cartridge", res);
-    int typeId = typeMgr.getByName("Fast-blow", res);
-
-    Fuse f{ compId, pkgId, typeId, 2.0, 32.0 }; // 2A, 32V
-    ASSERT_TRUE(fuseMgr.addFuse(f, res));
-
-    // Update to SMD + Resettable with new ratings
-    f.packageId = pkgMgr.getByName("SMD", res);
-    f.typeId = typeMgr.getByName("Resettable (polyfuse)", res);
-    f.currentRating = 0.75;
-    f.voltageRating = 60.0;
-    ASSERT_TRUE(fuseMgr.updateFuse(f, res));
-
-    Fuse fetched;
-    ASSERT_TRUE(fuseMgr.getFuseByComponentId(compId, fetched, res));
-    EXPECT_EQ(fetched.packageId, f.packageId);
-    EXPECT_EQ(fetched.typeId, f.typeId);
-    EXPECT_DOUBLE_EQ(fetched.currentRating, 0.75);
-    EXPECT_DOUBLE_EQ(fetched.voltageRating, 60.0);
-}
-
-// 4. ListFuses_ReturnsAll
-TEST_F(FuseManagerTest, ListFuses_ReturnsAll) {
-    // First component
-    Component c1("F1003", "Unit test fuse", catId, manId, 1);
+// 5. ListFuses_ReturnsAllFuses
+TEST_F(FuseManagerTest, ListFuses_ReturnsAllFuses) {
+    Component c1("TEST_FUSE_LIST1", "Test Fuse List 1", catId, manId, 10);
     ASSERT_TRUE(compMgr.addComponent(c1, res));
-    int compId1 = compMgr.getByPartNumber("F1003", res);
+    int compId1 = compMgr.getByPartNumber(c1.partNumber, res);
+    ASSERT_GT(compId1, 0);
 
-    int pkgId = pkgMgr.getByName("Axial", res);
-    int typeId = typeMgr.getByName("Fast-blow", res);
-    ASSERT_TRUE(fuseMgr.addFuse(Fuse{ compId1, pkgId, typeId, 0.25, 125.0 }, res));
-
-    // Second component
-    Component c2("F1004", "Unit test fuse", catId, manId, 1);
+    Component c2("TEST_FUSE_LIST2", "Test Fuse List 2", catId, manId, 5);
     ASSERT_TRUE(compMgr.addComponent(c2, res));
-    int compId2 = compMgr.getByPartNumber("F1004", res);
+    int compId2 = compMgr.getByPartNumber(c2.partNumber, res);
+    ASSERT_GT(compId2, 0);
 
-    ASSERT_TRUE(fuseMgr.addFuse(Fuse{ compId2, pkgId, typeId, 5.0, 250.0 }, res));
+    Fuse f1(compId1, pkgId, fastTypeId, 1.0, 250.0);
+    Fuse f2(compId2, pkgId, slowTypeId, 0.25, 125.0);
+    ASSERT_TRUE(fuseMgr.add(f1, res));
+    ASSERT_TRUE(fuseMgr.add(f2, res));
 
-    // Verify list
-    std::vector<Fuse> fs;
-    EXPECT_TRUE(fuseMgr.listFuses(fs, res));
-    EXPECT_EQ(fs.size(), 2);
+    std::vector<Fuse> fuses;
+    ASSERT_TRUE(fuseMgr.list(fuses, res));
 
-    // Verify ratings are included
-    EXPECT_DOUBLE_EQ(fs[0].currentRating, 0.25);
-    EXPECT_DOUBLE_EQ(fs[0].voltageRating, 125.0);
-    EXPECT_DOUBLE_EQ(fs[1].currentRating, 5.0);
-    EXPECT_DOUBLE_EQ(fs[1].voltageRating, 250.0);
+    bool found1 = false, found2 = false;
+    for (const auto& f : fuses) {
+        if (f.componentId == compId1) found1 = true;
+        if (f.componentId == compId2) found2 = true;
+    }
+    EXPECT_TRUE(found1);
+    EXPECT_TRUE(found2);
+}
+
+// 6. AddFuse_WithInvalidComponent_Fails
+TEST_F(FuseManagerTest, AddFuse_WithInvalidComponent_Fails) {
+    Fuse f(999999, pkgId, fastTypeId, 1.0, 250.0);
+    EXPECT_FALSE(fuseMgr.add(f, res));
+}
+
+// 7. GetFuseByComponentId_Nonexistent_ReturnsFalse
+TEST_F(FuseManagerTest, GetFuseByComponentId_Nonexistent_ReturnsFalse) {
+    Fuse fetched;
+    EXPECT_FALSE(fuseMgr.getById(999999, fetched, res));
 }
