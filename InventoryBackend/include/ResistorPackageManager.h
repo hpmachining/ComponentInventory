@@ -16,12 +16,12 @@ class ResistorPackageManager {
 public:
     ResistorPackageManager(Database& db) : db_(db) {}
 
-    bool addPackage(const ResistorPackage& pkg, DbResult& result);
-    bool getPackageById(int id, ResistorPackage& pkg, DbResult& result);
-    bool updatePackage(const ResistorPackage& pkg, DbResult& result);
-    bool deletePackage(int id, DbResult& result);
-    bool listPackages(std::vector<ResistorPackage>& pkgs, DbResult& result);
-	int getByName(const std::string& name, DbResult& result);
+    bool add(const ResistorPackage& pkg, DbResult& result);
+    bool getById(int id, ResistorPackage& pkg, DbResult& result);
+    bool update(const ResistorPackage& pkg, DbResult& result);
+    bool remove(int id, DbResult& result);
+    bool list(std::vector<ResistorPackage>& pkgs, DbResult& result);
+    int getByName(const std::string& name, DbResult& result);
 
 private:
     Database& db_;

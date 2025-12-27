@@ -3,7 +3,7 @@
 #include <sqlite3.h>
 
 // Add a new package
-bool ResistorPackageManager::addPackage(const ResistorPackage& pkg, DbResult& result) {
+bool ResistorPackageManager::add(const ResistorPackage& pkg, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("INSERT INTO ResistorPackage (Name) VALUES (?);", stmt, result))
         return false;
@@ -22,7 +22,7 @@ bool ResistorPackageManager::addPackage(const ResistorPackage& pkg, DbResult& re
 }
 
 // Get package by ID
-bool ResistorPackageManager::getPackageById(int id, ResistorPackage& pkg, DbResult& result) {
+bool ResistorPackageManager::getById(int id, ResistorPackage& pkg, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM ResistorPackage WHERE ID=?;", stmt, result))
         return false;
@@ -45,7 +45,7 @@ bool ResistorPackageManager::getPackageById(int id, ResistorPackage& pkg, DbResu
 }
 
 // Update package
-bool ResistorPackageManager::updatePackage(const ResistorPackage& pkg, DbResult& result) {
+bool ResistorPackageManager::update(const ResistorPackage& pkg, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("UPDATE ResistorPackage SET Name=? WHERE ID=?;", stmt, result))
         return false;
@@ -65,7 +65,7 @@ bool ResistorPackageManager::updatePackage(const ResistorPackage& pkg, DbResult&
 }
 
 // Delete package
-bool ResistorPackageManager::deletePackage(int id, DbResult& result) {
+bool ResistorPackageManager::remove(int id, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("DELETE FROM ResistorPackage WHERE ID=?;", stmt, result))
         return false;
@@ -84,7 +84,7 @@ bool ResistorPackageManager::deletePackage(int id, DbResult& result) {
 }
 
 // List all packages
-bool ResistorPackageManager::listPackages(std::vector<ResistorPackage>& pkgs, DbResult& result) {
+bool ResistorPackageManager::list(std::vector<ResistorPackage>& pkgs, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM ResistorPackage;", stmt, result))
         return false;
@@ -101,6 +101,7 @@ bool ResistorPackageManager::listPackages(std::vector<ResistorPackage>& pkgs, Db
     return true;
 }
 
+// Get package ID by name
 int ResistorPackageManager::getByName(const std::string& name, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID FROM ResistorPackage WHERE Name=?;", stmt, result)) return -1;
