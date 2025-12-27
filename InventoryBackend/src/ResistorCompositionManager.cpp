@@ -2,8 +2,7 @@
 #include "DbUtils.h"
 #include <sqlite3.h>
 
-// Add a new composition
-bool ResistorCompositionManager::addComposition(const ResistorComposition& comp, DbResult& result) {
+bool ResistorCompositionManager::add(const ResistorComposition& comp, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("INSERT INTO ResistorComposition (Name) VALUES (?);", stmt, result))
         return false;
@@ -21,8 +20,7 @@ bool ResistorCompositionManager::addComposition(const ResistorComposition& comp,
     return true;
 }
 
-// Get composition by ID
-bool ResistorCompositionManager::getCompositionById(int id, ResistorComposition& comp, DbResult& result) {
+bool ResistorCompositionManager::getById(int id, ResistorComposition& comp, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM ResistorComposition WHERE ID=?;", stmt, result))
         return false;
@@ -34,7 +32,7 @@ bool ResistorCompositionManager::getCompositionById(int id, ResistorComposition&
         comp.name = safeColumnText(stmt, 1);
     }
     else {
-        result.setError(sqlite3_errcode(db_.handle()), "Composition not found");
+        result.setError(sqlite3_errcode(db_.handle()), "ResistorComposition not found");
         db_.finalize(stmt);
         return false;
     }
@@ -44,8 +42,7 @@ bool ResistorCompositionManager::getCompositionById(int id, ResistorComposition&
     return true;
 }
 
-// Update composition
-bool ResistorCompositionManager::updateComposition(const ResistorComposition& comp, DbResult& result) {
+bool ResistorCompositionManager::update(const ResistorComposition& comp, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("UPDATE ResistorComposition SET Name=? WHERE ID=?;", stmt, result))
         return false;
@@ -64,8 +61,7 @@ bool ResistorCompositionManager::updateComposition(const ResistorComposition& co
     return true;
 }
 
-// Delete composition
-bool ResistorCompositionManager::deleteComposition(int id, DbResult& result) {
+bool ResistorCompositionManager::remove(int id, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("DELETE FROM ResistorComposition WHERE ID=?;", stmt, result))
         return false;
@@ -83,8 +79,7 @@ bool ResistorCompositionManager::deleteComposition(int id, DbResult& result) {
     return true;
 }
 
-// List all compositions
-bool ResistorCompositionManager::listCompositions(std::vector<ResistorComposition>& comps, DbResult& result) {
+bool ResistorCompositionManager::list(std::vector<ResistorComposition>& comps, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("SELECT ID, Name FROM ResistorComposition;", stmt, result))
         return false;
@@ -103,11 +98,15 @@ bool ResistorCompositionManager::listCompositions(std::vector<ResistorCompositio
 
 int ResistorCompositionManager::getByName(const std::string& name, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ID FROM ResistorComposition WHERE Name=?;", stmt, result)) return -1;
+    if (!db_.prepare("SELECT ID FROM ResistorComposition WHERE Name=?;", stmt, result))
+        return -1;
+
     sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_TRANSIENT);
 
     int id = -1;
-    if (sqlite3_step(stmt) == SQLITE_ROW) id = sqlite3_column_int(stmt, 0);
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+        id = sqlite3_column_int(stmt, 0);
+
     sqlite3_finalize(stmt);
     return id;
 }

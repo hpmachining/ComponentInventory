@@ -1,8 +1,16 @@
 #pragma once
 #include "Database.h"
 #include "DbResult.h"
-#include "ResistorPackage.h"
 #include <vector>
+#include <string>
+
+struct ResistorPackage {
+    int id;
+    std::string name;
+
+    ResistorPackage() : id(0) {}
+    ResistorPackage(const std::string& n) : id(0), name(n) {}
+};
 
 class ResistorPackageManager {
 public:
