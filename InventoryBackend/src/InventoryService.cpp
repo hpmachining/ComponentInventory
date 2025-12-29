@@ -12,6 +12,9 @@ InventoryService::InventoryService(std::unique_ptr<Database> db)
     , componentMgr_(*db_)
     , categoryMgr_(*db_)
     , manufacturerMgr_(*db_)
+    , resistorMgr_(*db_)
+    , resistorPackageMgr_(*db_)
+    , resistorCompositionMgr_(*db_)
 {
 }
 
@@ -65,4 +68,19 @@ CategoryManager& InventoryService::categories()
 ManufacturerManager& InventoryService::manufacturers()
 {
     return manufacturerMgr_;
+}
+
+ResistorManager& InventoryService::resistors()
+{
+    return resistorMgr_;
+}
+
+ResistorPackageManager& InventoryService::resistorPackages()
+{
+    return resistorPackageMgr_;
+}
+
+ResistorCompositionManager& InventoryService::resistorCompositions()
+{
+    return resistorCompositionMgr_;
 }

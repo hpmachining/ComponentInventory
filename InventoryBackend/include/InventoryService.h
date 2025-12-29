@@ -3,6 +3,10 @@
 #include "ComponentManager.h"
 #include "CategoryManager.h"
 #include "ManufacturerManager.h"
+#include "ResistorManager.h"
+#include "ResistorPackageManager.h"
+#include "ResistorCompositionManager.h"
+
 #include <memory>
 #include <string>
 
@@ -20,6 +24,9 @@ public:
     ComponentManager& components();
     CategoryManager& categories();
     ManufacturerManager& manufacturers();
+    ResistorManager& resistors();
+    ResistorPackageManager& resistorPackages();
+    ResistorCompositionManager& resistorCompositions();
 
 private:
     explicit InventoryService(std::unique_ptr<Database> db);
@@ -31,4 +38,7 @@ private:
     ComponentManager componentMgr_;
     CategoryManager categoryMgr_;
     ManufacturerManager manufacturerMgr_;
+    ResistorManager resistorMgr_;
+    ResistorPackageManager resistorPackageMgr_;
+    ResistorCompositionManager resistorCompositionMgr_;
 };

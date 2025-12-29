@@ -2,6 +2,10 @@
 #include "ui_ComponentEditDialog.h"
 #include "InventoryService.h"
 #include "AddLookupDialog.h"
+#include "DbResult.h"
+#include "ResistorManager.h"
+#include "ResistorPackageManager.h"
+#include "ResistorCompositionManager.h"
 
 #include <QMessageBox>
 #include <QDialogButtonBox>
@@ -19,11 +23,17 @@ ComponentEditDialog::ComponentEditDialog(
     setWindowTitle(tr("Add Component"));
 
     // Make Tab move focus instead of inserting a tab
-	ui_->notesEdit->setTabChangesFocus(true);
+    ui_->notesEdit->setTabChangesFocus(true);
+
+    // New: start on "no category-specific fields"
+    ui_->categoryStack->setCurrentIndex(Page_None);
 
     populateCombos();
     prevCategoryId_ = ui_->categoryCombo->currentData().toInt();
     prevManufacturerId_ = ui_->manufacturerCombo->currentData().toInt();
+
+    // New: populate resistor lookup combos
+    populateResistorLookups();
 
     // Disable OK initially
     ui_->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -44,7 +54,6 @@ ComponentEditDialog::ComponentEditDialog(
         QOverload<int>::of(&QComboBox::currentIndexChanged),
         this,
         &ComponentEditDialog::onManufacturerChanged);
-
 }
 
 ComponentEditDialog::~ComponentEditDialog()
@@ -60,6 +69,7 @@ void ComponentEditDialog::setComponent(const Component& c)
     ui_->descriptionEdit->setText(QString::fromStdString(c.description));
     ui_->quantitySpin->setValue(c.quantity);
     ui_->notesEdit->setPlainText(QString::fromStdString(c.notes));
+    //ui_->datasheetEdit->setText(QString::fromStdString(c.datasheetLink)); // assuming field
 
     // Select category by ID
     int catIndex = ui_->categoryCombo->findData(c.categoryId);
@@ -70,6 +80,15 @@ void ComponentEditDialog::setComponent(const Component& c)
     int manIndex = ui_->manufacturerCombo->findData(c.manufacturerId);
     if (manIndex >= 0)
         ui_->manufacturerCombo->setCurrentIndex(manIndex);
+
+    // New: set the stacked page based on category
+    int page = pageForCategory(c.categoryId);
+    ui_->categoryStack->setCurrentIndex(page);
+
+    // New: load category-specific fields
+    if (page == Page_Resistor && c.id > 0) {
+        loadResistorFields(c.id);
+    }
 }
 
 Component ComponentEditDialog::component() const
@@ -80,13 +99,12 @@ Component ComponentEditDialog::component() const
     c.description = ui_->descriptionEdit->text().toStdString();
     c.quantity = ui_->quantitySpin->value();
     c.notes = ui_->notesEdit->toPlainText().toStdString();
+    c.datasheetLink = ui_->datasheetEdit->text().toStdString(); // new
 
-    c.categoryId =
-        ui_->categoryCombo->currentData().toInt();
+    c.categoryId = ui_->categoryCombo->currentData().toInt();
 
     QVariant manData = ui_->manufacturerCombo->currentData();
-    c.manufacturerId =
-        manData.isValid() ? manData.toInt() : 0;
+    c.manufacturerId = manData.isValid() ? manData.toInt() : 0;
 
     return c;
 }
@@ -153,6 +171,171 @@ void ComponentEditDialog::populateCombos()
     ui_->manufacturerCombo->blockSignals(false);
 }
 
+int ComponentEditDialog::pageForCategory(int categoryId) const
+{
+    QString name;
+
+    int idx = ui_->categoryCombo->findData(categoryId);
+    if (idx >= 0)
+        name = ui_->categoryCombo->itemText(idx);
+
+    if (name.compare("Resistor", Qt::CaseInsensitive) == 0)
+        return Page_Resistor;
+
+    return Page_None;
+}
+
+void ComponentEditDialog::populateResistorLookups()
+{
+    DbResult result;
+
+    // --- Packages ---
+    ui_->resistorPackageCombo->clear();
+    std::vector<ResistorPackage> pkgs;
+    if (inventory_.resistorPackages().list(pkgs, result)) {
+        for (const auto& p : pkgs) {
+            ui_->resistorPackageCombo->addItem(
+                QString::fromStdString(p.name),
+                p.id
+            );
+        }
+    }
+
+    // --- Compositions ---
+    ui_->resistorCompositionCombo->clear();
+    std::vector<ResistorComposition> comps;
+    if (inventory_.resistorCompositions().list(comps, result)) {
+        for (const auto& c : comps) {
+            ui_->resistorCompositionCombo->addItem(
+                QString::fromStdString(c.name),
+                c.id
+            );
+        }
+    }
+}
+
+void ComponentEditDialog::loadResistorFields(int componentId)
+{
+    DbResult result;
+    Resistor r;
+
+    if (!inventory_.resistors().getByComponentId(componentId, r, result)) {
+        return; // No resistor row yet
+    }
+
+    ui_->resistanceSpin->setValue(r.resistance);
+    ui_->toleranceSpin->setValue(r.tolerance);
+    ui_->powerSpin->setValue(r.powerRating);
+    ui_->tempCoeffSpin->setValue(r.tempCoefficient);
+    ui_->voltageSpin->setValue(r.voltageRating);
+    ui_->leadSpacingSpin->setValue(r.leadSpacing);
+
+    populateResistorLookups();
+
+    int pkgIndex = ui_->resistorPackageCombo->findData(r.packageTypeId);
+    if (pkgIndex >= 0)
+        ui_->resistorPackageCombo->setCurrentIndex(pkgIndex);
+
+    int compIndex = ui_->resistorCompositionCombo->findData(r.compositionId);
+    if (compIndex >= 0)
+        ui_->resistorCompositionCombo->setCurrentIndex(compIndex);
+}
+
+void ComponentEditDialog::saveResistorFields(int componentId)
+{
+    Resistor r;
+    r.componentId = componentId;
+    r.resistance = ui_->resistanceSpin->value();
+    r.tolerance = ui_->toleranceSpin->value();
+    r.powerRating = ui_->powerSpin->value();
+    r.tempCoefficient = 0.0; // You can add a UI field later
+    r.voltageRating = ui_->voltageSpin->value();
+    r.leadSpacing = ui_->leadSpacingSpin->value();
+    r.packageTypeId = ui_->resistorPackageCombo->currentData().toInt();
+    r.compositionId = ui_->resistorCompositionCombo->currentData().toInt();
+
+    DbResult result;
+    Resistor existing;
+
+    // UPDATE if exists
+    if (inventory_.resistors().getByComponentId(componentId, existing, result)) {
+        if (!inventory_.resistors().update(r, result)) {
+            QMessageBox::warning(
+                this,
+                tr("Error"),
+                tr("Failed to update resistor details: %1")
+                .arg(QString::fromStdString(result.message))
+            );
+        }
+        return;
+    }
+
+    // INSERT if not exists
+    result.clear();
+    if (!inventory_.resistors().add(r, result)) {
+        QMessageBox::warning(
+            this,
+            tr("Error"),
+            tr("Failed to insert resistor details: %1")
+            .arg(QString::fromStdString(result.message))
+        );
+    }
+}
+
+void ComponentEditDialog::accept()
+{
+    if (!isValid()) {
+        QMessageBox::warning(
+            this,
+            tr("Invalid Input"),
+            tr("Please enter a part number.")
+        );
+        return;
+    }
+
+    DbResult result;
+    Component c = component();
+
+    int componentId = c.id;
+
+    // INSERT
+    if (componentId == 0) {
+        if (!inventory_.components().addComponent(c, result)) {
+            QMessageBox::warning(
+                this,
+                tr("Error"),
+                tr("Failed to insert component: %1")
+                .arg(QString::fromStdString(result.message))
+            );
+            return;
+        }
+
+        // After addComponent(), the ComponentManager should set c.id internally.
+        // If it does not, you must modify addComponent() to return the new ID.
+        componentId = c.id;
+        component_.id = c.id;
+    }
+    else {
+        // UPDATE
+        if (!inventory_.components().updateComponent(c, result)) {
+            QMessageBox::warning(
+                this,
+                tr("Error"),
+                tr("Failed to update component: %1")
+                .arg(QString::fromStdString(result.message))
+            );
+            return;
+        }
+    }
+
+    // Save subtype fields
+    int page = pageForCategory(c.categoryId);
+    if (page == Page_Resistor)
+        saveResistorFields(componentId);
+
+    QDialog::accept();
+}
+
 bool ComponentEditDialog::isValid() const
 {
     return !ui_->partNumberEdit->text().trimmed().isEmpty();
@@ -170,48 +353,52 @@ void ComponentEditDialog::onCategoryChanged(int index)
         return;
 
     const int id = ui_->categoryCombo->itemData(index).toInt();
-    if (id != kAddNewId) {
-        // Normal selection -> update previous id
-        prevCategoryId_ = id;
+    if (id == kAddNewId) {
+        // existing "+ Add New..." logic
+        AddLookupDialog dlg(
+            tr("Add Category"),
+            [&](const std::string& name, DbResult& r) {
+                return inventory_.categories().addByName(name, r);
+            },
+            this
+        );
+
+        if (dlg.exec() == QDialog::Accepted) {
+            populateCombos();
+            const QString added = QString::fromStdString(dlg.addedName());
+            int newIndex = ui_->categoryCombo->findText(added);
+
+            if (newIndex >= 0) {
+                ui_->categoryCombo->setCurrentIndex(newIndex);
+                prevCategoryId_ = ui_->categoryCombo->itemData(newIndex).toInt();
+            }
+            else {
+                ui_->categoryCombo->setCurrentIndex(0);
+                prevCategoryId_ = ui_->categoryCombo->itemData(0).toInt();
+            }
+        }
+        else {
+            int restoreIndex = ui_->categoryCombo->findData(prevCategoryId_);
+            if (restoreIndex >= 0) {
+                if (restoreIndex == ui_->categoryCombo->currentIndex() && restoreIndex != 0)
+                    ui_->categoryCombo->setCurrentIndex(0);
+                ui_->categoryCombo->setCurrentIndex(restoreIndex);
+            }
+        }
+
+        // After add/cancel, we still want the correct page set
+        int currentId = ui_->categoryCombo->currentData().toInt();
+        int page = pageForCategory(currentId);
+        ui_->categoryStack->setCurrentIndex(page);
         return;
     }
 
-    // User clicked "+ Add New..."
-    AddLookupDialog dlg(
-        tr("Add Category"),
-        [&](const std::string& name, DbResult& r) {
-            return inventory_.categories().addByName(name, r);
-        },
-        this
-    );
+    // Normal selection
+    prevCategoryId_ = id;
 
-    if (dlg.exec() == QDialog::Accepted) {
-        // Refresh combo and find the newly added category by name
-        populateCombos();
-        const QString added = QString::fromStdString(dlg.addedName());
-        int newIndex = ui_->categoryCombo->findText(added);
-
-        if (newIndex >= 0) {
-            ui_->categoryCombo->setCurrentIndex(newIndex);
-            prevCategoryId_ = ui_->categoryCombo->itemData(newIndex).toInt();
-        }
-        else {
-            // fallback: select first valid item
-            ui_->categoryCombo->setCurrentIndex(0);
-            prevCategoryId_ = ui_->categoryCombo->itemData(0).toInt();
-        }
-    }
-    else {
-        // Cancelled -> restore previous selection by id
-        int restoreIndex = ui_->categoryCombo->findData(prevCategoryId_);
-        if (restoreIndex >= 0) {
-            // Temporarily select first valid item if restoreIndex == currentIndex
-            if (restoreIndex == ui_->categoryCombo->currentIndex() && restoreIndex != 0)
-                ui_->categoryCombo->setCurrentIndex(0);
-
-            ui_->categoryCombo->setCurrentIndex(restoreIndex);
-        }
-    }
+    // New: switch stacked widget page
+    int page = pageForCategory(id);
+    ui_->categoryStack->setCurrentIndex(page);
 }
 
 void ComponentEditDialog::onManufacturerChanged(int index)
@@ -258,71 +445,3 @@ void ComponentEditDialog::onManufacturerChanged(int index)
             ui_->manufacturerCombo->setCurrentIndex(restoreIndex);
     }
 }
-
-//void ComponentEditDialog::onCategoryChanged(int index)
-//{
-//    if (index < 0)
-//        return;
-//
-//    const int id = ui_->categoryCombo->itemData(index).toInt();
-//    if (id != kAddNewId) {
-//        prevCategoryIndex_ = index;
-//        return;
-//    }
-//
-//    AddLookupDialog dlg(
-//        tr("Add Category"),
-//        [&](const std::string& name, DbResult& r) {
-//            return inventory_.categories().addByName(name, r);
-//        },
-//        this
-//    );
-//
-//    if (dlg.exec() == QDialog::Accepted) {
-//        populateCombos();
-//
-//        const QString added =
-//            QString::fromStdString(dlg.addedName());
-//
-//        int newIndex = ui_->categoryCombo->findText(added);
-//        if (newIndex >= 0)
-//            ui_->categoryCombo->setCurrentIndex(newIndex);
-//    }
-//    else {
-//        ui_->categoryCombo->setCurrentIndex(prevCategoryIndex_);
-//    }
-//}
-//
-//void ComponentEditDialog::onManufacturerChanged(int index)
-//{
-//    if (index < 0)
-//        return;
-//
-//    const int id = ui_->manufacturerCombo->itemData(index).toInt();
-//    if (id != kAddNewId) {
-//        prevManufacturerIndex_ = index;
-//        return;
-//    }
-//
-//    AddLookupDialog dlg(
-//        tr("Add Manufacturer"),
-//        [&](const std::string& name, DbResult& r) {
-//            return inventory_.manufacturers().addByName(name, r);
-//        },
-//        this
-//    );
-//
-//    if (dlg.exec() == QDialog::Accepted) {
-//        populateCombos();
-//
-//        const QString added =
-//            QString::fromStdString(dlg.addedName());
-//
-//        int newIndex = ui_->manufacturerCombo->findText(added);
-//        if (newIndex >= 0)
-//            ui_->manufacturerCombo->setCurrentIndex(newIndex);
-//    }
-//    else {
-//        ui_->manufacturerCombo->setCurrentIndex(prevManufacturerIndex_);
-//    }
-//}
