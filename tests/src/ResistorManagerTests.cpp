@@ -43,13 +43,12 @@ protected:
 //
 TEST_F(ResistorManagerTest, AddResistor_InsertsRow) {
     Component c("TEST_RES_ADD", "Test Resistor Add", catId, manId, 10);
-    ASSERT_TRUE(compMgr.addComponent(c, res)) << res.toString();
+    ASSERT_TRUE(compMgr.add(c, res)) << res.toString();
 
-    int compId = compMgr.getByPartNumber(c.partNumber, res);
-    ASSERT_GT(compId, 0);
+    ASSERT_GT(c.id, 0);
 
     Resistor r;
-    r.componentId = compId;
+    r.componentId = c.id;
     r.resistance = 1000.0;
     r.tolerance = 5.0;
     r.powerRating = 0.25;
@@ -62,7 +61,7 @@ TEST_F(ResistorManagerTest, AddResistor_InsertsRow) {
     ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
 
     Resistor fetched;
-    ASSERT_TRUE(resistorMgr.getByComponentId(compId, fetched, res));
+    ASSERT_TRUE(resistorMgr.getByComponentId(c.id, fetched, res));
     EXPECT_EQ(fetched.resistance, 1000.0);
 }
 
@@ -71,13 +70,12 @@ TEST_F(ResistorManagerTest, AddResistor_InsertsRow) {
 //
 TEST_F(ResistorManagerTest, GetByComponentId_ReturnsCorrectResistor) {
     Component c("TEST_RES_GET", "Test Resistor Get", catId, manId, 5);
-    ASSERT_TRUE(compMgr.addComponent(c, res)) << res.toString();
+    ASSERT_TRUE(compMgr.add(c, res)) << res.toString();
 
-    int compId = compMgr.getByPartNumber(c.partNumber, res);
-    ASSERT_GT(compId, 0);
+    ASSERT_GT(c.id, 0);
 
     Resistor r;
-    r.componentId = compId;
+    r.componentId = c.id;
     r.resistance = 470.0;
     r.tolerance = 1.0;
     r.powerRating = 0.125;
@@ -88,7 +86,7 @@ TEST_F(ResistorManagerTest, GetByComponentId_ReturnsCorrectResistor) {
     ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
 
     Resistor fetched;
-    ASSERT_TRUE(resistorMgr.getByComponentId(compId, fetched, res));
+    ASSERT_TRUE(resistorMgr.getByComponentId(c.id, fetched, res));
     EXPECT_DOUBLE_EQ(fetched.resistance, 470.0);
 }
 
@@ -97,13 +95,12 @@ TEST_F(ResistorManagerTest, GetByComponentId_ReturnsCorrectResistor) {
 //
 TEST_F(ResistorManagerTest, UpdateResistor_ChangesValues) {
     Component c("TEST_RES_UPDATE", "Test Resistor Update", catId, manId, 8);
-    ASSERT_TRUE(compMgr.addComponent(c, res)) << res.toString();
+    ASSERT_TRUE(compMgr.add(c, res)) << res.toString();
 
-    int compId = compMgr.getByPartNumber(c.partNumber, res);
-    ASSERT_GT(compId, 0);
+    ASSERT_GT(c.id, 0);
 
     Resistor r;
-    r.componentId = compId;
+    r.componentId = c.id;
     r.resistance = 100.0;
     r.tolerance = 5.0;
     r.powerRating = 0.25;
@@ -117,7 +114,7 @@ TEST_F(ResistorManagerTest, UpdateResistor_ChangesValues) {
     ASSERT_TRUE(resistorMgr.update(r, res)) << res.toString();
 
     Resistor fetched;
-    ASSERT_TRUE(resistorMgr.getByComponentId(compId, fetched, res));
+    ASSERT_TRUE(resistorMgr.getByComponentId(c.id, fetched, res));
     EXPECT_DOUBLE_EQ(fetched.resistance, 220.0);
     EXPECT_DOUBLE_EQ(fetched.tolerance, 1.0);
 }
@@ -127,22 +124,21 @@ TEST_F(ResistorManagerTest, UpdateResistor_ChangesValues) {
 //
 TEST_F(ResistorManagerTest, DeleteResistor_RemovesRow) {
     Component c("TEST_RES_DELETE", "Test Resistor Delete", catId, manId, 3);
-    ASSERT_TRUE(compMgr.addComponent(c, res)) << res.toString();
+    ASSERT_TRUE(compMgr.add(c, res)) << res.toString();
 
-    int compId = compMgr.getByPartNumber(c.partNumber, res);
-    ASSERT_GT(compId, 0);
+    ASSERT_GT(c.id, 0);
 
     Resistor r;
-    r.componentId = compId;
+    r.componentId = c.id;
     r.resistance = 330.0;
     r.packageTypeId = pkgId;
     r.compositionId = compTypeId;
 
     ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
-    ASSERT_TRUE(resistorMgr.remove(compId, res)) << res.toString();
+    ASSERT_TRUE(resistorMgr.remove(c.id, res)) << res.toString();
 
     Resistor fetched;
-    EXPECT_FALSE(resistorMgr.getByComponentId(compId, fetched, res));
+    EXPECT_FALSE(resistorMgr.getByComponentId(c.id, fetched, res));
 }
 
 //
@@ -152,16 +148,14 @@ TEST_F(ResistorManagerTest, ListResistors_ReturnsAllResistors) {
     Component c1("TEST_RES_LIST1", "Test Resistor 1", catId, manId, 10);
     Component c2("TEST_RES_LIST2", "Test Resistor 2", catId, manId, 5);
 
-    ASSERT_TRUE(compMgr.addComponent(c1, res));
-    ASSERT_TRUE(compMgr.addComponent(c2, res));
+    ASSERT_TRUE(compMgr.add(c1, res));
+    ASSERT_TRUE(compMgr.add(c2, res));
 
-    int id1 = compMgr.getByPartNumber(c1.partNumber, res);
-    int id2 = compMgr.getByPartNumber(c2.partNumber, res);
-    ASSERT_GT(id1, 0);
-    ASSERT_GT(id2, 0);
+    ASSERT_GT(c1.id, 0);
+    ASSERT_GT(c2.id, 0);
 
-    Resistor r1{ id1, 1000.0, 5.0, 0.25, 100, pkgId, compTypeId, 7.5, 250 };
-    Resistor r2{ id2, 2200.0, 1.0, 0.5, 50, pkgId, compTypeId, 7.5, 250 };
+    Resistor r1{ c1.id, 1000.0, 5.0, 0.25, 100, pkgId, compTypeId, 7.5, 250 };
+    Resistor r2{ c2.id, 2200.0, 1.0, 0.5, 50, pkgId, compTypeId, 7.5, 250 };
 
     ASSERT_TRUE(resistorMgr.add(r1, res)) << res.toString();
     ASSERT_TRUE(resistorMgr.add(r2, res)) << res.toString();
@@ -171,8 +165,8 @@ TEST_F(ResistorManagerTest, ListResistors_ReturnsAllResistors) {
 
     bool found1 = false, found2 = false;
     for (const auto& r : list) {
-        if (r.componentId == id1) found1 = true;
-        if (r.componentId == id2) found2 = true;
+        if (r.componentId == c1.id) found1 = true;
+        if (r.componentId == c2.id) found2 = true;
     }
 
     EXPECT_TRUE(found1);

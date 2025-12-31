@@ -2,8 +2,7 @@
 #include "DbUtils.h"
 #include <sqlite3.h>
 
-// Add a new component
-bool ComponentManager::addComponent(Component& comp, DbResult& result)
+bool ComponentManager::add(Component& comp, DbResult& result)
 {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
@@ -30,8 +29,7 @@ bool ComponentManager::addComponent(Component& comp, DbResult& result)
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         result.setError(
             sqlite3_errcode(db_.handle()),
-            sqlite3_errmsg(db_.handle())
-        );
+            sqlite3_errmsg(db_.handle()));
         db_.finalize(stmt);
         return false;
     }
@@ -48,12 +46,13 @@ bool ComponentManager::addComponent(Component& comp, DbResult& result)
     return true;
 }
 
-// Get a component by ID
-bool ComponentManager::getComponentById(int id, Component& comp, DbResult& result) {
+bool ComponentManager::getById(int id, Component& comp, DbResult& result)
+{
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
         "SELECT ID, CategoryID, PartNumber, ManufacturerID, Description, Notes, "
-        "Quantity, DatasheetLink, CreatedOn, ModifiedOn FROM Components WHERE ID = ?;",
+        "Quantity, DatasheetLink, CreatedOn, ModifiedOn "
+        "FROM Components WHERE ID = ?;",
         stmt, result)) {
         return false;
     }
@@ -83,13 +82,13 @@ bool ComponentManager::getComponentById(int id, Component& comp, DbResult& resul
     return true;
 }
 
-// Update an existing component
-bool ComponentManager::updateComponent(const Component& comp, DbResult& result) {
+bool ComponentManager::update(const Component& comp, DbResult& result)
+{
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
         "UPDATE Components SET CategoryID=?, PartNumber=?, ManufacturerID=?, "
-        "Description=?, Notes=?, Quantity=?, DatasheetLink=?, ModifiedOn=datetime('now') "
-        "WHERE ID=?;",
+        "Description=?, Notes=?, Quantity=?, DatasheetLink=?, "
+        "ModifiedOn=datetime('now') WHERE ID=?;",
         stmt, result)) {
         return false;
     }
@@ -104,7 +103,9 @@ bool ComponentManager::updateComponent(const Component& comp, DbResult& result) 
     sqlite3_bind_int(stmt, 8, comp.id);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
-        result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+        result.setError(
+            sqlite3_errcode(db_.handle()),
+            sqlite3_errmsg(db_.handle()));
         db_.finalize(stmt);
         return false;
     }
@@ -114,8 +115,8 @@ bool ComponentManager::updateComponent(const Component& comp, DbResult& result) 
     return true;
 }
 
-// Delete a component
-bool ComponentManager::deleteComponent(int id, DbResult& result) {
+bool ComponentManager::remove(int id, DbResult& result)
+{
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare("DELETE FROM Components WHERE ID=?;", stmt, result)) {
         return false;
@@ -124,7 +125,9 @@ bool ComponentManager::deleteComponent(int id, DbResult& result) {
     sqlite3_bind_int(stmt, 1, id);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
-        result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+        result.setError(
+            sqlite3_errcode(db_.handle()),
+            sqlite3_errmsg(db_.handle()));
         db_.finalize(stmt);
         return false;
     }
@@ -134,8 +137,8 @@ bool ComponentManager::deleteComponent(int id, DbResult& result) {
     return true;
 }
 
-// List all components
-bool ComponentManager::listComponents(std::vector<Component>& comps, DbResult& result) {
+bool ComponentManager::list(std::vector<Component>& comps, DbResult& result)
+{
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
         "SELECT ID, CategoryID, PartNumber, ManufacturerID, Description, Notes, "
@@ -143,6 +146,8 @@ bool ComponentManager::listComponents(std::vector<Component>& comps, DbResult& r
         stmt, result)) {
         return false;
     }
+
+    comps.clear();
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         Component comp;
@@ -162,22 +167,4 @@ bool ComponentManager::listComponents(std::vector<Component>& comps, DbResult& r
     db_.finalize(stmt);
     result.clear();
     return true;
-}
-
-int ComponentManager::getByPartNumber(const std::string& partNumber, DbResult& result) {
-    sqlite3_stmt* stmt = nullptr;
-    if (!db_.prepare("SELECT ID FROM Components WHERE PartNumber=?;", stmt, result)) {
-        return -1;
-    }
-
-    sqlite3_bind_text(stmt, 1, partNumber.c_str(), -1, SQLITE_TRANSIENT);
-
-    int id = -1;
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        id = sqlite3_column_int(stmt, 0);
-    }
-
-    db_.finalize(stmt);
-    result.clear();
-    return id;
 }

@@ -25,8 +25,7 @@ protected:
 TEST_F(TransistorManagerTest, AddTransistor_InsertsRow) {
     // Seed a component
     Component c("PN1000", "Unit test transistor", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("PN1000", res);
+    ASSERT_TRUE(compMgr.add(c, res));
 
     // Resolve lookup IDs by name (seeded in BackendTestFixture)
     int typeId = typeMgr.getByName("BJT", res);
@@ -37,13 +36,13 @@ TEST_F(TransistorManagerTest, AddTransistor_InsertsRow) {
     ASSERT_GT(pkgId, 0);
 
     // Insert into Transistors
-    Transistor t(compId, typeId, polId, pkgId);
+    Transistor t(c.id, typeId, polId, pkgId);
     EXPECT_TRUE(transistorMgr.add(t, res));
 
     // Verify retrieval
     Transistor fetched;
-    EXPECT_TRUE(transistorMgr.getById(compId, fetched, res));
-    EXPECT_EQ(fetched.componentId, compId);
+    EXPECT_TRUE(transistorMgr.getById(c.id, fetched, res));
+    EXPECT_EQ(fetched.componentId, c.id);
     EXPECT_EQ(fetched.typeId, typeId);
     EXPECT_EQ(fetched.polarityId, polId);
     EXPECT_EQ(fetched.packageId, pkgId);
@@ -52,41 +51,38 @@ TEST_F(TransistorManagerTest, AddTransistor_InsertsRow) {
 // 2. DeleteTransistor_RemovesRow
 TEST_F(TransistorManagerTest, DeleteTransistor_RemovesRow) {
     Component c("PN1001", "Unit test transistor", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("PN1001", res);
+    ASSERT_TRUE(compMgr.add(c, res));
 
     int typeId = typeMgr.getByName("BJT", res);
     int polId = polMgr.getByName("NPN", res);
     int pkgId = pkgMgr.getByName("TO-92", res);
 
-    Transistor t(compId, typeId, polId, pkgId);
+    Transistor t(c.id, typeId, polId, pkgId);
     ASSERT_TRUE(transistorMgr.add(t, res));
 
-    EXPECT_TRUE(transistorMgr.remove(compId, res));
+    EXPECT_TRUE(transistorMgr.remove(c.id, res));
 
     Transistor fetched;
-    EXPECT_FALSE(transistorMgr.getById(compId, fetched, res));
+    EXPECT_FALSE(transistorMgr.getById(c.id, fetched, res));
 }
 
 // 3. ListTransistors_ReturnsAll
 TEST_F(TransistorManagerTest, ListTransistors_ReturnsAll) {
     // First component
     Component c1("PN1002", "Unit test transistor", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c1, res));
-    int compId1 = compMgr.getByPartNumber("PN1002", res);
+    ASSERT_TRUE(compMgr.add(c1, res));
 
     int typeId = typeMgr.getByName("BJT", res);
     int polId = polMgr.getByName("NPN", res);
     int pkgId = pkgMgr.getByName("TO-92", res);
 
-    ASSERT_TRUE(transistorMgr.add(Transistor(compId1, typeId, polId, pkgId), res));
+    ASSERT_TRUE(transistorMgr.add(Transistor(c1.id, typeId, polId, pkgId), res));
 
     // Second component
     Component c2("PN1003", "Unit test transistor", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c2, res));
-    int compId2 = compMgr.getByPartNumber("PN1003", res);
+    ASSERT_TRUE(compMgr.add(c2, res));
 
-    ASSERT_TRUE(transistorMgr.add(Transistor(compId2, typeId, polId, pkgId), res));
+    ASSERT_TRUE(transistorMgr.add(Transistor(c2.id, typeId, polId, pkgId), res));
 
     // Verify listx`xxxx
     std::vector<Transistor> ts;
@@ -100,21 +96,20 @@ TEST_F(TransistorManagerTest, ListTransistors_ReturnsAll) {
         ids.insert(t.componentId);
     }
     EXPECT_EQ(ids.size(), 2u); // sanity check
-    EXPECT_NE(ids.find(compId1), ids.end());
-    EXPECT_NE(ids.find(compId2), ids.end());
+    EXPECT_NE(ids.find(c1.id), ids.end());
+    EXPECT_NE(ids.find(c2.id), ids.end());
 }
 
 // 4. AddTransistor_DuplicateFails
 TEST_F(TransistorManagerTest, AddTransistor_DuplicateFails) {
     Component c("PN1004", "Unit test transistor", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("PN1004", res);
+    ASSERT_TRUE(compMgr.add(c, res));
 
     int typeId = typeMgr.getByName("BJT", res);
     int polId = polMgr.getByName("NPN", res);
     int pkgId = pkgMgr.getByName("TO-92", res);
 
-    Transistor t(compId, typeId, polId, pkgId);
+    Transistor t(c.id, typeId, polId, pkgId);
 
     ASSERT_TRUE(transistorMgr.add(t, res));
     EXPECT_FALSE(transistorMgr.add(t, res));  // duplicate

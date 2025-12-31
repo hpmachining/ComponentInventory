@@ -48,16 +48,15 @@ protected:
 // 1. AddFuse_InsertsRow
 TEST_F(FuseManagerTest, AddFuse_InsertsRow) {
     Component c("TEST_FUSE", "Test Fuse", catId, manId, 10);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber(c.partNumber, res);
-    ASSERT_GT(compId, 0);
+    ASSERT_TRUE(compMgr.add(c, res));
+    ASSERT_GT(c.id, 0);
 
-    Fuse f(compId, pkgId, fastTypeId, 1.0, 250.0);
+    Fuse f(c.id, pkgId, fastTypeId, 1.0, 250.0);
     ASSERT_TRUE(fuseMgr.add(f, res));
 
     Fuse fetched;
-    ASSERT_TRUE(fuseMgr.getById(compId, fetched, res));
-    EXPECT_EQ(fetched.componentId, compId);
+    ASSERT_TRUE(fuseMgr.getById(c.id, fetched, res));
+    EXPECT_EQ(fetched.componentId, c.id);
     EXPECT_EQ(fetched.packageId, pkgId);
     EXPECT_EQ(fetched.typeId, fastTypeId);
 }
@@ -65,26 +64,24 @@ TEST_F(FuseManagerTest, AddFuse_InsertsRow) {
 // 2. GetFuseByComponentId_ReturnsCorrectFuse
 TEST_F(FuseManagerTest, GetFuseByComponentId_ReturnsCorrectFuse) {
     Component c("TEST_FUSE_GET", "Test Fuse Get", catId, manId, 5);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber(c.partNumber, res);
-    ASSERT_GT(compId, 0);
+    ASSERT_TRUE(compMgr.add(c, res));
+    ASSERT_GT(c.id, 0);
 
-    Fuse f(compId, pkgId, fastTypeId, 0.5, 125.0);
+    Fuse f(c.id, pkgId, fastTypeId, 0.5, 125.0);
     ASSERT_TRUE(fuseMgr.add(f, res));
 
     Fuse fetched;
-    ASSERT_TRUE(fuseMgr.getById(compId, fetched, res));
-    EXPECT_EQ(fetched.componentId, compId);
+    ASSERT_TRUE(fuseMgr.getById(c.id, fetched, res));
+    EXPECT_EQ(fetched.componentId, c.id);
 }
 
 // 3. UpdateFuse_ChangesValues
 TEST_F(FuseManagerTest, UpdateFuse_ChangesValues) {
     Component c("TEST_FUSE_UPDATE", "Test Fuse Update", catId, manId, 8);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber(c.partNumber, res);
-    ASSERT_GT(compId, 0);
+    ASSERT_TRUE(compMgr.add(c, res));
+    ASSERT_GT(c.id, 0);
 
-    Fuse f(compId, pkgId, fastTypeId, 1.0, 250.0);
+    Fuse f(c.id, pkgId, fastTypeId, 1.0, 250.0);
     ASSERT_TRUE(fuseMgr.add(f, res));
 
     f.typeId = slowTypeId;
@@ -93,40 +90,37 @@ TEST_F(FuseManagerTest, UpdateFuse_ChangesValues) {
     ASSERT_TRUE(fuseMgr.update(f, res));
 
     Fuse fetched;
-    ASSERT_TRUE(fuseMgr.getById(compId, fetched, res));
+    ASSERT_TRUE(fuseMgr.getById(c.id, fetched, res));
     EXPECT_EQ(fetched.typeId, slowTypeId);
 }
 
 // 4. DeleteFuse_RemovesRow
 TEST_F(FuseManagerTest, DeleteFuse_RemovesRow) {
     Component c("TEST_FUSE_DELETE", "Test Fuse Delete", catId, manId, 3);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber(c.partNumber, res);
-    ASSERT_GT(compId, 0);
+    ASSERT_TRUE(compMgr.add(c, res));
+    ASSERT_GT(c.id, 0);
 
-    Fuse f(compId, pkgId, fastTypeId, 0.5, 125.0);
+    Fuse f(c.id, pkgId, fastTypeId, 0.5, 125.0);
     ASSERT_TRUE(fuseMgr.add(f, res));
 
-    ASSERT_TRUE(fuseMgr.remove(compId, res));
+    ASSERT_TRUE(fuseMgr.remove(c.id, res));
 
     Fuse fetched;
-    EXPECT_FALSE(fuseMgr.getById(compId, fetched, res));
+    EXPECT_FALSE(fuseMgr.getById(c.id, fetched, res));
 }
 
 // 5. ListFuses_ReturnsAllFuses
 TEST_F(FuseManagerTest, ListFuses_ReturnsAllFuses) {
     Component c1("TEST_FUSE_LIST1", "Test Fuse List 1", catId, manId, 10);
-    ASSERT_TRUE(compMgr.addComponent(c1, res));
-    int compId1 = compMgr.getByPartNumber(c1.partNumber, res);
-    ASSERT_GT(compId1, 0);
+    ASSERT_TRUE(compMgr.add(c1, res));
+    ASSERT_GT(c1.id, 0);
 
     Component c2("TEST_FUSE_LIST2", "Test Fuse List 2", catId, manId, 5);
-    ASSERT_TRUE(compMgr.addComponent(c2, res));
-    int compId2 = compMgr.getByPartNumber(c2.partNumber, res);
-    ASSERT_GT(compId2, 0);
+    ASSERT_TRUE(compMgr.add(c2, res));
+    ASSERT_GT(c2.id, 0);
 
-    Fuse f1(compId1, pkgId, fastTypeId, 1.0, 250.0);
-    Fuse f2(compId2, pkgId, slowTypeId, 0.25, 125.0);
+    Fuse f1(c1.id, pkgId, fastTypeId, 1.0, 250.0);
+    Fuse f2(c2.id, pkgId, slowTypeId, 0.25, 125.0);
     ASSERT_TRUE(fuseMgr.add(f1, res));
     ASSERT_TRUE(fuseMgr.add(f2, res));
 
@@ -135,8 +129,8 @@ TEST_F(FuseManagerTest, ListFuses_ReturnsAllFuses) {
 
     bool found1 = false, found2 = false;
     for (const auto& f : fuses) {
-        if (f.componentId == compId1) found1 = true;
-        if (f.componentId == compId2) found2 = true;
+        if (f.componentId == c1.id) found1 = true;
+        if (f.componentId == c2.id) found2 = true;
     }
     EXPECT_TRUE(found1);
     EXPECT_TRUE(found2);

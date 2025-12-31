@@ -206,7 +206,7 @@ void MainWindow::onActionAddComponent()
         DbResult result;
 
         // Add component to DB
-        if (!inventory_->components().addComponent(c, result)) {
+        if (!inventory_->components().add(c, result)) {
             QMessageBox::critical(this, tr("Error"),
                 QString::fromStdString(result.toString()));
             return;
@@ -271,7 +271,7 @@ void MainWindow::onActionDeleteComponent()
         return;
 
     DbResult result;
-    if (!inventory_->components().deleteComponent(componentId, result)) {
+    if (!inventory_->components().remove(componentId, result)) {
         QMessageBox::critical(
             this,
             tr("Error"),
@@ -297,7 +297,7 @@ void MainWindow::onActionAddTestComponent()
     c.quantity = 1;
 
     DbResult result;
-    if (!inventory_->components().addComponent(c, result)) {
+    if (!inventory_->components().add(c, result)) {
         QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
         return;
     }
@@ -319,7 +319,7 @@ void MainWindow::onActionEditComponent()
 
     DbResult result;
     Component c;
-    if (!inventory_->components().getComponentById(componentId, c, result)) {
+    if (!inventory_->components().getById(componentId, c, result)) {
         QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
         return;
     }
@@ -331,7 +331,7 @@ void MainWindow::onActionEditComponent()
         c = dialog.component(); // updated component from dialog
 
         // Update component in DB
-        if (!inventory_->components().updateComponent(c, result)) {
+        if (!inventory_->components().update(c, result)) {
             QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
             return;
         }
@@ -377,7 +377,7 @@ void MainWindow::reloadComponents()
 
     // Load components
     std::vector<Component> components;
-    if (!inventory_->components().listComponents(components, result)) {
+    if (!inventory_->components().list(components, result)) {
         QMessageBox::critical(this, tr("Error"),
             QString::fromStdString(result.toString()));
         return;

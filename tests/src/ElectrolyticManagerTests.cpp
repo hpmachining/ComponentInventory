@@ -38,8 +38,8 @@ protected:
         ASSERT_GT(dielId, 0);
 
         Component comp("E-100", "Seed electrolytic component", catId, manId, 10, "Seed notes");
-        ASSERT_TRUE(compMgr.addComponent(comp, res)) << res.toString();
-        compId = compMgr.getByPartNumber("E-100", res);
+        ASSERT_TRUE(compMgr.add(comp, res)) << res.toString();
+		compId = comp.id;
         ASSERT_GT(compId, 0);
 
         Capacitor cap;
@@ -118,7 +118,7 @@ TEST_F(ElectrolyticManagerTest, CascadeDelete_ComponentAlsoDeletesElectrolytic) 
     Electrolytic e{ compId, 6.0, 13.0, 2.5 };
     ASSERT_TRUE(elecMgr.add(e, res)) << res.toString();
 
-    ASSERT_TRUE(compMgr.deleteComponent(compId, res)) << res.toString();
+    ASSERT_TRUE(compMgr.remove(compId, res)) << res.toString();
 
     Electrolytic fetched;
     bool got = elecMgr.getById(compId, fetched, res);

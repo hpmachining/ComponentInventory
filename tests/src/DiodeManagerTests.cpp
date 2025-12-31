@@ -21,29 +21,30 @@ protected:
     }
 };
 
-// 1. AddDiode_InsertsRow
-TEST_F(DiodeManagerTest, AddDiode_InsertsRow) {
-    Component c("D1000", "Unit test diode", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("D1000", res);
+// Helper to create a diode component and add it
+static int createDiodeComponent(ComponentManager& compMgr,
+    const std::string& partNumber,
+    int catId, int manId,
+    DbResult& res)
+{
+    Component c(partNumber, "Unit test diode", catId, manId, 1);
 
-    int pkgId = pkgMgr.getByName("Axial leaded", res);
-    int typeId = typeMgr.getByName("Rectifier", res);
-    int polId = polMgr.getByName("Anode-Cathode", res);
+    if (!compMgr.add(c, res)) {
+        ADD_FAILURE() << "Failed to add component: " << res.toString();
+        return -1;
+    }
 
-    Diode d(compId, pkgId, typeId, polId, 0.7, 1.0, 100.0, 0.01);
-    EXPECT_TRUE(diodeMgr.add(d, res));
+    if (c.id <= 0) {
+        ADD_FAILURE() << "add() succeeded but returned invalid id";
+        return -1;
+    }
 
-    Diode fetched;
-    EXPECT_TRUE(diodeMgr.getById(compId, fetched, res));
-    EXPECT_EQ(fetched.componentId, compId);
+    return c.id;
 }
 
-// 2. AddDuplicateDiode_Fails
-TEST_F(DiodeManagerTest, AddDuplicateDiode_Fails) {
-    Component c("D1001", "Duplicate diode test", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("D1001", res);
+// 1. AddDiode_InsertsRow
+TEST_F(DiodeManagerTest, AddDiode_InsertsRow) {
+    int compId = createDiodeComponent(compMgr, "D1000", catId, manId, res);
 
     int pkgId = pkgMgr.getByName("Axial leaded", res);
     int typeId = typeMgr.getByName("Rectifier", res);
@@ -52,16 +53,29 @@ TEST_F(DiodeManagerTest, AddDuplicateDiode_Fails) {
     Diode d(compId, pkgId, typeId, polId, 0.7, 1.0, 100.0, 0.01);
     ASSERT_TRUE(diodeMgr.add(d, res));
 
-    // Attempt to add same component again should fail (unique componentId)
+    Diode fetched;
+    ASSERT_TRUE(diodeMgr.getById(compId, fetched, res));
+    EXPECT_EQ(fetched.componentId, compId);
+}
+
+// 2. AddDuplicateDiode_Fails
+TEST_F(DiodeManagerTest, AddDuplicateDiode_Fails) {
+    int compId = createDiodeComponent(compMgr, "D1001", catId, manId, res);
+
+    int pkgId = pkgMgr.getByName("Axial leaded", res);
+    int typeId = typeMgr.getByName("Rectifier", res);
+    int polId = polMgr.getByName("Anode-Cathode", res);
+
+    Diode d(compId, pkgId, typeId, polId, 0.7, 1.0, 100.0, 0.01);
+    ASSERT_TRUE(diodeMgr.add(d, res));
+
     Diode duplicate(compId, pkgId, typeId, polId, 0.5, 0.5, 50.0, 0.005);
     EXPECT_FALSE(diodeMgr.add(duplicate, res));
 }
 
 // 3. GetDiodeById_ReturnsCorrectDiode
 TEST_F(DiodeManagerTest, GetDiodeById_ReturnsCorrectDiode) {
-    Component c("D1002", "GetDiode test", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("D1002", res);
+    int compId = createDiodeComponent(compMgr, "D1002", catId, manId, res);
 
     int pkgId = pkgMgr.getByName("SMD SOD-123", res);
     int typeId = typeMgr.getByName("Zener", res);
@@ -78,9 +92,7 @@ TEST_F(DiodeManagerTest, GetDiodeById_ReturnsCorrectDiode) {
 
 // 4. UpdateDiode_ChangesPersist
 TEST_F(DiodeManagerTest, UpdateDiode_ChangesPersist) {
-    Component c("D1003", "UpdateDiode test", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("D1003", res);
+    int compId = createDiodeComponent(compMgr, "D1003", catId, manId, res);
 
     int pkgId = pkgMgr.getByName("SMD SOD-323", res);
     int typeId = typeMgr.getByName("Schottky", res);
@@ -89,7 +101,6 @@ TEST_F(DiodeManagerTest, UpdateDiode_ChangesPersist) {
     Diode d(compId, pkgId, typeId, polId, 0.3, 2.0, 40.0, 0.05);
     ASSERT_TRUE(diodeMgr.add(d, res));
 
-    // Update diode
     d.forwardVoltage = 2.1;
     d.maxCurrent = 0.02;
     ASSERT_TRUE(diodeMgr.update(d, res));
@@ -102,9 +113,7 @@ TEST_F(DiodeManagerTest, UpdateDiode_ChangesPersist) {
 
 // 5. RemoveDiode_DeletesRow
 TEST_F(DiodeManagerTest, RemoveDiode_DeletesRow) {
-    Component c("D1004", "DeleteDiode test", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c, res));
-    int compId = compMgr.getByPartNumber("D1004", res);
+    int compId = createDiodeComponent(compMgr, "D1004", catId, manId, res);
 
     int pkgId = pkgMgr.getByName("Axial leaded", res);
     int typeId = typeMgr.getByName("Rectifier", res);
@@ -121,25 +130,19 @@ TEST_F(DiodeManagerTest, RemoveDiode_DeletesRow) {
 
 // 6. ListDiodes_ReturnsAll
 TEST_F(DiodeManagerTest, ListDiodes_ReturnsAll) {
-    // Add first diode
-    Component c1("D1005", "ListDiode test 1", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c1, res));
-    int compId1 = compMgr.getByPartNumber("D1005", res);
+    int compId1 = createDiodeComponent(compMgr, "D1005", catId, manId, res);
+    int compId2 = createDiodeComponent(compMgr, "D1006", catId, manId, res);
 
     int pkgId = pkgMgr.getByName("Axial leaded", res);
     int typeId = typeMgr.getByName("Rectifier", res);
     int polId = polMgr.getByName("Anode-Cathode", res);
-    ASSERT_TRUE(diodeMgr.add(Diode(compId1, pkgId, typeId, polId, 0.7, 1.0, 100.0, 0.01), res));
 
-    // Add second diode
-    Component c2("D1006", "ListDiode test 2", catId, manId, 1);
-    ASSERT_TRUE(compMgr.addComponent(c2, res));
-    int compId2 = compMgr.getByPartNumber("D1006", res);
+    ASSERT_TRUE(diodeMgr.add(Diode(compId1, pkgId, typeId, polId, 0.7, 1.0, 100.0, 0.01), res));
     ASSERT_TRUE(diodeMgr.add(Diode(compId2, pkgId, typeId, polId, 0.3, 2.0, 40.0, 0.05), res));
 
     std::vector<Diode> diodes;
-    EXPECT_TRUE(diodeMgr.list(diodes, res));
-    EXPECT_GE(diodes.size(), 2);  // at least the two just added
+    ASSERT_TRUE(diodeMgr.list(diodes, res));
+    EXPECT_GE(diodes.size(), 2);
 }
 
 // 7. GetDiodeById_MissingReturnsFalse
