@@ -213,14 +213,8 @@ void MainWindow::onActionAddComponent()
         }
 
         // Save the resistor details (in-memory from dialog)
-        int componentId = inventory_->components().getByPartNumber(c.partNumber, result);
-        if (componentId <= 0) {
-            QMessageBox::critical(this, tr("Error"),
-                tr("Component was created but its ID could not be retrieved."));
-            return;
-        }
         Resistor r = dialog.resistor();
-        r.componentId = componentId; // assign the actual FK
+        r.componentId = c.id; // assign the actual FK
         if (!inventory_->resistors().add(r, result)) {
             QMessageBox::warning(this, tr("Warning"),
                 tr("Component created but failed to save resistor details:\n%1")

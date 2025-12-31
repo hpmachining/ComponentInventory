@@ -16,15 +16,20 @@ void DevDataSeeder::seedComponents(Database& db)
     int catId = 1;
     int manId = 1;
 
-    compMgr.addComponent(
-        Component("PN123", "Test component", catId, manId, 10, "Notes"),
-        res);
+    // Create named Component objects so addComponent can update comp.id
+    Component c1("PN123", "Test component", catId, manId, 10, "Notes");
+    if (!compMgr.addComponent(c1, res)) {
+        // handle error or at least log / ignore for test seeding
+    }
 
-    compMgr.addComponent(
-        Component("PN456", "Another test component", catId, manId, 5, "More notes"),
-        res);
+    Component c2("PN456", "Another test component", catId, manId, 5, "More notes");
+    if (!compMgr.addComponent(c2, res)) {
+        // handle error
+    }
 
-    compMgr.addComponent(
-        Component("PN789", "To be updated", catId, manId, 1, "Old notes"),
-        res);
+    Component c3("PN789", "To be updated", catId, manId, 1, "Old notes");
+    if (!compMgr.addComponent(c3, res)) {
+        // handle error
+    }
 }
+

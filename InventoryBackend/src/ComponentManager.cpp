@@ -3,7 +3,8 @@
 #include <sqlite3.h>
 
 // Add a new component
-bool ComponentManager::addComponent(const Component& comp, DbResult& result) {
+bool ComponentManager::addComponent(Component& comp, DbResult& result)
+{
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
         "INSERT INTO Components (CategoryID, PartNumber, ManufacturerID, "
@@ -15,22 +16,34 @@ bool ComponentManager::addComponent(const Component& comp, DbResult& result) {
 
     sqlite3_bind_int(stmt, 1, comp.categoryId);
     sqlite3_bind_text(stmt, 2, comp.partNumber.c_str(), -1, SQLITE_TRANSIENT);
+
     if (comp.manufacturerId > 0)
         sqlite3_bind_int(stmt, 3, comp.manufacturerId);
     else
         sqlite3_bind_null(stmt, 3);
+
     sqlite3_bind_text(stmt, 4, comp.description.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 5, comp.notes.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_int(stmt, 6, comp.quantity);
     sqlite3_bind_text(stmt, 7, comp.datasheetLink.c_str(), -1, SQLITE_TRANSIENT);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
-        result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
+        result.setError(
+            sqlite3_errcode(db_.handle()),
+            sqlite3_errmsg(db_.handle())
+        );
         db_.finalize(stmt);
         return false;
     }
 
     db_.finalize(stmt);
+
+    comp.id = db_.lastInsertId();
+    if (comp.id <= 0) {
+        result.setError(SQLITE_ERROR, "Failed to retrieve component ID");
+        return false;
+    }
+
     result.clear();
     return true;
 }
