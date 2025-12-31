@@ -1,333 +1,344 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
-  <class>ComponentEditDialog</class>
-  <widget class="QDialog" name="ComponentEditDialog">
-    <property name="geometry">
-      <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>300</width>
-        <height>328</height>
-      </rect>
-    </property>
-    <property name="minimumSize">
-      <size>
-        <width>300</width>
-        <height>0</height>
-      </size>
-    </property>
-    <property name="windowTitle">
-      <string>Edit Component </string>
-    </property>
-    <property name="modal">
-      <bool>true</bool>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-        <layout class="QFormLayout" name="formLayout">
-          <item row="0" column="0">
-            <widget class="QLabel" name="partNumberLabel">
-              <property name="text">
-                <string>Part Number</string>
-              </property>
-            </widget>
-          </item>
-          <item row="0" column="1">
-            <widget class="QLineEdit" name="partNumberEdit"/>
-          </item>
-          <item row="1" column="0">
-            <widget class="QLabel" name="descriptionLabel">
-              <property name="text">
-                <string>Description</string>
-              </property>
-            </widget>
-          </item>
-          <item row="1" column="1">
-            <widget class="QLineEdit" name="descriptionEdit"/>
-          </item>
-          <item row="2" column="0">
-            <widget class="QLabel" name="quantitylabel">
-              <property name="text">
-                <string>Quantity</string>
-              </property>
-            </widget>
-          </item>
-          <item row="2" column="1">
-            <widget class="QSpinBox" name="quantitySpin">
-              <property name="maximum">
-                <number>100000</number>
-              </property>
-            </widget>
-          </item>
-          <item row="3" column="0">
-            <widget class="QLabel" name="categoryLabel">
-              <property name="text">
-                <string>Category</string>
-              </property>
-            </widget>
-          </item>
-          <item row="4" column="0">
-            <widget class="QLabel" name="manufacturerLabel">
-              <property name="text">
-                <string>Manufacturer</string>
-              </property>
-            </widget>
-          </item>
-          <item row="5" column="0">
-            <widget class="QLabel" name="datasheetLabel">
-              <property name="text">
-                <string>Datasheet Link</string>
-              </property>
-            </widget>
-          </item>
-          <item row="5" column="1">
-            <widget class="QLineEdit" name="datasheetEdit"/>
-          </item>
-          <item row="3" column="1">
-            <widget class="QComboBox" name="categoryCombo"/>
-          </item>
-          <item row="4" column="1">
-            <widget class="QComboBox" name="manufacturerCombo"/>
-          </item>
-        </layout>
-      </item>
-
-      <item>
-        <widget class="QStackedWidget" name="categoryStack">
-          <property name="minimumSize">
-            <size>
-              <width>0</width>
-              <height>120</height>
-            </size>
-          </property>
-
-          <!-- Default empty page -->
-          <widget class="QWidget" name="pageNone">
-            <layout class="QVBoxLayout" name="layoutNone">
-              <item>
-                <widget class="QLabel" name="noneLabel">
-                  <property name="text">
-                    <string>No category‑specific fields</string>
-                  </property>
-                </widget>
-              </item>
-            </layout>
-          </widget>
-
-          <!-- Resistor page -->
-          <widget class="QWidget" name="pageResistor">
-            <layout class="QFormLayout" name="resistorForm">
-
-              <item row="0" column="0">
-                <widget class="QLabel" name="resistanceLabel">
-                  <property name="text">
-                    <string>Resistance (Ω)</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="0" column="1">
-                <widget class="QDoubleSpinBox" name="resistanceSpin">
-                  <property name="maximum">
-                    <double>100000000</double>
-                  </property>
-                  <property name="decimals">
-                    <number>6</number>
-                  </property>
-                </widget>
-              </item>
-
-              <item row="1" column="0">
-                <widget class="QLabel" name="toleranceLabel">
-                  <property name="text">
-                    <string>Tolerance (%)</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="1" column="1">
-                <widget class="QDoubleSpinBox" name="toleranceSpin">
-                  <property name="maximum">
-                    <double>100</double>
-                  </property>
-                  <property name="decimals">
-                    <number>2</number>
-                  </property>
-                </widget>
-              </item>
-
-              <item row="2" column="0">
-                <widget class="QLabel" name="powerLabel">
-                  <property name="text">
-                    <string>Power Rating (W)</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="2" column="1">
-                <widget class="QDoubleSpinBox" name="powerSpin">
-                  <property name="maximum">
-                    <double>1000</double>
-                  </property>
-                  <property name="decimals">
-                    <number>3</number>
-                  </property>
-                </widget>
-              </item>
-
-              <item row="3" column="0">
-                <widget class="QLabel" name="tempCoeffLabel">
-                  <property name="text">
-                    <string>Temp. Coefficient (ppm/°C)</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="3" column="1">
-                <widget class="QDoubleSpinBox" name="tempCoeffSpin">
-                  <property name="maximum">
-                    <double>10000</double>
-                  </property>
-                  <property name="decimals">
-                    <number>1</number>
-                  </property>
-                </widget>
-              </item>
-
-              <item row="4" column="0">
-                <widget class="QLabel" name="packageLabel">
-                  <property name="text">
-                    <string>Package</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="4" column="1">
-                <widget class="QComboBox" name="resistorPackageCombo"/>
-              </item>
-
-              <item row="5" column="0">
-                <widget class="QLabel" name="compositionLabel">
-                  <property name="text">
-                    <string>Composition</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="5" column="1">
-                <widget class="QComboBox" name="resistorCompositionCombo"/>
-              </item>
-
-              <item row="6" column="0">
-                <widget class="QLabel" name="voltageLabel">
-                  <property name="text">
-                    <string>Voltage Rating (V)</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="6" column="1">
-                <widget class="QDoubleSpinBox" name="voltageSpin">
-                  <property name="maximum">
-                    <double>10000</double>
-                  </property>
-                  <property name="decimals">
-                    <number>2</number>
-                  </property>
-                </widget>
-              </item>
-
-              <item row="7" column="0">
-                <widget class="QLabel" name="leadSpacingLabel">
-                  <property name="text">
-                    <string>Lead Spacing (mm)</string>
-                  </property>
-                </widget>
-              </item>
-              <item row="7" column="1">
-                <widget class="QDoubleSpinBox" name="leadSpacingSpin">
-                  <property name="maximum">
-                    <double>100</double>
-                  </property>
-                  <property name="decimals">
-                    <number>2</number>
-                  </property>
-                </widget>
-              </item>
-
-            </layout>
-          </widget>
-
-        </widget>
-      </item>
-      <item>
-        <widget class="QLabel" name="notesLabel">
-          <property name="text">
-            <string>Notes</string>
-          </property>
-        </widget>
-      </item>
-      <item>
-        <widget class="QPlainTextEdit" name="notesEdit">
-          <property name="minimumSize">
-            <size>
-              <width>0</width>
-              <height>80</height>
-            </size>
-          </property>
-          <property name="plainText">
-            <string/>
-          </property>
-        </widget>
-      </item>
-
-      <item>
-        <widget class="QDialogButtonBox" name="buttonBox">
-          <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
-          </property>
-          <property name="standardButtons">
-            <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
-          </property>
-        </widget>
-      </item>
+ <class>ComponentEditDialog</class>
+ <widget class="QDialog" name="ComponentEditDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>360</width>
+    <height>594</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>360</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Edit Component</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="partNumberLabel">
+       <property name="text">
+        <string>Part Number</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="partNumberEdit"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="descriptionLabel">
+       <property name="text">
+        <string>Description</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="descriptionEdit"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="quantityLabel">
+       <property name="text">
+        <string>Quantity</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QSpinBox" name="quantitySpin">
+       <property name="maximum">
+        <number>100000</number>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="categoryLabel">
+       <property name="text">
+        <string>Category</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="categoryCombo"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="manufacturerLabel">
+       <property name="text">
+        <string>Manufacturer</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="manufacturerCombo"/>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="datasheetLabel">
+       <property name="text">
+        <string>Datasheet Link</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="datasheetEdit"/>
+     </item>
     </layout>
-  </widget>
-  <tabstops>
-    <tabstop>partNumberEdit</tabstop>
-    <tabstop>descriptionEdit</tabstop>
-    <tabstop>quantitySpin</tabstop>
-    <tabstop>categoryCombo</tabstop>
-    <tabstop>manufacturerCombo</tabstop>
-    <tabstop>datasheetEdit</tabstop>
-    <tabstop>notesEdit</tabstop>
-  </tabstops>
-  <resources/>
-  <connections>
-    <connection>
-      <sender>buttonBox</sender>
-      <signal>accepted()</signal>
-      <receiver>ComponentEditDialog</receiver>
-      <slot>accept()</slot>
-      <hints>
-        <hint type="sourcelabel">
-          <x>248</x>
-          <y>254</y>
-        </hint>
-        <hint type="destinationlabel">
-          <x>157</x>
-          <y>274</y>
-        </hint>
-      </hints>
-    </connection>
-    <connection>
-      <sender>buttonBox</sender>
-      <signal>rejected()</signal>
-      <receiver>ComponentEditDialog</receiver>
-      <slot>reject()</slot>
-      <hints>
-        <hint type="sourcelabel">
-          <x>316</x>
-          <y>260</y>
-        </hint>
-        <hint type="destinationlabel">
-          <x>286</x>
-          <y>274</y>
-        </hint>
-      </hints>
-    </connection>
-  </connections>
+   </item>
+   <item>
+    <widget class="QLabel" name="notesLabel">
+     <property name="text">
+      <string>Notes</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPlainTextEdit" name="notesEdit">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>80</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ShrinkingStackedWidget" name="categoryStack">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <widget class="QWidget" name="pageNone">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="layoutNone"/>
+     </widget>
+     <widget class="QWidget" name="pageResistor">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <layout class="QFormLayout" name="resistorForm">
+       <item row="0" column="0">
+        <widget class="QLabel" name="resistanceLabel">
+         <property name="text">
+          <string>Resistance (Ω)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QDoubleSpinBox" name="resistanceSpin">
+         <property name="decimals">
+          <number>6</number>
+         </property>
+         <property name="maximum">
+          <double>100000000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="toleranceLabel">
+         <property name="text">
+          <string>Tolerance (%)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QDoubleSpinBox" name="toleranceSpin">
+         <property name="decimals">
+          <number>2</number>
+         </property>
+         <property name="maximum">
+          <double>100.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="powerLabel">
+         <property name="text">
+          <string>Power Rating (W)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QDoubleSpinBox" name="powerSpin">
+         <property name="decimals">
+          <number>3</number>
+         </property>
+         <property name="maximum">
+          <double>1000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="tempCoeffLabel">
+         <property name="text">
+          <string>Temp. Coefficient (ppm/°C)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QDoubleSpinBox" name="tempCoeffSpin">
+         <property name="decimals">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="packageLabel">
+         <property name="text">
+          <string>Package</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="resistorPackageCombo"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="compositionLabel">
+         <property name="text">
+          <string>Composition</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QComboBox" name="resistorCompositionCombo"/>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="voltageLabel">
+         <property name="text">
+          <string>Voltage Rating (V)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QDoubleSpinBox" name="voltageSpin">
+         <property name="decimals">
+          <number>2</number>
+         </property>
+         <property name="maximum">
+          <double>10000.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="leadSpacingLabel">
+         <property name="text">
+          <string>Lead Spacing (mm)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QDoubleSpinBox" name="leadSpacingSpin">
+         <property name="decimals">
+          <number>2</number>
+         </property>
+         <property name="maximum">
+          <double>100.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ShrinkingStackedWidget</class>
+   <extends>QStackedWidget</extends>
+   <header>ShrinkingStackedWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>partNumberEdit</tabstop>
+  <tabstop>descriptionEdit</tabstop>
+  <tabstop>quantitySpin</tabstop>
+  <tabstop>categoryCombo</tabstop>
+  <tabstop>manufacturerCombo</tabstop>
+  <tabstop>datasheetEdit</tabstop>
+  <tabstop>notesEdit</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>ComponentEditDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>ComponentEditDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include "ComponentManager.h"
+#include "ResistorManager.h"
 
 namespace Ui {
     class ComponentEditDialog;
@@ -22,6 +23,7 @@ public:
 
     void setComponent(const Component& c);
     Component component() const;
+    Resistor resistor() const;
 
 private slots:
     void updateOkButtonState();
@@ -39,7 +41,8 @@ private:
     int pageForCategory(int categoryId) const;
     void populateResistorLookups();
     void loadResistorFields(int componentId);
-    void saveResistorFields(int componentId);
+    void saveResistorFields();
+    //void saveResistorFields(int componentId);
 
     // New: page indices for the stacked widget
     enum CategoryPage {
@@ -51,6 +54,7 @@ private:
     Ui::ComponentEditDialog* ui_;
     InventoryService& inventory_;
     Component component_;
+	Resistor resistor_;
 
     static constexpr int kAddNewId = -1;
     int prevCategoryId_ = -1;

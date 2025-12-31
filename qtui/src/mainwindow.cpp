@@ -202,16 +202,29 @@ void MainWindow::onActionAddComponent()
     dialog.setComponent(c);
 
     if (dialog.exec() == QDialog::Accepted) {
-        c = dialog.component();
-
+        c = dialog.component();     // updated component from dialog
         DbResult result;
+
+        // Add component to DB
         if (!inventory_->components().addComponent(c, result)) {
-            QMessageBox::critical(
-                this,
-                tr("Error"),
-                QString::fromStdString(result.toString())
-            );
+            QMessageBox::critical(this, tr("Error"),
+                QString::fromStdString(result.toString()));
             return;
+        }
+
+        // Save the resistor details (in-memory from dialog)
+        int componentId = inventory_->components().getByPartNumber(c.partNumber, result);
+        if (componentId <= 0) {
+            QMessageBox::critical(this, tr("Error"),
+                tr("Component was created but its ID could not be retrieved."));
+            return;
+        }
+        Resistor r = dialog.resistor();
+        r.componentId = componentId; // assign the actual FK
+        if (!inventory_->resistors().add(r, result)) {
+            QMessageBox::warning(this, tr("Warning"),
+                tr("Component created but failed to save resistor details:\n%1")
+                .arg(QString::fromStdString(result.toString())));
         }
 
         reloadComponents();
@@ -321,11 +334,33 @@ void MainWindow::onActionEditComponent()
     dialog.setComponent(c);
 
     if (dialog.exec() == QDialog::Accepted) {
-        c = dialog.component();
+        c = dialog.component(); // updated component from dialog
+
+        // Update component in DB
         if (!inventory_->components().updateComponent(c, result)) {
             QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
             return;
         }
+
+        // Update resistor details
+        Resistor r = dialog.resistor();
+        r.componentId = componentId;
+        Resistor existing;
+        if (inventory_->resistors().getByComponentId(componentId, existing, result)) {
+            if (!inventory_->resistors().update(r, result)) {
+                QMessageBox::warning(this, tr("Warning"),
+                    tr("Failed to update resistor details:\n%1")
+                    .arg(QString::fromStdString(result.toString())));
+            }
+        }
+        else {
+            if (!inventory_->resistors().add(r, result)) {
+                QMessageBox::warning(this, tr("Warning"),
+                    tr("Failed to add resistor details:\n%1")
+                    .arg(QString::fromStdString(result.toString())));
+            }
+        }
+
         reloadComponents();
         statusBar()->showMessage(tr("Component updated"), 3000);
     }
