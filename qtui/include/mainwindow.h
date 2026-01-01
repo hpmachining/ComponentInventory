@@ -59,4 +59,6 @@ private:
     static constexpr const char* kAppTitle = "Component Inventory";
     void updateWindowTitle(const QString& dbName = QString());
 
+    void connectSelectionModel();
+
 };

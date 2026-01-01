@@ -11,6 +11,7 @@
 #include <QFileDialog>
 #include <QVBoxLayout>
 
+
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -73,19 +74,22 @@ MainWindow::MainWindow(QWidget* parent)
     statusBar()->showMessage(tr("Ready"));
     disableDatabaseActions();
 
-    // --- Context-sensitive Edit/Delete actions ---
-    // Enable only when a row is selected
-    connect(ui->componentView->selectionModel(),
-        &QItemSelectionModel::selectionChanged,
-        this,
-        [this]()
-        {
-            const bool hasSelection =
-                ui->componentView->selectionModel()->hasSelection();
+	connectSelectionModel();
 
-            ui->actionEditComponent->setEnabled(hasSelection);
-            ui->actionDeleteComponent->setEnabled(hasSelection);
-        });
+    //// --- Context-sensitive Edit/Delete actions ---
+    //// Enable only when a row is selected
+    //connect(ui->componentView->selectionModel(),
+    //    &QItemSelectionModel::selectionChanged,
+    //    this,
+    //    [this]()
+    //    {
+    //        const bool hasSelection =
+    //            ui->componentView->selectionModel()->hasSelection();
+
+    //        ui->actionEditComponent->setEnabled(hasSelection);
+    //        ui->actionDeleteComponent->setEnabled(hasSelection);
+    //    });
+
 
     // --- Keyboard shortcuts ---
     // Enter / Return edits selected component
@@ -402,6 +406,12 @@ void MainWindow::reloadComponents()
     componentModel_->setCategoryLookup(std::move(categoryMap));
     componentModel_->setManufacturerLookup(std::move(manufacturerMap));
     componentModel_->setComponents(std::move(components));
+    connectSelectionModel();
+
+    // Explicitly reset UI state
+    ui->componentView->clearSelection();
+    ui->actionEditComponent->setEnabled(false);
+    ui->actionDeleteComponent->setEnabled(false);
 }
 
 bool MainWindow::createNewDatabase(const QString& fileName)
@@ -520,4 +530,20 @@ void MainWindow::updateWindowTitle(const QString& dbName)
         setWindowTitle(tr("%1 – %2")
             .arg(tr(kAppTitle))
             .arg(dbName));
+}
+
+void MainWindow::connectSelectionModel()
+{
+    auto* sel = ui->componentView->selectionModel();
+    if (!sel)
+        return;
+
+    connect(sel, &QItemSelectionModel::selectionChanged,
+        this,
+        [this, sel]() // capture sel explicitly
+        {
+            const bool hasSelection = sel->hasSelection();
+            ui->actionEditComponent->setEnabled(hasSelection);
+            ui->actionDeleteComponent->setEnabled(hasSelection);
+        });
 }
