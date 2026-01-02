@@ -16,7 +16,7 @@ add_executable(ComponentInventoryUI
     include/ComponentEditDialog.h
     src/ComponentEditDialog.cpp
     include/AddLookupDialog.h
-    src/AddLookupDialog.cpp "include/ShrinkingStackedWidget.h")
+    src/AddLookupDialog.cpp "include/ShrinkingStackedWidget.h" "include/IComponentEditor.h" )
 
 target_include_directories(ComponentInventoryUI PRIVATE
     include

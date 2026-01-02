@@ -23,6 +23,18 @@ ComponentEditDialog::ComponentEditDialog(
     ui_->setupUi(this);
     setWindowTitle(tr("Add Component"));
 
+    typeEditorContainer_ = new QWidget(this);
+
+    auto* typeLayout = new QVBoxLayout(typeEditorContainer_);
+    typeLayout->setContentsMargins(0, 0, 0, 0);
+    typeLayout->setSpacing(0);
+
+    ui_->verticalLayout->insertWidget(
+        ui_->verticalLayout->count() - 1,
+        typeEditorContainer_
+    );
+
+
     // Make Tab move focus instead of inserting a tab
     ui_->notesEdit->setTabChangesFocus(true);
 
@@ -399,5 +411,24 @@ void ComponentEditDialog::onManufacturerChanged(int index)
         int restoreIndex = ui_->manufacturerCombo->findData(prevManufacturerId_);
         if (restoreIndex >= 0)
             ui_->manufacturerCombo->setCurrentIndex(restoreIndex);
+    }
+}
+
+void ComponentEditDialog::setTypeEditor(
+    std::unique_ptr<IComponentEditor> editor)
+{
+    typeEditor_.reset();
+    QLayout* layout = typeEditorContainer_->layout();
+
+    // Clear existing widget
+    while (QLayoutItem* item = layout->takeAt(0)) {
+        delete item->widget();
+        delete item;
+    }
+
+    typeEditor_ = std::move(editor);
+
+    if (typeEditor_) {
+        layout->addWidget(typeEditor_->widget());
     }
 }

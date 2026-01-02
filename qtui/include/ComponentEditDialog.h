@@ -1,8 +1,10 @@
 #pragma once
 
-#include <QDialog>
 #include "ComponentManager.h"
 #include "ResistorManager.h"
+#include "IComponentEditor.h"
+#include <QDialog>
+#include <memory>
 
 namespace Ui {
     class ComponentEditDialog;
@@ -35,6 +37,7 @@ private:
     bool isValid() const;
     void onCategoryChanged(int index);
     void onManufacturerChanged(int index);
+    void setTypeEditor(std::unique_ptr<IComponentEditor> editor);
     void populateCombos();
 
     // New: helpers
@@ -59,4 +62,7 @@ private:
     static constexpr int kAddNewId = -1;
     int prevCategoryId_ = -1;
     int prevManufacturerId_ = -1;
+
+    std::unique_ptr<IComponentEditor> typeEditor_;
+    QWidget* typeEditorContainer_{ nullptr };
 };
