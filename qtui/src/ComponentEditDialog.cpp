@@ -1,54 +1,49 @@
+
 #include "ComponentEditDialog.h"
 #include "ui_ComponentEditDialog.h"
 #include "InventoryService.h"
 #include "AddLookupDialog.h"
 #include "DbResult.h"
-#include "ResistorManager.h"
-#include "ResistorPackageManager.h"
-#include "ResistorCompositionManager.h"
+#include "editors/ResistorEditor.h"
 
 #include <QMessageBox>
 #include <QDialogButtonBox>
-#include <QPushButton>
 #include <QTimer>
+#include <QVBoxLayout>
+#include <QPushButton>
 
 ComponentEditDialog::ComponentEditDialog(
     InventoryService& inventory,
     QWidget* parent
 )
-    : QDialog(parent)
-    , ui_(new Ui::ComponentEditDialog)
-    , inventory_(inventory)
+    : QDialog(parent),
+    ui_(new Ui::ComponentEditDialog),
+    inventory_(inventory)
 {
     ui_->setupUi(this);
     setWindowTitle(tr("Add Component"));
 
+    // Type editor container
     typeEditorContainer_ = new QWidget(this);
-
     auto* typeLayout = new QVBoxLayout(typeEditorContainer_);
     typeLayout->setContentsMargins(0, 0, 0, 0);
     typeLayout->setSpacing(0);
 
+    // Insert just above the button box
     ui_->verticalLayout->insertWidget(
         ui_->verticalLayout->count() - 1,
         typeEditorContainer_
     );
 
-
-    // Make Tab move focus instead of inserting a tab
+    // Tab moves focus in notesEdit
     ui_->notesEdit->setTabChangesFocus(true);
 
-    // Start with no category-specific fields
-    ui_->categoryStack->setCurrentIndex(Page_None);
-
     populateCombos();
+    ui_->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+
     prevCategoryId_ = ui_->categoryCombo->currentData().toInt();
     prevManufacturerId_ = ui_->manufacturerCombo->currentData().toInt();
 
-    populateResistorLookups();
-
-    // Disable OK initially
-    ui_->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
     // Live validation
     connect(ui_->partNumberEdit, &QLineEdit::textChanged,
@@ -67,21 +62,6 @@ ComponentEditDialog::ComponentEditDialog(
         QOverload<int>::of(&QComboBox::currentIndexChanged),
         this,
         &ComponentEditDialog::onManufacturerChanged);
-
-    // Temp coefficient enable
-    connect(ui_->tempCoeffEnableCheck, &QCheckBox::toggled, this,
-        [this](bool enabled) {
-            ui_->tempCoeffMinSpin->setEnabled(enabled);
-            ui_->tempCoeffMaxSpin->setEnabled(enabled);
-        });
-
-    // Temperature range enable
-    connect(ui_->tempRangeEnableCheck, &QCheckBox::toggled, this,
-        [this](bool enabled) {
-            ui_->tempMinSpin->setEnabled(enabled);
-            ui_->tempMaxSpin->setEnabled(enabled);
-        });
-
 }
 
 ComponentEditDialog::~ComponentEditDialog()
@@ -109,39 +89,29 @@ void ComponentEditDialog::setComponent(const Component& c)
     if (manIndex >= 0)
         ui_->manufacturerCombo->setCurrentIndex(manIndex);
 
-    // Switch page
+    // Switch category page
     int page = pageForCategory(c.categoryId);
-    ui_->categoryStack->setCurrentIndex(page);
 
-    // Load subtype fields
-    if (page == Page_Resistor && c.id > 0)
-        loadResistorFields(c.id);
+    // Let type editor load subtype fields
+    if (typeEditor_)
+        typeEditor_->load(c.id); // use component ID
 
-    // Adjust dialog size after loading
     QTimer::singleShot(0, this, [this]() { adjustSize(); });
 }
 
 Component ComponentEditDialog::component() const
 {
     Component c = component_;
-
     c.partNumber = ui_->partNumberEdit->text().toStdString();
     c.description = ui_->descriptionEdit->text().toStdString();
     c.quantity = ui_->quantitySpin->value();
     c.notes = ui_->notesEdit->toPlainText().toStdString();
     c.datasheetLink = ui_->datasheetEdit->text().toStdString();
-
     c.categoryId = ui_->categoryCombo->currentData().toInt();
-
     QVariant manData = ui_->manufacturerCombo->currentData();
     c.manufacturerId = manData.isValid() ? manData.toInt() : 0;
 
     return c;
-}
-
-Resistor ComponentEditDialog::resistor() const
-{
-    return resistor_;
 }
 
 void ComponentEditDialog::populateCombos()
@@ -211,91 +181,6 @@ int ComponentEditDialog::pageForCategory(int categoryId) const
     return Page_None;
 }
 
-void ComponentEditDialog::populateResistorLookups()
-{
-    DbResult result;
-
-    ui_->resistorPackageCombo->clear();
-    std::vector<ResistorPackage> pkgs;
-    if (inventory_.resistorPackages().list(pkgs, result)) {
-        for (const auto& p : pkgs)
-            ui_->resistorPackageCombo->addItem(QString::fromStdString(p.name), p.id);
-    }
-
-    ui_->resistorCompositionCombo->clear();
-    std::vector<ResistorComposition> comps;
-    if (inventory_.resistorCompositions().list(comps, result)) {
-        for (const auto& c : comps)
-            ui_->resistorCompositionCombo->addItem(QString::fromStdString(c.name), c.id);
-    }
-}
-
-void ComponentEditDialog::loadResistorFields(int componentId)
-{
-    DbResult result;
-    Resistor r;
-
-    if (!inventory_.resistors().getByComponentId(componentId, r, result))
-        return;
-
-    resistor_ = r; // keep local copy
-
-    ui_->resistanceSpin->setValue(r.resistance);
-    ui_->toleranceSpin->setValue(r.tolerance);
-    ui_->powerSpin->setValue(r.powerRating);
-    ui_->voltageSpin->setValue(r.voltageRating);
-    ui_->leadSpacingSpin->setValue(r.leadSpacing);
-
-    // Temp coefficient
-    ui_->tempCoeffEnableCheck->setChecked(r.hasTempCoeff);
-    if (r.hasTempCoeff) {
-        ui_->tempCoeffMinSpin->setValue(r.tempCoeffMin);
-        ui_->tempCoeffMaxSpin->setValue(r.tempCoeffMax);
-    }
-
-    // Temperature range
-    ui_->tempRangeEnableCheck->setChecked(r.hasTempRange);
-    if (r.hasTempRange) {
-        ui_->tempMinSpin->setValue(r.tempMin);
-        ui_->tempMaxSpin->setValue(r.tempMax);
-    }
-
-    populateResistorLookups();
-
-    int pkgIndex = ui_->resistorPackageCombo->findData(r.packageTypeId);
-    if (pkgIndex >= 0)
-        ui_->resistorPackageCombo->setCurrentIndex(pkgIndex);
-
-    int compIndex = ui_->resistorCompositionCombo->findData(r.compositionId);
-    if (compIndex >= 0)
-        ui_->resistorCompositionCombo->setCurrentIndex(compIndex);
-}
-
-void ComponentEditDialog::saveResistorFields()
-{
-    resistor_.resistance = ui_->resistanceSpin->value();
-    resistor_.tolerance = ui_->toleranceSpin->value();
-    resistor_.powerRating = ui_->powerSpin->value();
-    resistor_.voltageRating = ui_->voltageSpin->value();
-    resistor_.leadSpacing = ui_->leadSpacingSpin->value();
-    resistor_.packageTypeId = ui_->resistorPackageCombo->currentData().toInt();
-    resistor_.compositionId = ui_->resistorCompositionCombo->currentData().toInt();
-
-    // Temp coefficient
-    resistor_.hasTempCoeff = ui_->tempCoeffEnableCheck->isChecked();
-    if (resistor_.hasTempCoeff) {
-        resistor_.tempCoeffMin = ui_->tempCoeffMinSpin->value();
-        resistor_.tempCoeffMax = ui_->tempCoeffMaxSpin->value();
-    }
-
-    // Temperature range
-    resistor_.hasTempRange = ui_->tempRangeEnableCheck->isChecked();
-    if (resistor_.hasTempRange) {
-        resistor_.tempMin = ui_->tempMinSpin->value();
-        resistor_.tempMax = ui_->tempMaxSpin->value();
-    }
-}
-
 void ComponentEditDialog::accept()
 {
     if (!isValid()) {
@@ -304,12 +189,18 @@ void ComponentEditDialog::accept()
         return;
     }
 
-    // Update in-memory component and resistor
-    component_ = component();      // update component_ from UI
-    saveResistorFields();           // update resistor_ from UI
+    // Update in-memory component
+    component_ = component();
+
+    // Let editor save subtype fields
+    if (typeEditor_)
+    {
+        DbResult result;
+        typeEditor_->save(component_.id, result); // use ID
+    }
+
     QDialog::accept();
 }
-
 
 bool ComponentEditDialog::isValid() const
 {
@@ -357,19 +248,20 @@ void ComponentEditDialog::onCategoryChanged(int index)
             if (restoreIndex >= 0)
                 ui_->categoryCombo->setCurrentIndex(restoreIndex);
         }
-
-        int currentId = ui_->categoryCombo->currentData().toInt();
-        int page = pageForCategory(currentId);
-        ui_->categoryStack->setCurrentIndex(page);
-
-        QTimer::singleShot(0, this, [this]() { adjustSize(); });
-        return;
+    }
+    else {
+        prevCategoryId_ = id;
     }
 
-    prevCategoryId_ = id;
-
-    int page = pageForCategory(id);
-    ui_->categoryStack->setCurrentIndex(page);
+    // Instantiate / assign the correct type editor for this category
+    if (pageForCategory(id) == Page_Resistor) {
+        setTypeEditor(std::make_unique<ResistorEditor>(inventory_.database()));
+        if (typeEditor_)
+            typeEditor_->load(component_.id);
+    }
+    else {
+        setTypeEditor(nullptr);
+    }
 
     QTimer::singleShot(0, this, [this]() { adjustSize(); });
 }
@@ -414,21 +306,20 @@ void ComponentEditDialog::onManufacturerChanged(int index)
     }
 }
 
-void ComponentEditDialog::setTypeEditor(
-    std::unique_ptr<IComponentEditor> editor)
+void ComponentEditDialog::setTypeEditor(std::unique_ptr<IComponentEditor> editor)
 {
     typeEditor_.reset();
     QLayout* layout = typeEditorContainer_->layout();
 
     // Clear existing widget
     while (QLayoutItem* item = layout->takeAt(0)) {
-        delete item->widget();
+        if (item->widget())
+            item->widget()->deleteLater();
         delete item;
     }
 
     typeEditor_ = std::move(editor);
 
-    if (typeEditor_) {
+    if (typeEditor_)
         layout->addWidget(typeEditor_->widget());
-    }
 }

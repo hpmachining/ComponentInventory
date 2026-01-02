@@ -76,21 +76,6 @@ MainWindow::MainWindow(QWidget* parent)
 
 	connectSelectionModel();
 
-    //// --- Context-sensitive Edit/Delete actions ---
-    //// Enable only when a row is selected
-    //connect(ui->componentView->selectionModel(),
-    //    &QItemSelectionModel::selectionChanged,
-    //    this,
-    //    [this]()
-    //    {
-    //        const bool hasSelection =
-    //            ui->componentView->selectionModel()->hasSelection();
-
-    //        ui->actionEditComponent->setEnabled(hasSelection);
-    //        ui->actionDeleteComponent->setEnabled(hasSelection);
-    //    });
-
-
     // --- Keyboard shortcuts ---
     // Enter / Return edits selected component
     ui->actionEditComponent->setShortcut(Qt::Key_Return);
@@ -197,37 +182,30 @@ void MainWindow::onActionCloseDatabase()
 
 void MainWindow::onActionAddComponent()
 {
-    if (!inventory_) return; // DB not open
+    if (!inventory_)
+        return;
 
     ComponentEditDialog dialog(*inventory_, this);
 
-    // Start with a blank component
-    Component c;
+    Component c; // blank component
     dialog.setComponent(c);
 
-    if (dialog.exec() == QDialog::Accepted) {
-        c = dialog.component();     // updated component from dialog
-        DbResult result;
+    if (dialog.exec() != QDialog::Accepted)
+        return;
 
-        // Add component to DB
-        if (!inventory_->components().add(c, result)) {
-            QMessageBox::critical(this, tr("Error"),
-                QString::fromStdString(result.toString()));
-            return;
-        }
+    c = dialog.component();
+    DbResult result;
 
-        // Save the resistor details (in-memory from dialog)
-        Resistor r = dialog.resistor();
-        r.componentId = c.id; // assign the actual FK
-        if (!inventory_->resistors().add(r, result)) {
-            QMessageBox::warning(this, tr("Warning"),
-                tr("Component created but failed to save resistor details:\n%1")
-                .arg(QString::fromStdString(result.toString())));
-        }
-
-        reloadComponents();
-        statusBar()->showMessage(tr("Component added"), 3000);
+    // Add component first (assigns c.id)
+    if (!inventory_->components().add(c, result)) {
+        QMessageBox::critical(this, tr("Error"),
+            QString::fromStdString(result.toString()));
+        return;
     }
+
+    // 🔹 Subtype editors saved themselves using componentId
+    reloadComponents();
+    statusBar()->showMessage(tr("Component added"), 3000);
 }
 
 void MainWindow::onActionDeleteComponent()
@@ -324,44 +302,30 @@ void MainWindow::onActionEditComponent()
     DbResult result;
     Component c;
     if (!inventory_->components().getById(componentId, c, result)) {
-        QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
+        QMessageBox::critical(this, tr("Error"),
+            QString::fromStdString(result.toString()));
         return;
     }
 
     ComponentEditDialog dialog(*inventory_, this);
     dialog.setComponent(c);
 
-    if (dialog.exec() == QDialog::Accepted) {
-        c = dialog.component(); // updated component from dialog
+    if (dialog.exec() != QDialog::Accepted)
+        return;
 
-        // Update component in DB
-        if (!inventory_->components().update(c, result)) {
-            QMessageBox::critical(this, tr("Error"), QString::fromStdString(result.toString()));
-            return;
-        }
+    // Updated component from dialog
+    c = dialog.component();
 
-        // Update resistor details
-        Resistor r = dialog.resistor();
-        r.componentId = componentId;
-        Resistor existing;
-        if (inventory_->resistors().getByComponentId(componentId, existing, result)) {
-            if (!inventory_->resistors().update(r, result)) {
-                QMessageBox::warning(this, tr("Warning"),
-                    tr("Failed to update resistor details:\n%1")
-                    .arg(QString::fromStdString(result.toString())));
-            }
-        }
-        else {
-            if (!inventory_->resistors().add(r, result)) {
-                QMessageBox::warning(this, tr("Warning"),
-                    tr("Failed to add resistor details:\n%1")
-                    .arg(QString::fromStdString(result.toString())));
-            }
-        }
-
-        reloadComponents();
-        statusBar()->showMessage(tr("Component updated"), 3000);
+    // Update component record
+    if (!inventory_->components().update(c, result)) {
+        QMessageBox::critical(this, tr("Error"),
+            QString::fromStdString(result.toString()));
+        return;
     }
+
+    // 🔹 ResistorEditor already saved its data inside the dialog
+    reloadComponents();
+    statusBar()->showMessage(tr("Component updated"), 3000);
 }
 
 // --- Database lifecycle helpers ---

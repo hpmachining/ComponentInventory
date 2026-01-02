@@ -52,35 +52,3 @@ InventoryService::openInternal(const std::string& path, DbResult& result)
         new InventoryService(std::move(db))
     );
 }
-
-// ---- Accessors ----
-
-ComponentManager& InventoryService::components()
-{
-    return componentMgr_;
-}
-
-CategoryManager& InventoryService::categories()
-{
-    return categoryMgr_;
-}
-
-ManufacturerManager& InventoryService::manufacturers()
-{
-    return manufacturerMgr_;
-}
-
-ResistorManager& InventoryService::resistors()
-{
-    return resistorMgr_;
-}
-
-ResistorPackageManager& InventoryService::resistorPackages()
-{
-    return resistorPackageMgr_;
-}
-
-ResistorCompositionManager& InventoryService::resistorCompositions()
-{
-    return resistorCompositionMgr_;
-}

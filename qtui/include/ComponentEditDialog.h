@@ -2,7 +2,7 @@
 
 #include "ComponentManager.h"
 #include "ResistorManager.h"
-#include "IComponentEditor.h"
+#include "editors/IComponentEditor.h"
 #include <QDialog>
 #include <memory>
 
@@ -21,33 +21,24 @@ public:
         InventoryService& inventory,
         QWidget* parent = nullptr
     );
-    ~ComponentEditDialog();
+    ~ComponentEditDialog() override;
 
     void setComponent(const Component& c);
     Component component() const;
-    Resistor resistor() const;
 
 private slots:
     void updateOkButtonState();
-
-private:
-    // New: override accept to save subtype data
-    void accept() override;
-
-    bool isValid() const;
     void onCategoryChanged(int index);
     void onManufacturerChanged(int index);
+
+private:
+    void accept() override;
+    bool isValid() const;
     void setTypeEditor(std::unique_ptr<IComponentEditor> editor);
     void populateCombos();
-
-    // New: helpers
     int pageForCategory(int categoryId) const;
-    void populateResistorLookups();
-    void loadResistorFields(int componentId);
-    void saveResistorFields();
-    //void saveResistorFields(int componentId);
 
-    // New: page indices for the stacked widget
+    // Page indices for stacked widget
     enum CategoryPage {
         Page_None = 0,
         Page_Resistor = 1,
@@ -57,7 +48,6 @@ private:
     Ui::ComponentEditDialog* ui_;
     InventoryService& inventory_;
     Component component_;
-	Resistor resistor_;
 
     static constexpr int kAddNewId = -1;
     int prevCategoryId_ = -1;

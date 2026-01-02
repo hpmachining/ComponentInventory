@@ -21,12 +21,13 @@ public:
     static std::unique_ptr<InventoryService>
         create(const std::string& path, DbResult& result);
 
-    ComponentManager& components();
-    CategoryManager& categories();
-    ManufacturerManager& manufacturers();
-    ResistorManager& resistors();
-    ResistorPackageManager& resistorPackages();
-    ResistorCompositionManager& resistorCompositions();
+    ComponentManager& components() { return componentMgr_; }
+	CategoryManager& categories() { return categoryMgr_; }
+	ManufacturerManager& manufacturers() { return manufacturerMgr_; }
+	ResistorManager& resistors() { return resistorMgr_; }
+	ResistorPackageManager& resistorPackages() { return resistorPackageMgr_; }
+	ResistorCompositionManager& resistorCompositions() { return resistorCompositionMgr_; }
+	Database& database() { return *db_; }
 
 private:
     explicit InventoryService(std::unique_ptr<Database> db);

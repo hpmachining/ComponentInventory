@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui version="4.0">
+  <class>ResistorEditor</class>
+  <widget class="QWidget" name="ResistorEditor">
+    <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+        <widget class="QGroupBox" name="electricalGroup">
+          <property name="title">
+            <string>Electrical</string>
+          </property>
+          <layout class="QFormLayout" name="electricalLayout">
+            <item row="0" column="0">
+              <widget class="QLabel" name="resistanceLabel">
+                <property name="text">
+                  <string>Resistance</string>
+                </property>
+              </widget>
+            </item>
+            <item row="0" column="1">
+              <widget class="QDoubleSpinBox" name="resistanceSpin">
+                <property name="decimals">
+                  <number>3</number>
+                </property>
+                <property name="maximum">
+                  <double>1000000000.000000000000000</double>
+                </property>
+                <property name="suffix">
+                  <string> Ω</string>
+                </property>
+              </widget>
+            </item>
+
+            <item row="1" column="0">
+              <widget class="QLabel" name="toleranceLabel">
+                <property name="text">
+                  <string>Tolerance</string>
+                </property>
+              </widget>
+            </item>
+            <item row="1" column="1">
+              <widget class="QDoubleSpinBox" name="toleranceSpin">
+                <property name="decimals">
+                  <number>2</number>
+                </property>
+                <property name="maximum">
+                  <double>50.000000000000000</double>
+                </property>
+                <property name="suffix">
+                  <string> %</string>
+                </property>
+              </widget>
+            </item>
+
+            <item row="2" column="0">
+              <widget class="QLabel" name="powerLabel">
+                <property name="text">
+                  <string>Power Rating</string>
+                </property>
+              </widget>
+            </item>
+            <item row="2" column="1">
+              <widget class="QDoubleSpinBox" name="powerSpin">
+                <property name="decimals">
+                  <number>2</number>
+                </property>
+                <property name="maximum">
+                  <double>1000.000000000000000</double>
+                </property>
+                <property name="suffix">
+                  <string> W</string>
+                </property>
+              </widget>
+            </item>
+
+            <item row="3" column="0">
+              <widget class="QLabel" name="voltageLabel">
+                <property name="text">
+                  <string>Voltage Rating</string>
+                </property>
+              </widget>
+            </item>
+            <item row="3" column="1">
+              <widget class="QSpinBox" name="voltageSpin">
+                <property name="maximum">
+                  <number>10000</number>
+                </property>
+                <property name="suffix">
+                  <string> V</string>
+                </property>
+              </widget>
+            </item>
+            <item row="4" column="0">
+              <widget class="QLabel" name="leadSpacingLabel">
+                <property name="text">
+                  <string>Lead Spacing</string>
+                </property>
+              </widget>
+            </item>
+            <item row="4" column="1">
+              <widget class="QDoubleSpinBox" name="leadSpacingSpin">
+                <property name="decimals">
+                  <number>2</number>
+                </property>
+                <property name="minimum">
+                  <double>0.0</double>
+                </property>
+                <property name="maximum">
+                  <double>50.0</double>
+                </property>
+                <property name="suffix">
+                  <string> mm</string>
+                </property>
+              </widget>
+            </item>
+
+          </layout>
+        </widget>
+      </item>
+
+      <item>
+        <widget class="QGroupBox" name="temperatureGroup">
+          <property name="title">
+            <string>Temperature</string>
+          </property>
+          <layout class="QVBoxLayout" name="temperatureLayout">
+
+            <item>
+              <widget class="QCheckBox" name="hasTempCoeffCheck">
+                <property name="text">
+                  <string>Specify Temperature Coefficient</string>
+                </property>
+              </widget>
+            </item>
+
+            <item>
+              <layout class="QFormLayout" name="tcrLayout">
+                <item row="0" column="0">
+                  <widget class="QLabel" name="tcrMinLabel">
+                    <property name="text">
+                      <string>Min TCR</string>
+                    </property>
+                  </widget>
+                </item>
+                <item row="0" column="1">
+                  <widget class="QSpinBox" name="tcrMinSpin">
+                    <property name="minimum">
+                      <number>-2000</number>
+                    </property>
+                    <property name="maximum">
+                      <number>2000</number>
+                    </property>
+                    <property name="suffix">
+                      <string> ppm/°C</string>
+                    </property>
+                    <property name="enabled">
+                      <bool>false</bool>
+                    </property>
+                  </widget>
+                </item>
+
+                <item row="1" column="0">
+                  <widget class="QLabel" name="tcrMaxLabel">
+                    <property name="text">
+                      <string>Max TCR</string>
+                    </property>
+                  </widget>
+                </item>
+                <item row="1" column="1">
+                  <widget class="QSpinBox" name="tcrMaxSpin">
+                    <property name="minimum">
+                      <number>-2000</number>
+                    </property>
+                    <property name="maximum">
+                      <number>2000</number>
+                    </property>
+                    <property name="suffix">
+                      <string> ppm/°C</string>
+                    </property>
+                    <property name="enabled">
+                      <bool>false</bool>
+                    </property>
+                  </widget>
+                </item>
+              </layout>
+            </item>
+
+            <item>
+              <widget class="QCheckBox" name="hasTempRangeCheck">
+                <property name="text">
+                  <string>Specify Operating Temperature</string>
+                </property>
+              </widget>
+            </item>
+
+            <item>
+              <layout class="QFormLayout" name="tempRangeLayout">
+                <item row="0" column="0">
+                  <widget class="QLabel" name="tempMinLabel">
+                    <property name="text">
+                      <string>Min Temp</string>
+                    </property>
+                  </widget>
+                </item>
+                <item row="0" column="1">
+                  <widget class="QSpinBox" name="tempMinSpin">
+                    <property name="minimum">
+                      <number>-100</number>
+                    </property>
+                    <property name="maximum">
+                      <number>300</number>
+                    </property>
+                    <property name="suffix">
+                      <string> °C</string>
+                    </property>
+                    <property name="enabled">
+                      <bool>false</bool>
+                    </property>
+                  </widget>
+                </item>
+
+                <item row="1" column="0">
+                  <widget class="QLabel" name="tempMaxLabel">
+                    <property name="text">
+                      <string>Max Temp</string>
+                    </property>
+                  </widget>
+                </item>
+                <item row="1" column="1">
+                  <widget class="QSpinBox" name="tempMaxSpin">
+                    <property name="minimum">
+                      <number>-100</number>
+                    </property>
+                    <property name="maximum">
+                      <number>300</number>
+                    </property>
+                    <property name="suffix">
+                      <string> °C</string>
+                    </property>
+                    <property name="enabled">
+                      <bool>false</bool>
+                    </property>
+                  </widget>
+                </item>
+              </layout>
+            </item>
+
+          </layout>
+        </widget>
+      </item>
+
+      <item>
+        <widget class="QGroupBox" name="packageGroup">
+          <property name="title">
+            <string>Package</string>
+          </property>
+          <layout class="QFormLayout" name="packageLayout">
+            <item row="0" column="0">
+              <widget class="QLabel" name="packageLabel">
+                <property name="text">
+                  <string>Package</string>
+                </property>
+              </widget>
+            </item>
+            <item row="0" column="1">
+              <widget class="QComboBox" name="packageCombo"/>
+            </item>
+
+            <item row="1" column="0">
+              <widget class="QLabel" name="compositionLabel">
+                <property name="text">
+                  <string>Composition</string>
+                </property>
+              </widget>
+            </item>
+            <item row="1" column="1">
+              <widget class="QComboBox" name="compositionCombo"/>
+            </item>
+          </layout>
+        </widget>
+      </item>
+
+    </layout>
+  </widget>
+  <resources/>
+  <connections/>
+</ui>

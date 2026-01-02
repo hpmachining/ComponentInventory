@@ -4,6 +4,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
+set(CMAKE_AUTOUIC_SEARCH_PATHS
+    ${CMAKE_CURRENT_SOURCE_DIR}/ui
+)
+
 add_executable(ComponentInventoryUI
     src/main.cpp
     src/mainwindow.cpp
@@ -16,7 +20,12 @@ add_executable(ComponentInventoryUI
     include/ComponentEditDialog.h
     src/ComponentEditDialog.cpp
     include/AddLookupDialog.h
-    src/AddLookupDialog.cpp "include/ShrinkingStackedWidget.h" "include/IComponentEditor.h" )
+    src/AddLookupDialog.cpp 
+    include/ShrinkingStackedWidget.h
+    include/editors/IComponentEditor.h
+    include/editors/ResistorEditor.h
+    src/editors/ResistorEditor.cpp
+    ui/ResistorEditor.ui)
 
 target_include_directories(ComponentInventoryUI PRIVATE
     include
