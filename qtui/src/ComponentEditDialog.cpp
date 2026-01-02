@@ -55,6 +55,21 @@ ComponentEditDialog::ComponentEditDialog(
         QOverload<int>::of(&QComboBox::currentIndexChanged),
         this,
         &ComponentEditDialog::onManufacturerChanged);
+
+    // Temp coefficient enable
+    connect(ui_->tempCoeffEnableCheck, &QCheckBox::toggled, this,
+        [this](bool enabled) {
+            ui_->tempCoeffMinSpin->setEnabled(enabled);
+            ui_->tempCoeffMaxSpin->setEnabled(enabled);
+        });
+
+    // Temperature range enable
+    connect(ui_->tempRangeEnableCheck, &QCheckBox::toggled, this,
+        [this](bool enabled) {
+            ui_->tempMinSpin->setEnabled(enabled);
+            ui_->tempMaxSpin->setEnabled(enabled);
+        });
+
 }
 
 ComponentEditDialog::~ComponentEditDialog()
@@ -211,12 +226,27 @@ void ComponentEditDialog::loadResistorFields(int componentId)
     if (!inventory_.resistors().getByComponentId(componentId, r, result))
         return;
 
+    resistor_ = r; // keep local copy
+
     ui_->resistanceSpin->setValue(r.resistance);
     ui_->toleranceSpin->setValue(r.tolerance);
     ui_->powerSpin->setValue(r.powerRating);
-    ui_->tempCoeffSpin->setValue(r.tempCoefficient);
     ui_->voltageSpin->setValue(r.voltageRating);
     ui_->leadSpacingSpin->setValue(r.leadSpacing);
+
+    // Temp coefficient
+    ui_->tempCoeffEnableCheck->setChecked(r.hasTempCoeff);
+    if (r.hasTempCoeff) {
+        ui_->tempCoeffMinSpin->setValue(r.tempCoeffMin);
+        ui_->tempCoeffMaxSpin->setValue(r.tempCoeffMax);
+    }
+
+    // Temperature range
+    ui_->tempRangeEnableCheck->setChecked(r.hasTempRange);
+    if (r.hasTempRange) {
+        ui_->tempMinSpin->setValue(r.tempMin);
+        ui_->tempMaxSpin->setValue(r.tempMax);
+    }
 
     populateResistorLookups();
 
@@ -234,11 +264,24 @@ void ComponentEditDialog::saveResistorFields()
     resistor_.resistance = ui_->resistanceSpin->value();
     resistor_.tolerance = ui_->toleranceSpin->value();
     resistor_.powerRating = ui_->powerSpin->value();
-    resistor_.tempCoefficient = ui_->tempCoeffSpin->value();
     resistor_.voltageRating = ui_->voltageSpin->value();
     resistor_.leadSpacing = ui_->leadSpacingSpin->value();
     resistor_.packageTypeId = ui_->resistorPackageCombo->currentData().toInt();
     resistor_.compositionId = ui_->resistorCompositionCombo->currentData().toInt();
+
+    // Temp coefficient
+    resistor_.hasTempCoeff = ui_->tempCoeffEnableCheck->isChecked();
+    if (resistor_.hasTempCoeff) {
+        resistor_.tempCoeffMin = ui_->tempCoeffMinSpin->value();
+        resistor_.tempCoeffMax = ui_->tempCoeffMaxSpin->value();
+    }
+
+    // Temperature range
+    resistor_.hasTempRange = ui_->tempRangeEnableCheck->isChecked();
+    if (resistor_.hasTempRange) {
+        resistor_.tempMin = ui_->tempMinSpin->value();
+        resistor_.tempMax = ui_->tempMaxSpin->value();
+    }
 }
 
 void ComponentEditDialog::accept()

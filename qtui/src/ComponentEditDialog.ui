@@ -202,51 +202,147 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="tempCoeffLabel">
-         <property name="text">
-          <string>Temp. Coefficient (ppm/°C)</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QDoubleSpinBox" name="tempCoeffSpin">
-         <property name="decimals">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <double>10000.000000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
+        
+        <item row="3" column="0">
+          <widget class="QCheckBox" name="tempCoeffEnableCheck">
+            <property name="text">
+              <string>Specify Temp. Coefficient (ppm/°C)</string>
+            </property>
+          </widget>
+        </item>
+
+        <item row="4" column="0">
+          <widget class="QLabel" name="tempCoeffMinLabel">
+            <property name="text">
+              <string>Min</string>
+            </property>
+          </widget>
+        </item>
+        <item row="4" column="1">
+          <widget class="QDoubleSpinBox" name="tempCoeffMinSpin">
+            <property name="decimals">
+              <number>1</number>
+            </property>
+            <property name="minimum">
+              <double>-10000.0</double>
+            </property>
+            <property name="maximum">
+              <double>10000.0</double>
+            </property>
+            <property name="enabled">
+              <bool>false</bool>
+            </property>
+          </widget>
+        </item>
+
+        <item row="5" column="0">
+          <widget class="QLabel" name="tempCoeffMaxLabel">
+            <property name="text">
+              <string>Max</string>
+            </property>
+          </widget>
+        </item>
+        <item row="5" column="1">
+          <widget class="QDoubleSpinBox" name="tempCoeffMaxSpin">
+            <property name="decimals">
+              <number>1</number>
+            </property>
+            <property name="minimum">
+              <double>-10000.0</double>
+            </property>
+            <property name="maximum">
+              <double>10000.0</double>
+            </property>
+            <property name="enabled">
+              <bool>false</bool>
+            </property>
+          </widget>
+        </item>
+
+        <item row="6" column="0">
+          <widget class="QCheckBox" name="tempRangeEnableCheck">
+            <property name="text">
+              <string>Specify Operating Temperature (°C)</string>
+            </property>
+          </widget>
+        </item>
+
+        <item row="7" column="0">
+          <widget class="QLabel" name="tempMinLabel">
+            <property name="text">
+              <string>Min</string>
+            </property>
+          </widget>
+        </item>
+        <item row="7" column="1">
+          <widget class="QDoubleSpinBox" name="tempMinSpin">
+            <property name="decimals">
+              <number>1</number>
+            </property>
+            <property name="minimum">
+              <double>-200.0</double>
+            </property>
+            <property name="maximum">
+              <double>300.0</double>
+            </property>
+            <property name="enabled">
+              <bool>false</bool>
+            </property>
+          </widget>
+        </item>
+
+        <item row="8" column="0">
+          <widget class="QLabel" name="tempMaxLabel">
+            <property name="text">
+              <string>Max</string>
+            </property>
+          </widget>
+        </item>
+        <item row="8" column="1">
+          <widget class="QDoubleSpinBox" name="tempMaxSpin">
+            <property name="decimals">
+              <number>1</number>
+            </property>
+            <property name="minimum">
+              <double>-200.0</double>
+            </property>
+            <property name="maximum">
+              <double>300.0</double>
+            </property>
+            <property name="enabled">
+              <bool>false</bool>
+            </property>
+          </widget>
+        </item>
+
+        <item row="9" column="0">
         <widget class="QLabel" name="packageLabel">
          <property name="text">
           <string>Package</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
+       <item row="9" column="1">
         <widget class="QComboBox" name="resistorPackageCombo"/>
        </item>
-       <item row="5" column="0">
+       <item row="10" column="0">
         <widget class="QLabel" name="compositionLabel">
          <property name="text">
           <string>Composition</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
+       <item row="10" column="1">
         <widget class="QComboBox" name="resistorCompositionCombo"/>
        </item>
-       <item row="6" column="0">
+       <item row="11" column="0">
         <widget class="QLabel" name="voltageLabel">
          <property name="text">
           <string>Voltage Rating (V)</string>
          </property>
         </widget>
        </item>
-       <item row="6" column="1">
+       <item row="11" column="1">
         <widget class="QDoubleSpinBox" name="voltageSpin">
          <property name="decimals">
           <number>2</number>
@@ -256,14 +352,14 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="0">
+       <item row="12" column="0">
         <widget class="QLabel" name="leadSpacingLabel">
          <property name="text">
           <string>Lead Spacing (mm)</string>
          </property>
         </widget>
        </item>
-       <item row="7" column="1">
+       <item row="12" column="1">
         <widget class="QDoubleSpinBox" name="leadSpacingSpin">
          <property name="decimals">
           <number>2</number>
