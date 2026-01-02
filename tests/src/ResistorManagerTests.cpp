@@ -44,25 +44,37 @@ protected:
 TEST_F(ResistorManagerTest, AddResistor_InsertsRow) {
     Component c("TEST_RES_ADD", "Test Resistor Add", catId, manId, 10);
     ASSERT_TRUE(compMgr.add(c, res)) << res.toString();
-
     ASSERT_GT(c.id, 0);
 
-    Resistor r;
-    r.componentId = c.id;
-    r.resistance = 1000.0;
-    r.tolerance = 5.0;
-    r.powerRating = 0.25;
-    r.tempCoefficient = 100.0;
-    r.packageTypeId = pkgId;
-    r.compositionId = compTypeId;
-    r.leadSpacing = 7.5;
-    r.voltageRating = 250.0;
+    // Use parameterized constructor
+    Resistor r(
+        c.id,          // componentId
+        1000.0,        // resistance
+        5.0,           // tolerance
+        0.25,          // powerRating
+        true,          // hasTempCoeff
+        100.0,         // tempCoeffMin
+        100.0,         // tempCoeffMax
+        true,          // hasTempRange
+        -55.0,         // tempMin
+        125.0,         // tempMax
+        pkgId,         // packageTypeId
+        compTypeId,    // compositionId
+        7.5,           // leadSpacing
+        250.0          // voltageRating
+    );
 
     ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
 
     Resistor fetched;
     ASSERT_TRUE(resistorMgr.getByComponentId(c.id, fetched, res));
-    EXPECT_EQ(fetched.resistance, 1000.0);
+    EXPECT_DOUBLE_EQ(fetched.resistance, 1000.0);
+    EXPECT_TRUE(fetched.hasTempCoeff);
+    EXPECT_DOUBLE_EQ(fetched.tempCoeffMin, 100.0);
+    EXPECT_DOUBLE_EQ(fetched.tempCoeffMax, 100.0);
+    EXPECT_TRUE(fetched.hasTempRange);
+    EXPECT_DOUBLE_EQ(fetched.tempMin, -55.0);
+    EXPECT_DOUBLE_EQ(fetched.tempMax, 125.0);
 }
 
 //
@@ -71,23 +83,32 @@ TEST_F(ResistorManagerTest, AddResistor_InsertsRow) {
 TEST_F(ResistorManagerTest, GetByComponentId_ReturnsCorrectResistor) {
     Component c("TEST_RES_GET", "Test Resistor Get", catId, manId, 5);
     ASSERT_TRUE(compMgr.add(c, res)) << res.toString();
-
     ASSERT_GT(c.id, 0);
 
-    Resistor r;
-    r.componentId = c.id;
-    r.resistance = 470.0;
-    r.tolerance = 1.0;
-    r.powerRating = 0.125;
-    r.tempCoefficient = 50.0;
-    r.packageTypeId = pkgId;
-    r.compositionId = compTypeId;
+    Resistor r(
+        c.id,
+        470.0,
+        1.0,
+        0.125,
+        true,       // hasTempCoeff
+        50.0,
+        50.0,
+        false,      // hasTempRange
+        0.0,
+        0.0,
+        pkgId,
+        compTypeId,
+        5.0,
+        200.0
+    );
 
     ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
 
     Resistor fetched;
     ASSERT_TRUE(resistorMgr.getByComponentId(c.id, fetched, res));
     EXPECT_DOUBLE_EQ(fetched.resistance, 470.0);
+    EXPECT_TRUE(fetched.hasTempCoeff);
+    EXPECT_FALSE(fetched.hasTempRange);
 }
 
 //
@@ -96,16 +117,24 @@ TEST_F(ResistorManagerTest, GetByComponentId_ReturnsCorrectResistor) {
 TEST_F(ResistorManagerTest, UpdateResistor_ChangesValues) {
     Component c("TEST_RES_UPDATE", "Test Resistor Update", catId, manId, 8);
     ASSERT_TRUE(compMgr.add(c, res)) << res.toString();
-
     ASSERT_GT(c.id, 0);
 
-    Resistor r;
-    r.componentId = c.id;
-    r.resistance = 100.0;
-    r.tolerance = 5.0;
-    r.powerRating = 0.25;
-    r.packageTypeId = pkgId;
-    r.compositionId = compTypeId;
+    Resistor r(
+        c.id,
+        100.0,
+        5.0,
+        0.25,
+        false,      // no TCR
+        0.0,
+        0.0,
+        false,      // no temp range
+        0.0,
+        0.0,
+        pkgId,
+        compTypeId,
+        5.0,
+        200.0
+    );
 
     ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
 
@@ -117,6 +146,8 @@ TEST_F(ResistorManagerTest, UpdateResistor_ChangesValues) {
     ASSERT_TRUE(resistorMgr.getByComponentId(c.id, fetched, res));
     EXPECT_DOUBLE_EQ(fetched.resistance, 220.0);
     EXPECT_DOUBLE_EQ(fetched.tolerance, 1.0);
+    EXPECT_FALSE(fetched.hasTempCoeff);
+    EXPECT_FALSE(fetched.hasTempRange);
 }
 
 //
@@ -125,14 +156,24 @@ TEST_F(ResistorManagerTest, UpdateResistor_ChangesValues) {
 TEST_F(ResistorManagerTest, DeleteResistor_RemovesRow) {
     Component c("TEST_RES_DELETE", "Test Resistor Delete", catId, manId, 3);
     ASSERT_TRUE(compMgr.add(c, res)) << res.toString();
-
     ASSERT_GT(c.id, 0);
 
-    Resistor r;
-    r.componentId = c.id;
-    r.resistance = 330.0;
-    r.packageTypeId = pkgId;
-    r.compositionId = compTypeId;
+    Resistor r(
+        c.id,
+        330.0,
+        5.0,
+        0.25,
+        false,
+        0.0,
+        0.0,
+        false,
+        0.0,
+        0.0,
+        pkgId,
+        compTypeId,
+        5.0,
+        200.0
+    );
 
     ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
     ASSERT_TRUE(resistorMgr.remove(c.id, res)) << res.toString();
@@ -154,8 +195,39 @@ TEST_F(ResistorManagerTest, ListResistors_ReturnsAllResistors) {
     ASSERT_GT(c1.id, 0);
     ASSERT_GT(c2.id, 0);
 
-    Resistor r1{ c1.id, 1000.0, 5.0, 0.25, 100, pkgId, compTypeId, 7.5, 250 };
-    Resistor r2{ c2.id, 2200.0, 1.0, 0.5, 50, pkgId, compTypeId, 7.5, 250 };
+    Resistor r1(
+        c1.id,
+        1000.0,
+        5.0,
+        0.25,
+        true,
+        100.0,
+        100.0,
+        true,
+        -55.0,
+        125.0,
+        pkgId,
+        compTypeId,
+        7.5,
+        250.0
+    );
+
+    Resistor r2(
+        c2.id,
+        2200.0,
+        1.0,
+        0.5,
+        false,  // no TCR
+        0.0,
+        0.0,
+        false,  // no temp range
+        0.0,
+        0.0,
+        pkgId,
+        compTypeId,
+        7.5,
+        250.0
+    );
 
     ASSERT_TRUE(resistorMgr.add(r1, res)) << res.toString();
     ASSERT_TRUE(resistorMgr.add(r2, res)) << res.toString();
@@ -174,20 +246,64 @@ TEST_F(ResistorManagerTest, ListResistors_ReturnsAllResistors) {
 }
 
 //
-// 6. AddResistor_WithInvalidComponent_Fails
+// 6. AddResistor_WithNoTCROrTempRange
+//
+TEST_F(ResistorManagerTest, AddResistor_WithNoTCROrTempRange) {
+    Component c("TEST_RES_NOTCR", "Test Resistor No TCR", catId, manId, 3);
+    ASSERT_TRUE(compMgr.add(c, res)) << res.toString();
+    ASSERT_GT(c.id, 0);
+
+    Resistor r(
+        c.id,
+        560.0,
+        5.0,
+        0.25,
+        false,      // no TCR
+        0.0,
+        0.0,
+        false,      // no temp range
+        0.0,
+        0.0,
+        pkgId,
+        compTypeId,
+        5.0,
+        200.0
+    );
+
+    ASSERT_TRUE(resistorMgr.add(r, res)) << res.toString();
+
+    Resistor fetched;
+    ASSERT_TRUE(resistorMgr.getByComponentId(c.id, fetched, res));
+    EXPECT_FALSE(fetched.hasTempCoeff);
+    EXPECT_FALSE(fetched.hasTempRange);
+}
+
+//
+// 7. AddResistor_WithInvalidComponent_Fails
 //
 TEST_F(ResistorManagerTest, AddResistor_WithInvalidComponent_Fails) {
-    Resistor r;
-    r.componentId = 999999;
-    r.resistance = 100.0;
-    r.packageTypeId = pkgId;
-    r.compositionId = compTypeId;
+    Resistor r(
+        999999,  // invalid component
+        100.0,
+        5.0,
+        0.25,
+        false,
+        0.0,
+        0.0,
+        false,
+        0.0,
+        0.0,
+        pkgId,
+        compTypeId,
+        5.0,
+        200.0
+    );
 
     EXPECT_FALSE(resistorMgr.add(r, res));
 }
 
 //
-// 7. GetByComponentId_Nonexistent_ReturnsFalse
+// 8. GetByComponentId_Nonexistent_ReturnsFalse
 //
 TEST_F(ResistorManagerTest, GetByComponentId_Nonexistent_ReturnsFalse) {
     Resistor r;

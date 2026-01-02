@@ -73,11 +73,15 @@ bool SchemaManager::initialize(DbResult& result) {
                 Resistance REAL NOT NULL,
                 Tolerance REAL,
                 PowerRating REAL,
-                TempCoefficient REAL,
+                TempCoeffMin REAL,
+                TempCoeffMax REAL,
+                TempMin REAL,
+                TempMax REAL,
                 PackageTypeID INTEGER,
                 CompositionID INTEGER,
                 LeadSpacing REAL,
                 VoltageRating REAL,
+
                 FOREIGN KEY (ComponentID) REFERENCES Components(ID) ON DELETE CASCADE,
                 FOREIGN KEY (PackageTypeID) REFERENCES ResistorPackage(ID),
                 FOREIGN KEY (CompositionID) REFERENCES ResistorComposition(ID)
