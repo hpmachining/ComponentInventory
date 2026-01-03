@@ -192,11 +192,14 @@ void ComponentEditDialog::accept()
     // Update in-memory component
     component_ = component();
 
-    // Let editor save subtype fields
-    if (typeEditor_)
-    {
-        DbResult result;
-        typeEditor_->save(component_.id, result); // use ID
+    // Extract subtype data (NO DB WRITES)
+    DbResult result;
+    if (typeEditor_) {
+        if (!typeEditor_->extract(component_.id, result)) {
+            QMessageBox::warning(this, "Error",
+                QString::fromStdString(result.message));
+            return;
+        }
     }
 
     QDialog::accept();

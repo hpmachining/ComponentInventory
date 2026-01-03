@@ -21,11 +21,14 @@ public:
 
     QWidget* widget() override { return this; }
     void load(int componentId) override;
-    bool save(int componentId, DbResult& result) override;
+	bool extract(int componentId, DbResult& result) override;
+    void update(int componentId) override;
+	const Resistor& resistor() const { return extractedResistor_; }
 
 private:
     void populateLookups();
 
     InventoryService& inventory_;
     Ui::ResistorEditor* ui_;
+    Resistor extractedResistor_;
 };

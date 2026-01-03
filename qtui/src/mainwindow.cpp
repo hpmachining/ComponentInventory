@@ -5,6 +5,7 @@
 #include "InventoryService.h"
 #include "ComponentTableModel.h"
 #include "ComponentEditDialog.h"
+#include "editors/ResistorEditor.h"
 #include "DevDataSeeder.h"
 #include <QMessageBox>
 #include <QStatusBar>
@@ -193,17 +194,75 @@ void MainWindow::onActionAddComponent()
     if (dialog.exec() != QDialog::Accepted)
         return;
 
+    // 1. Extract base component fields from dialog
     c = dialog.component();
     DbResult result;
 
-    // Add component first (assigns c.id)
+    // 2. Insert base component first (assigns c.id)
     if (!inventory_->components().add(c, result)) {
         QMessageBox::critical(this, tr("Error"),
             QString::fromStdString(result.toString()));
         return;
     }
 
-    // 🔹 Subtype editors saved themselves using componentId
+    // 3. Retrieve subtype editor (if any)
+    IComponentEditor* editor = dialog.typeEditor();
+    if (editor) {
+
+        // Extract subtype model from editor (NO DB writes)
+        DbResult subResult;
+        if (!editor->extract(c.id, subResult)) {
+            QMessageBox::critical(this, tr("Subtype Error"),
+                QString::fromStdString(subResult.toString()));
+            return;
+        }
+
+        // 4. Save subtype based on category
+        switch (c.categoryId) {
+
+        case 1: { // Resistor
+            auto* rEditor = dynamic_cast<ResistorEditor*>(editor);
+            if (rEditor) {
+                const Resistor& r = rEditor->resistor();
+
+                // Check if resistor row already exists
+                Resistor existing;
+                DbResult check;
+                bool exists =
+                    inventory_->resistors().getByComponentId(c.id, existing, check);
+
+                if (exists) {
+                    // UPDATE
+                    if (!inventory_->resistors().update(r, result)) {
+                        QMessageBox::critical(this, tr("Error"),
+                            QString::fromStdString(result.toString()));
+                        return;
+                    }
+                }
+                else {
+                    // INSERT
+                    if (!inventory_->resistors().add(r, result)) {
+                        QMessageBox::critical(this, tr("Error"),
+                            QString::fromStdString(result.toString()));
+                        return;
+                    }
+                }
+            }
+            break;
+        }
+
+              // Future:
+              // case 2: Capacitor
+              // case 3: Transistor
+              // case 4: Diode
+              // case 5: Fuse
+
+        default:
+            break;
+        }
+    }
+
+    // 5. Refresh UI
     reloadComponents();
     statusBar()->showMessage(tr("Component added"), 3000);
 }
@@ -301,29 +360,89 @@ void MainWindow::onActionEditComponent()
 
     DbResult result;
     Component c;
+
+    // Load base component
     if (!inventory_->components().getById(componentId, c, result)) {
         QMessageBox::critical(this, tr("Error"),
             QString::fromStdString(result.toString()));
         return;
     }
 
+    // Open dialog
     ComponentEditDialog dialog(*inventory_, this);
     dialog.setComponent(c);
 
     if (dialog.exec() != QDialog::Accepted)
         return;
 
-    // Updated component from dialog
+    // 1. Extract updated base component fields
     c = dialog.component();
 
-    // Update component record
+    // 2. Update base component row
     if (!inventory_->components().update(c, result)) {
         QMessageBox::critical(this, tr("Error"),
             QString::fromStdString(result.toString()));
         return;
     }
 
-    // 🔹 ResistorEditor already saved its data inside the dialog
+    // 3. Extract subtype editor (if any)
+    IComponentEditor* editor = dialog.typeEditor();
+    if (editor) {
+
+        // Extract subtype model (NO DB writes)
+        DbResult subResult;
+        if (!editor->extract(c.id, subResult)) {
+            QMessageBox::critical(this, tr("Subtype Error"),
+                QString::fromStdString(subResult.toString()));
+            return;
+        }
+
+        // 4. Save subtype based on category
+        switch (c.categoryId) {
+
+        case 1: { // Resistor
+            auto* rEditor = dynamic_cast<ResistorEditor*>(editor);
+            if (rEditor) {
+                const Resistor& r = rEditor->resistor();
+
+                // Check if resistor row exists
+                Resistor existing;
+                DbResult check;
+                bool exists =
+                    inventory_->resistors().getByComponentId(c.id, existing, check);
+
+                if (exists) {
+                    // UPDATE resistor row
+                    if (!inventory_->resistors().update(r, result)) {
+                        QMessageBox::critical(this, tr("Error"),
+                            QString::fromStdString(result.toString()));
+                        return;
+                    }
+                }
+                else {
+                    // INSERT resistor row
+                    if (!inventory_->resistors().add(r, result)) {
+                        QMessageBox::critical(this, tr("Error"),
+                            QString::fromStdString(result.toString()));
+                        return;
+                    }
+                }
+            }
+            break;
+        }
+
+              // Future:
+              // case 2: Capacitor
+              // case 3: Transistor
+              // case 4: Diode
+              // case 5: Fuse
+
+        default:
+            break;
+        }
+    }
+
+    // 5. Refresh UI
     reloadComponents();
     statusBar()->showMessage(tr("Component updated"), 3000);
 }

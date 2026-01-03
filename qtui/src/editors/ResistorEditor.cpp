@@ -113,22 +113,26 @@ void ResistorEditor::load(int componentId)
         ui_->compositionCombo->setCurrentIndex(compIndex);
 }
 
-bool ResistorEditor::save(int componentId, DbResult& result)
+bool ResistorEditor::extract(int componentId, DbResult& result)
+{
+	update(componentId);
+    return true;
+}
+
+void ResistorEditor::update(int componentId)
 {
     Resistor r;
     r.componentId = componentId;
+
     r.resistance = ui_->resistanceSpin->value();
     r.tolerance = ui_->toleranceSpin->value();
     r.powerRating = ui_->powerSpin->value();
+    r.leadSpacing = ui_->leadSpacingSpin->value();
 
     r.hasTempCoeff = ui_->hasTempCoeffCheck->isChecked();
     if (r.hasTempCoeff) {
         r.tempCoeffMin = ui_->tcrMinSpin->value();
         r.tempCoeffMax = ui_->tcrMaxSpin->value();
-    }
-    else {
-        r.tempCoeffMin = 0.0;
-        r.tempCoeffMax = 0.0;
     }
 
     r.hasTempRange = ui_->hasTempRangeCheck->isChecked();
@@ -136,22 +140,9 @@ bool ResistorEditor::save(int componentId, DbResult& result)
         r.tempMin = ui_->tempMinSpin->value();
         r.tempMax = ui_->tempMaxSpin->value();
     }
-    else {
-        r.tempMin = 0.0;
-        r.tempMax = 0.0;
-    }
 
     r.packageTypeId = ui_->packageCombo->currentData().toInt();
     r.compositionId = ui_->compositionCombo->currentData().toInt();
-    r.leadSpacing = ui_->leadSpacingSpin->value();
 
-    // Determine add vs update using InventoryService's resistor manager
-    Resistor existing;
-    DbResult lookup;
-    if (inventory_.resistors().getByComponentId(componentId, existing, lookup)) {
-        return inventory_.resistors().update(r, result);
-    }
-    else {
-        return inventory_.resistors().add(r, result);
-    }
+    extractedResistor_ = r;   // store internally
 }

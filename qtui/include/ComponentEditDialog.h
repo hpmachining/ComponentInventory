@@ -25,6 +25,8 @@ public:
 
     void setComponent(const Component& c);
     Component component() const;
+	Resistor resistor() const { return resistor_; }
+    IComponentEditor* typeEditor() const { return typeEditor_.get(); }
 
 private slots:
     void updateOkButtonState();
@@ -48,6 +50,7 @@ private:
     Ui::ComponentEditDialog* ui_;
     InventoryService& inventory_;
     Component component_;
+	Resistor resistor_;
 
     static constexpr int kAddNewId = -1;
     int prevCategoryId_ = -1;

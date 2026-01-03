@@ -14,5 +14,6 @@ public:
     virtual void load(int componentId) = 0;
 
     // Save data for a component (insert or update handled internally)
-    virtual bool save(int componentId, DbResult& result) = 0;
+    virtual bool extract(int componentId, DbResult& result) = 0;
+	virtual void update(int componentId) = 0;
 };
