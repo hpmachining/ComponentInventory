@@ -72,47 +72,6 @@
               </widget>
             </item>
 
-            <item row="3" column="0">
-              <widget class="QLabel" name="voltageLabel">
-                <property name="text">
-                  <string>Voltage Rating</string>
-                </property>
-              </widget>
-            </item>
-            <item row="3" column="1">
-              <widget class="QSpinBox" name="voltageSpin">
-                <property name="maximum">
-                  <number>10000</number>
-                </property>
-                <property name="suffix">
-                  <string> V</string>
-                </property>
-              </widget>
-            </item>
-            <item row="4" column="0">
-              <widget class="QLabel" name="leadSpacingLabel">
-                <property name="text">
-                  <string>Lead Spacing</string>
-                </property>
-              </widget>
-            </item>
-            <item row="4" column="1">
-              <widget class="QDoubleSpinBox" name="leadSpacingSpin">
-                <property name="decimals">
-                  <number>2</number>
-                </property>
-                <property name="minimum">
-                  <double>0.0</double>
-                </property>
-                <property name="maximum">
-                  <double>50.0</double>
-                </property>
-                <property name="suffix">
-                  <string> mm</string>
-                </property>
-              </widget>
-            </item>
-
           </layout>
         </widget>
       </item>
@@ -275,6 +234,31 @@
             <item row="1" column="1">
               <widget class="QComboBox" name="compositionCombo"/>
             </item>
+
+            <item row="2" column="0">
+              <widget class="QLabel" name="leadSpacingLabel">
+                <property name="text">
+                  <string>Lead Spacing</string>
+                </property>
+              </widget>
+            </item>
+            <item row="2" column="1">
+              <widget class="QDoubleSpinBox" name="leadSpacingSpin">
+                <property name="decimals">
+                  <number>2</number>
+                </property>
+                <property name="minimum">
+                  <double>0.0</double>
+                </property>
+                <property name="maximum">
+                  <double>50.0</double>
+                </property>
+                <property name="suffix">
+                  <string> mm</string>
+                </property>
+              </widget>
+            </item>
+
           </layout>
         </widget>
       </item>

@@ -35,7 +35,7 @@ private:
     void accept() override;
     bool isValid() const;
     void setTypeEditor(std::unique_ptr<IComponentEditor> editor);
-    void populateCombos();
+    void populateLookups();
     int pageForCategory(int categoryId) const;
 
     // Page indices for stacked widget

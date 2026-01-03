@@ -38,7 +38,7 @@ ComponentEditDialog::ComponentEditDialog(
     // Tab moves focus in notesEdit
     ui_->notesEdit->setTabChangesFocus(true);
 
-    populateCombos();
+    populateLookups();
     ui_->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
     prevCategoryId_ = ui_->categoryCombo->currentData().toInt();
@@ -114,7 +114,7 @@ Component ComponentEditDialog::component() const
     return c;
 }
 
-void ComponentEditDialog::populateCombos()
+void ComponentEditDialog::populateLookups()
 {
     DbResult result;
 
@@ -230,7 +230,7 @@ void ComponentEditDialog::onCategoryChanged(int index)
         );
 
         if (dlg.exec() == QDialog::Accepted) {
-            populateCombos();
+            populateLookups();
             QString added = QString::fromStdString(dlg.addedName());
             int newIndex = ui_->categoryCombo->findText(added);
 
@@ -255,7 +255,7 @@ void ComponentEditDialog::onCategoryChanged(int index)
 
     // Instantiate / assign the correct type editor for this category
     if (pageForCategory(id) == Page_Resistor) {
-        setTypeEditor(std::make_unique<ResistorEditor>(inventory_.database()));
+        setTypeEditor(std::make_unique<ResistorEditor>(inventory_));
         if (typeEditor_)
             typeEditor_->load(component_.id);
     }
@@ -286,7 +286,7 @@ void ComponentEditDialog::onManufacturerChanged(int index)
     );
 
     if (dlg.exec() == QDialog::Accepted) {
-        populateCombos();
+        populateLookups();
         QString added = QString::fromStdString(dlg.addedName());
         int newIndex = ui_->manufacturerCombo->findText(added);
 

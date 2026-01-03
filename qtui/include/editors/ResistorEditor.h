@@ -3,7 +3,9 @@
 #include <QWidget>
 #include "IComponentEditor.h"
 #include "ResistorManager.h"
-#include "Database.h"
+#include "DbResult.h"
+#include "InventoryService.h"   // <-- need this
+#include <vector>
 
 namespace Ui {
     class ResistorEditor;
@@ -13,7 +15,8 @@ class ResistorEditor : public QWidget, public IComponentEditor {
     Q_OBJECT
 
 public:
-    explicit ResistorEditor(Database& db, QWidget* parent = nullptr);
+    // now takes InventoryService& (not Database&)
+    explicit ResistorEditor(InventoryService& inventory, QWidget* parent = nullptr);
     ~ResistorEditor() override;
 
     QWidget* widget() override { return this; }
@@ -21,6 +24,8 @@ public:
     bool save(int componentId, DbResult& result) override;
 
 private:
-    Database& db_;
+    void populateLookups();
+
+    InventoryService& inventory_;
     Ui::ResistorEditor* ui_;
 };

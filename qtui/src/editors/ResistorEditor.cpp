@@ -1,12 +1,19 @@
 #include "editors/ResistorEditor.h"
 #include "ui_ResistorEditor.h"
 
-ResistorEditor::ResistorEditor(Database& db, QWidget* parent)
+#include "ResistorPackageManager.h"
+#include "ResistorCompositionManager.h"
+#include <QDebug>
+
+ResistorEditor::ResistorEditor(InventoryService& inventory, QWidget* parent)
     : QWidget(parent),
-    db_(db),
+    inventory_(inventory),
     ui_(new Ui::ResistorEditor)
 {
     ui_->setupUi(this);
+
+    // Populate lookup combos first so load() can set current indexes safely
+    populateLookups();
 
     // Optional polish: disable dependent fields by default
     ui_->tcrMinSpin->setEnabled(false);
@@ -30,74 +37,121 @@ ResistorEditor::~ResistorEditor()
     delete ui_;
 }
 
+void ResistorEditor::populateLookups()
+{
+    DbResult result;
+
+    // Packages
+    ui_->packageCombo->clear();
+    std::vector<ResistorPackage> pkgs;
+    if (inventory_.resistorPackages().list(pkgs, result)) {
+        for (const auto& p : pkgs)
+            ui_->packageCombo->addItem(QString::fromStdString(p.name), p.id);
+    }
+
+    // Compositions
+    ui_->compositionCombo->clear();
+    std::vector<ResistorComposition> comps;
+    if (inventory_.resistorCompositions().list(comps, result)) {
+        for (const auto& c : comps)
+            ui_->compositionCombo->addItem(QString::fromStdString(c.name), c.id);
+    }
+}
+
 void ResistorEditor::load(int componentId)
 {
-    ResistorManager mgr(db_);
-    DbResult result;
     Resistor r;
+    DbResult result;
 
-    if (!mgr.getByComponentId(componentId, r, result))
+    // If no resistor row exists for this component, just clear UI defaults
+    if (!inventory_.resistors().getByComponentId(componentId, r, result)) {
+        // clear / default fields
+        ui_->resistanceSpin->setValue(0.0);
+        ui_->toleranceSpin->setValue(0.0);
+        ui_->powerSpin->setValue(0.0);
+        ui_->leadSpacingSpin->setValue(0.0);
+
+        ui_->hasTempCoeffCheck->setChecked(false);
+        ui_->tcrMinSpin->setValue(0.0);
+        ui_->tcrMaxSpin->setValue(0.0);
+
+        ui_->hasTempRangeCheck->setChecked(false);
+        ui_->tempMinSpin->setValue(0.0);
+        ui_->tempMaxSpin->setValue(0.0);
+
+        // no need to set combos (already populated)
         return;
+    }
 
+    // Fill UI from resistor model
     ui_->resistanceSpin->setValue(r.resistance);
     ui_->toleranceSpin->setValue(r.tolerance);
     ui_->powerSpin->setValue(r.powerRating);
+    ui_->leadSpacingSpin->setValue(r.leadSpacing);
 
+    // TCR
     ui_->hasTempCoeffCheck->setChecked(r.hasTempCoeff);
     ui_->tcrMinSpin->setValue(r.tempCoeffMin);
     ui_->tcrMaxSpin->setValue(r.tempCoeffMax);
+    ui_->tcrMinSpin->setEnabled(r.hasTempCoeff);
+    ui_->tcrMaxSpin->setEnabled(r.hasTempCoeff);
 
+    // Temperature range
     ui_->hasTempRangeCheck->setChecked(r.hasTempRange);
     ui_->tempMinSpin->setValue(r.tempMin);
     ui_->tempMaxSpin->setValue(r.tempMax);
-
-    ui_->tcrMinSpin->setEnabled(r.hasTempCoeff);
-    ui_->tcrMaxSpin->setEnabled(r.hasTempCoeff);
     ui_->tempMinSpin->setEnabled(r.hasTempRange);
     ui_->tempMaxSpin->setEnabled(r.hasTempRange);
 
-    // Combo boxes assume ID stored in UserRole
-    ui_->packageCombo->setCurrentIndex(
-        ui_->packageCombo->findData(r.packageTypeId));
+    // Set package / composition combos (userData stored as ID)
+    int pkgIndex = ui_->packageCombo->findData(r.packageTypeId);
+    if (pkgIndex >= 0)
+        ui_->packageCombo->setCurrentIndex(pkgIndex);
 
-    ui_->compositionCombo->setCurrentIndex(
-        ui_->compositionCombo->findData(r.compositionId));
-
-    ui_->leadSpacingSpin->setValue(r.leadSpacing);
-    ui_->voltageSpin->setValue(r.voltageRating);
+    int compIndex = ui_->compositionCombo->findData(r.compositionId);
+    if (compIndex >= 0)
+        ui_->compositionCombo->setCurrentIndex(compIndex);
 }
 
 bool ResistorEditor::save(int componentId, DbResult& result)
 {
-    ResistorManager mgr(db_);
     Resistor r;
-
     r.componentId = componentId;
     r.resistance = ui_->resistanceSpin->value();
     r.tolerance = ui_->toleranceSpin->value();
     r.powerRating = ui_->powerSpin->value();
 
     r.hasTempCoeff = ui_->hasTempCoeffCheck->isChecked();
-    r.tempCoeffMin = ui_->tcrMinSpin->value();
-    r.tempCoeffMax = ui_->tcrMaxSpin->value();
+    if (r.hasTempCoeff) {
+        r.tempCoeffMin = ui_->tcrMinSpin->value();
+        r.tempCoeffMax = ui_->tcrMaxSpin->value();
+    }
+    else {
+        r.tempCoeffMin = 0.0;
+        r.tempCoeffMax = 0.0;
+    }
 
     r.hasTempRange = ui_->hasTempRangeCheck->isChecked();
-    r.tempMin = ui_->tempMinSpin->value();
-    r.tempMax = ui_->tempMaxSpin->value();
+    if (r.hasTempRange) {
+        r.tempMin = ui_->tempMinSpin->value();
+        r.tempMax = ui_->tempMaxSpin->value();
+    }
+    else {
+        r.tempMin = 0.0;
+        r.tempMax = 0.0;
+    }
 
     r.packageTypeId = ui_->packageCombo->currentData().toInt();
     r.compositionId = ui_->compositionCombo->currentData().toInt();
     r.leadSpacing = ui_->leadSpacingSpin->value();
-    r.voltageRating = ui_->voltageSpin->value();
 
-    // Determine add vs update
+    // Determine add vs update using InventoryService's resistor manager
     Resistor existing;
     DbResult lookup;
-
-    if (mgr.getByComponentId(componentId, existing, lookup)) {
-        return mgr.update(r, result);
+    if (inventory_.resistors().getByComponentId(componentId, existing, lookup)) {
+        return inventory_.resistors().update(r, result);
     }
     else {
-        return mgr.add(r, result);
+        return inventory_.resistors().add(r, result);
     }
 }
