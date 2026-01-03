@@ -195,7 +195,7 @@ void ComponentEditDialog::accept()
     // Extract subtype data (NO DB WRITES)
     DbResult result;
     if (typeEditor_) {
-        if (!typeEditor_->extract(component_.id, result)) {
+        if (!typeEditor_->collect(component_.id, result)) {
             QMessageBox::warning(this, "Error",
                 QString::fromStdString(result.message));
             return;

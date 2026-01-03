@@ -1,9 +1,8 @@
 #include "editors/ResistorEditor.h"
 #include "ui_ResistorEditor.h"
-
 #include "ResistorPackageManager.h"
 #include "ResistorCompositionManager.h"
-#include <QDebug>
+//#include <QDebug>
 
 ResistorEditor::ResistorEditor(InventoryService& inventory, QWidget* parent)
     : QWidget(parent),
@@ -15,7 +14,6 @@ ResistorEditor::ResistorEditor(InventoryService& inventory, QWidget* parent)
     // Populate lookup combos first so load() can set current indexes safely
     populateLookups();
 
-    // Optional polish: disable dependent fields by default
     ui_->tcrMinSpin->setEnabled(false);
     ui_->tcrMaxSpin->setEnabled(false);
     ui_->tempMinSpin->setEnabled(false);
@@ -65,7 +63,6 @@ void ResistorEditor::load(int componentId)
 
     // If no resistor row exists for this component, just clear UI defaults
     if (!inventory_.resistors().getByComponentId(componentId, r, result)) {
-        // clear / default fields
         ui_->resistanceSpin->setValue(0.0);
         ui_->toleranceSpin->setValue(0.0);
         ui_->powerSpin->setValue(0.0);
@@ -79,31 +76,27 @@ void ResistorEditor::load(int componentId)
         ui_->tempMinSpin->setValue(0.0);
         ui_->tempMaxSpin->setValue(0.0);
 
-        // no need to set combos (already populated)
         return;
     }
 
-    // Fill UI from resistor model
     ui_->resistanceSpin->setValue(r.resistance);
     ui_->toleranceSpin->setValue(r.tolerance);
     ui_->powerSpin->setValue(r.powerRating);
     ui_->leadSpacingSpin->setValue(r.leadSpacing);
 
-    // TCR
     ui_->hasTempCoeffCheck->setChecked(r.hasTempCoeff);
     ui_->tcrMinSpin->setValue(r.tempCoeffMin);
     ui_->tcrMaxSpin->setValue(r.tempCoeffMax);
     ui_->tcrMinSpin->setEnabled(r.hasTempCoeff);
     ui_->tcrMaxSpin->setEnabled(r.hasTempCoeff);
 
-    // Temperature range
     ui_->hasTempRangeCheck->setChecked(r.hasTempRange);
     ui_->tempMinSpin->setValue(r.tempMin);
     ui_->tempMaxSpin->setValue(r.tempMax);
     ui_->tempMinSpin->setEnabled(r.hasTempRange);
     ui_->tempMaxSpin->setEnabled(r.hasTempRange);
 
-    // Set package / composition combos (userData stored as ID)
+    // Set package / composition combos
     int pkgIndex = ui_->packageCombo->findData(r.packageTypeId);
     if (pkgIndex >= 0)
         ui_->packageCombo->setCurrentIndex(pkgIndex);
@@ -113,13 +106,7 @@ void ResistorEditor::load(int componentId)
         ui_->compositionCombo->setCurrentIndex(compIndex);
 }
 
-bool ResistorEditor::extract(int componentId, DbResult& result)
-{
-	update(componentId);
-    return true;
-}
-
-void ResistorEditor::update(int componentId)
+bool ResistorEditor::collect(int componentId, DbResult& result)
 {
     Resistor r;
     r.componentId = componentId;
@@ -144,5 +131,6 @@ void ResistorEditor::update(int componentId)
     r.packageTypeId = ui_->packageCombo->currentData().toInt();
     r.compositionId = ui_->compositionCombo->currentData().toInt();
 
-    extractedResistor_ = r;   // store internally
+    resistor_ = r;   // store internally
+    return true;
 }

@@ -211,7 +211,7 @@ void MainWindow::onActionAddComponent()
 
         // Extract subtype model from editor (NO DB writes)
         DbResult subResult;
-        if (!editor->extract(c.id, subResult)) {
+        if (!editor->collect(c.id, subResult)) {
             QMessageBox::critical(this, tr("Subtype Error"),
                 QString::fromStdString(subResult.toString()));
             return;
@@ -391,7 +391,7 @@ void MainWindow::onActionEditComponent()
 
         // Extract subtype model (NO DB writes)
         DbResult subResult;
-        if (!editor->extract(c.id, subResult)) {
+        if (!editor->collect(c.id, subResult)) {
             QMessageBox::critical(this, tr("Subtype Error"),
                 QString::fromStdString(subResult.toString()));
             return;
