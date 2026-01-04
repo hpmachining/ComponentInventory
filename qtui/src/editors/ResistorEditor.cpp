@@ -2,7 +2,6 @@
 #include "ui_ResistorEditor.h"
 #include "ResistorPackageManager.h"
 #include "ResistorCompositionManager.h"
-//#include <QDebug>
 
 ResistorEditor::ResistorEditor(InventoryService& inventory, QWidget* parent)
     : QWidget(parent),

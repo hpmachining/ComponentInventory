@@ -3,6 +3,7 @@
 #include "ComponentManager.h"
 #include "ResistorManager.h"
 #include "editors/IComponentEditor.h"
+#include "BaseDialog.h"
 #include <QDialog>
 #include <memory>
 
@@ -12,7 +13,7 @@ namespace Ui {
 
 class InventoryService;
 
-class ComponentEditDialog : public QDialog
+class ComponentEditDialog : public BaseDialog
 {
     Q_OBJECT
 

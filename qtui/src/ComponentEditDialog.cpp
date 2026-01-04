@@ -38,12 +38,13 @@ ComponentEditDialog::ComponentEditDialog(
     InventoryService& inventory,
     QWidget* parent
 )
-    : QDialog(parent),
+    : BaseDialog(parent),
     ui_(new Ui::ComponentEditDialog),
     inventory_(inventory)
 {
     ui_->setupUi(this);
     setWindowTitle(tr("Add Component"));
+
 
     // Type editor container
     typeEditorContainer_ = new QWidget(this);
@@ -83,7 +84,7 @@ ComponentEditDialog::ComponentEditDialog(
     // Load subtype data if editing an existing component
     if (typeEditor_ && component_.id > 0)
         typeEditor_->load(component_.id);
-
+    
     // Live validation
     connect(ui_->partNumberEdit, &QLineEdit::textChanged,
         this, &ComponentEditDialog::updateOkButtonState);
