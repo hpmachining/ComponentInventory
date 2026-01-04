@@ -13,6 +13,27 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 
+static QWidget* firstFocusableChild(QWidget* parent)
+{
+    QList<QWidget*> widgets = parent->findChildren<QWidget*>();
+    for (QWidget* w : widgets) {
+        if (w->focusPolicy() != Qt::NoFocus)
+            return w;
+    }
+    return nullptr;
+}
+
+static QWidget* lastFocusableChild(QWidget* parent)
+{
+    QList<QWidget*> widgets = parent->findChildren<QWidget*>();
+    QWidget* last = nullptr;
+    for (QWidget* w : widgets) {
+        if (w->focusPolicy() != Qt::NoFocus)
+            last = w;
+    }
+    return last;
+}
+
 ComponentEditDialog::ComponentEditDialog(
     InventoryService& inventory,
     QWidget* parent
@@ -325,6 +346,24 @@ void ComponentEditDialog::setTypeEditor(std::unique_ptr<IComponentEditor> editor
 
     typeEditor_ = std::move(editor);
 
-    if (typeEditor_)
-        layout->addWidget(typeEditor_->widget());
+    if (typeEditor_) {
+        QWidget* w = typeEditor_->widget();
+        layout->addWidget(w);
+
+        QWidget* first = firstFocusableChild(w);
+        QWidget* last = lastFocusableChild(w);
+
+        if (first && last) {
+            // 1. Dialog fields → first child field
+            setTabOrder(ui_->notesEdit, first);
+
+            // 2. Last child field → OK button
+            QPushButton* okBtn = ui_->buttonBox->button(QDialogButtonBox::Ok);
+            setTabOrder(last, okBtn);
+
+            // 3. OK → Cancel (Qt normally does this automatically)
+            QPushButton* cancelBtn = ui_->buttonBox->button(QDialogButtonBox::Cancel);
+            setTabOrder(okBtn, cancelBtn);
+        }
+    }
 }
