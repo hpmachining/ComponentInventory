@@ -15,6 +15,9 @@ InventoryService::InventoryService(std::unique_ptr<Database> db)
     , resistorMgr_(*db_)
     , resistorPackageMgr_(*db_)
     , resistorCompositionMgr_(*db_)
+	, capacitorManager_(*db_)
+	, capacitorPackageMgr_(*db_)
+	, capacitorDielectricMgr_(*db_)
 {
 }
 

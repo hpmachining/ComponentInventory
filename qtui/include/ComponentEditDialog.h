@@ -44,7 +44,7 @@ private:
     enum CategoryPage {
         Page_None = 0,
         Page_Resistor = 1,
-        // Future: Page_Capacitor = 2, etc.
+		Page_Capacitor = 2,
     };
 
     Ui::ComponentEditDialog* ui_;

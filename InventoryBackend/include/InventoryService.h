@@ -6,6 +6,9 @@
 #include "ResistorManager.h"
 #include "ResistorPackageManager.h"
 #include "ResistorCompositionManager.h"
+#include "CapacitorManager.h"
+#include "CapacitorPackageManager.h"
+#include "CapacitorDielectricManager.h"
 
 #include <memory>
 #include <string>
@@ -27,7 +30,10 @@ public:
 	ResistorManager& resistors() { return resistorMgr_; }
 	ResistorPackageManager& resistorPackages() { return resistorPackageMgr_; }
 	ResistorCompositionManager& resistorCompositions() { return resistorCompositionMgr_; }
-	Database& database() { return *db_; }
+    CapacitorManager& capacitors() { return capacitorManager_; }
+    CapacitorPackageManager& capacitorPackages() { return capacitorPackageMgr_; }
+    CapacitorDielectricManager& capacitorDielectrics() { return capacitorDielectricMgr_; }
+    Database& database() { return *db_; }
 
 private:
     explicit InventoryService(std::unique_ptr<Database> db);
@@ -42,4 +48,7 @@ private:
     ResistorManager resistorMgr_;
     ResistorPackageManager resistorPackageMgr_;
     ResistorCompositionManager resistorCompositionMgr_;
+	CapacitorManager capacitorManager_;
+    CapacitorPackageManager capacitorPackageMgr_;
+	CapacitorDielectricManager capacitorDielectricMgr_;
 };

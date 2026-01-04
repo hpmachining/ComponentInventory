@@ -25,7 +25,9 @@ add_executable(ComponentInventoryUI
     include/editors/IComponentEditor.h
     include/editors/ResistorEditor.h
     src/editors/ResistorEditor.cpp
-    ui/ResistorEditor.ui)
+    ui/ResistorEditor.ui
+    include/editors/CapacitorEditor.h
+    src/editors/CapacitorEditor.cpp)
 
 target_include_directories(ComponentInventoryUI PRIVATE
     include

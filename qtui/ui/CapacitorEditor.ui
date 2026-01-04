@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+  <class>CapacitorEditor</class>
+  <widget class="QWidget" name="CapacitorEditor">
+    <layout class="QVBoxLayout" name="verticalLayout">
+
+      <!-- ELECTRICAL GROUP -->
+      <item>
+        <widget class="QGroupBox" name="electricalGroup">
+          <property name="title">
+            <string>Electrical</string>
+          </property>
+          <layout class="QFormLayout" name="electricalLayout">
+
+            <item row="0" column="0">
+              <widget class="QLabel" name="capacitanceLabel">
+                <property name="text">
+                  <string>Capacitance</string>
+                </property>
+              </widget>
+            </item>
+            <item row="0" column="1">
+              <widget class="QDoubleSpinBox" name="capacitanceSpin">
+                <property name="decimals">
+                  <number>9</number>
+                </property>
+                <property name="maximum">
+                  <double>1000.0</double>
+                </property>
+                <property name="suffix">
+                  <string> F</string>
+                </property>
+              </widget>
+            </item>
+
+            <item row="1" column="0">
+              <widget class="QLabel" name="voltageLabel">
+                <property name="text">
+                  <string>Voltage Rating</string>
+                </property>
+              </widget>
+            </item>
+            <item row="1" column="1">
+              <widget class="QDoubleSpinBox" name="voltageSpin">
+                <property name="decimals">
+                  <number>2</number>
+                </property>
+                <property name="maximum">
+                  <double>1000.0</double>
+                </property>
+                <property name="suffix">
+                  <string> V</string>
+                </property>
+              </widget>
+            </item>
+
+            <item row="2" column="0">
+              <widget class="QLabel" name="toleranceLabel">
+                <property name="text">
+                  <string>Tolerance</string>
+                </property>
+              </widget>
+            </item>
+            <item row="2" column="1">
+              <widget class="QDoubleSpinBox" name="toleranceSpin">
+                <property name="decimals">
+                  <number>2</number>
+                </property>
+                <property name="maximum">
+                  <double>100.0</double>
+                </property>
+                <property name="suffix">
+                  <string> %</string>
+                </property>
+              </widget>
+            </item>
+
+            <item row="3" column="0">
+              <widget class="QLabel" name="esrLabel">
+                <property name="text">
+                  <string>ESR</string>
+                </property>
+              </widget>
+            </item>
+            <item row="3" column="1">
+              <widget class="QDoubleSpinBox" name="esrSpin">
+                <property name="decimals">
+                  <number>4</number>
+                </property>
+                <property name="maximum">
+                  <double>1000.0</double>
+                </property>
+                <property name="suffix">
+                  <string> Ω</string>
+                </property>
+              </widget>
+            </item>
+
+            <item row="4" column="0">
+              <widget class="QLabel" name="leakageLabel">
+                <property name="text">
+                  <string>Leakage Current</string>
+                </property>
+              </widget>
+            </item>
+            <item row="4" column="1">
+              <widget class="QDoubleSpinBox" name="leakageSpin">
+                <property name="decimals">
+                  <number>6</number>
+                </property>
+                <property name="maximum">
+                  <double>1.0</double>
+                </property>
+                <property name="suffix">
+                  <string> A</string>
+                </property>
+              </widget>
+            </item>
+
+            <item row="5" column="0">
+              <widget class="QLabel" name="polarizedLabel">
+                <property name="text">
+                  <string>Polarized</string>
+                </property>
+              </widget>
+            </item>
+            <item row="5" column="1">
+              <widget class="QCheckBox" name="polarizedCheck"/>
+            </item>
+
+          </layout>
+        </widget>
+      </item>
+
+      <!-- CHARACTERISTICS GROUP -->
+      <item>
+        <widget class="QGroupBox" name="characteristicsGroup">
+          <property name="title">
+            <string>Characteristics</string>
+          </property>
+          <layout class="QFormLayout" name="characteristicsLayout">
+
+            <item row="0" column="0">
+              <widget class="QLabel" name="dielectricLabel">
+                <property name="text">
+                  <string>Dielectric</string>
+                </property>
+              </widget>
+            </item>
+            <item row="0" column="1">
+              <widget class="QComboBox" name="dielectricCombo"/>
+            </item>
+
+          </layout>
+        </widget>
+      </item>
+
+      <!-- PACKAGE GROUP -->
+      <item>
+        <widget class="QGroupBox" name="packageGroup">
+          <property name="title">
+            <string>Package</string>
+          </property>
+          <layout class="QFormLayout" name="packageLayout">
+
+            <item row="0" column="0">
+              <widget class="QLabel" name="packageLabel">
+                <property name="text">
+                  <string>Package</string>
+                </property>
+              </widget>
+            </item>
+            <item row="0" column="1">
+              <widget class="QComboBox" name="packageCombo"/>
+            </item>
+
+          </layout>
+        </widget>
+      </item>
+
+      <!-- GEOMETRY GROUP -->
+      <item>
+        <widget class="QGroupBox" name="geometryGroup">
+          <property name="title">
+            <string>Geometry</string>
+          </property>
+
+          <layout class="QVBoxLayout" name="geometryLayout">
+            <item>
+              <widget class="QStackedWidget" name="geometryStack">
+
+                <!-- RADIAL PAGE -->
+                <widget class="QWidget" name="radialPage">
+                  <layout class="QFormLayout" name="radialLayout">
+
+                    <item row="0" column="0">
+                      <widget class="QLabel" name="diameterLabel">
+                        <property name="text">
+                          <string>Diameter</string>
+                        </property>
+                      </widget>
+                    </item>
+                    <item row="0" column="1">
+                      <widget class="QDoubleSpinBox" name="diameterSpin">
+                        <property name="decimals">
+                          <number>2</number>
+                        </property>
+                        <property name="maximum">
+                          <double>100.0</double>
+                        </property>
+                        <property name="suffix">
+                          <string> mm</string>
+                        </property>
+                      </widget>
+                    </item>
+
+                    <item row="1" column="0">
+                      <widget class="QLabel" name="heightLabel">
+                        <property name="text">
+                          <string>Height</string>
+                        </property>
+                      </widget>
+                    </item>
+                    <item row="1" column="1">
+                      <widget class="QDoubleSpinBox" name="heightSpin">
+                        <property name="decimals">
+                          <number>2</number>
+                        </property>
+                        <property name="maximum">
+                          <double>100.0</double>
+                        </property>
+                        <property name="suffix">
+                          <string> mm</string>
+                        </property>
+                      </widget>
+                    </item>
+
+                    <item row="2" column="0">
+                      <widget class="QLabel" name="leadSpacingLabel">
+                        <property name="text">
+                          <string>Lead Spacing</string>
+                        </property>
+                      </widget>
+                    </item>
+                    <item row="2" column="1">
+                      <widget class="QDoubleSpinBox" name="leadSpacingSpin">
+                        <property name="decimals">
+                          <number>2</number>
+                        </property>
+                        <property name="maximum">
+                          <double>50.0</double>
+                        </property>
+                        <property name="suffix">
+                          <string> mm</string>
+                        </property>
+                      </widget>
+                    </item>
+
+                  </layout>
+                </widget>
+
+                <!-- SMD PAGE -->
+                <widget class="QWidget" name="smdPage">
+                  <layout class="QFormLayout" name="smdLayout">
+
+                    <item row="0" column="0">
+                      <widget class="QLabel" name="lengthLabel">
+                        <property name="text">
+                          <string>Length</string>
+                        </property>
+                      </widget>
+                    </item>
+                    <item row="0" column="1">
+                      <widget class="QDoubleSpinBox" name="lengthSpin">
+                        <property name="decimals">
+                          <number>2</number>
+                        </property>
+                        <property name="maximum">
+                          <double>100.0</double>
+                        </property>
+                        <property name="suffix">
+                          <string> mm</string>
+                        </property>
+                      </widget>
+                    </item>
+
+                    <item row="1" column="0">
+                      <widget class="QLabel" name="widthLabel">
+                        <property name="text">
+                          <string>Width</string>
+                        </property>
+                      </widget>
+                    </item>
+                    <item row="1" column="1">
+                      <widget class="QDoubleSpinBox" name="widthSpin">
+                        <property name="decimals">
+                          <number>2</number>
+                        </property>
+                        <property name="maximum">
+                          <double>100.0</double>
+                        </property>
+                        <property name="suffix">
+                          <string> mm</string>
+                        </property>
+                      </widget>
+                    </item>
+
+                    <item row="2" column="0">
+                      <widget class="QLabel" name="heightSmdLabel">
+                        <property name="text">
+                          <string>Height</string>
+                        </property>
+                      </widget>
+                    </item>
+                    <item row="2" column="1">
+                      <widget class="QDoubleSpinBox" name="heightSpinSmd">
+                        <property name="decimals">
+                          <number>2</number>
+                        </property>
+                        <property name="maximum">
+                          <double>100.0</double>
+                        </property>
+                        <property name="suffix">
+                          <string> mm</string>
+                        </property>
+                      </widget>
+                    </item>
+
+                  </layout>
+                </widget>
+
+              </widget>
+            </item>
+          </layout>
+
+        </widget>
+      </item>
+
+    </layout>
+  </widget>
+
+  <resources/>
+  <connections/>
+</ui>

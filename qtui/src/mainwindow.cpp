@@ -6,6 +6,7 @@
 #include "ComponentTableModel.h"
 #include "ComponentEditDialog.h"
 #include "editors/ResistorEditor.h"
+#include "editors/CapacitorEditor.h"
 #include "DevDataSeeder.h"
 #include <QMessageBox>
 #include <QStatusBar>
@@ -250,9 +251,38 @@ void MainWindow::onActionAddComponent()
             }
             break;
         }
+        case 2: { // Capacitor
+            auto* cEditor = dynamic_cast<CapacitorEditor*>(editor);
+            if (cEditor) {
+                const Capacitor& cap = cEditor->capacitor();
+
+                // Check if capacitor row already exists
+                Capacitor existing;
+                DbResult check;
+                bool exists =
+                    inventory_->capacitors().getById(c.id, existing, check);
+
+                if (exists) {
+                    // UPDATE
+                    if (!inventory_->capacitors().update(cap, result)) {
+                        QMessageBox::critical(this, tr("Error"),
+                            QString::fromStdString(result.toString()));
+                        return;
+                    }
+                }
+                else {
+                    // INSERT
+                    if (!inventory_->capacitors().add(cap, result)) {
+                        QMessageBox::critical(this, tr("Error"),
+                            QString::fromStdString(result.toString()));
+                        return;
+                    }
+                }
+            }
+            break;
+        }
 
               // Future:
-              // case 2: Capacitor
               // case 3: Transistor
               // case 4: Diode
               // case 5: Fuse
@@ -430,9 +460,38 @@ void MainWindow::onActionEditComponent()
             }
             break;
         }
+        case 2: { // Capacitor
+            auto* cEditor = dynamic_cast<CapacitorEditor*>(editor);
+            if (cEditor) {
+                const Capacitor& cap = cEditor->capacitor();
+
+                // Check if capacitor row exists
+                Capacitor existing;
+                DbResult check;
+                bool exists =
+                    inventory_->capacitors().getById(c.id, existing, check);
+
+                if (exists) {
+                    // UPDATE capacitor row
+                    if (!inventory_->capacitors().update(cap, result)) {
+                        QMessageBox::critical(this, tr("Error"),
+                            QString::fromStdString(result.toString()));
+                        return;
+                    }
+                }
+                else {
+                    // INSERT capacitor row
+                    if (!inventory_->capacitors().add(cap, result)) {
+                        QMessageBox::critical(this, tr("Error"),
+                            QString::fromStdString(result.toString()));
+                        return;
+                    }
+                }
+            }
+            break;
+        }
 
               // Future:
-              // case 2: Capacitor
               // case 3: Transistor
               // case 4: Diode
               // case 5: Fuse
