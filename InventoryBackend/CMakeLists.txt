@@ -16,7 +16,7 @@ target_sources(${PROJECT_NAME}
         src/ResistorPackageManager.cpp
         src/SchemaManager.cpp
         src/CapacitorManager.cpp
-        src/ElectrolyticManager.cpp
+        
         src/CapacitorPackageManager.cpp
         src/CapacitorDielectricManager.cpp
         src/TransistorTypeManager.cpp

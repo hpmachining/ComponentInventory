@@ -51,7 +51,6 @@ TEST_F(SchemaManagerTest, Migration_AddsNewColumnsAndTables) {
     EXPECT_TRUE(db.tableExists("CapacitorDielectric"));
     EXPECT_TRUE(db.tableExists("CapacitorPackage"));
     EXPECT_TRUE(db.tableExists("Capacitors"));
-    EXPECT_TRUE(db.tableExists("Electrolytics"));
 
     // Migration 4: Transistor tables
     EXPECT_TRUE(db.tableExists("TransistorType"));

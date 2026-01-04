@@ -8,9 +8,13 @@ CapacitorManager::CapacitorManager(Database& db) : db_(db) {}
 bool CapacitorManager::add(const Capacitor& cap, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
-        "INSERT INTO Capacitors (ComponentID, Capacitance, VoltageRating, Tolerance, ESR, LeakageCurrent, Polarized, PackageTypeID, DielectricTypeID) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
-        stmt, result)) {
+        "INSERT INTO Capacitors "
+        "(ComponentID, Capacitance, VoltageRating, Tolerance, ESR, LeakageCurrent, "
+        "Polarized, PackageTypeID, DielectricTypeID, "
+        "Diameter, Height, LeadSpacing, Length, Width) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        stmt, result))
+    {
         return false;
     }
 
@@ -23,6 +27,11 @@ bool CapacitorManager::add(const Capacitor& cap, DbResult& result) {
     sqlite3_bind_int(stmt, 7, cap.polarized ? 1 : 0);
     sqlite3_bind_int(stmt, 8, cap.packageTypeId);
     sqlite3_bind_int(stmt, 9, cap.dielectricTypeId);
+    sqlite3_bind_double(stmt, 10, cap.diameter);
+    sqlite3_bind_double(stmt, 11, cap.height);
+    sqlite3_bind_double(stmt, 12, cap.leadSpacing);
+    sqlite3_bind_double(stmt, 13, cap.length);
+    sqlite3_bind_double(stmt, 14, cap.width);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
@@ -39,9 +48,12 @@ bool CapacitorManager::add(const Capacitor& cap, DbResult& result) {
 bool CapacitorManager::getById(int id, Capacitor& cap, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
-        "SELECT ComponentID, Capacitance, VoltageRating, Tolerance, ESR, LeakageCurrent, Polarized, PackageTypeID, DielectricTypeID "
+        "SELECT ComponentID, Capacitance, VoltageRating, Tolerance, ESR, LeakageCurrent, "
+        "Polarized, PackageTypeID, DielectricTypeID, "
+        "Diameter, Height, LeadSpacing, Length, Width "
         "FROM Capacitors WHERE ComponentID=?;",
-        stmt, result)) {
+        stmt, result))
+    {
         return false;
     }
 
@@ -57,6 +69,12 @@ bool CapacitorManager::getById(int id, Capacitor& cap, DbResult& result) {
         cap.polarized = sqlite3_column_int(stmt, 6) != 0;
         cap.packageTypeId = sqlite3_column_int(stmt, 7);
         cap.dielectricTypeId = sqlite3_column_int(stmt, 8);
+
+        cap.diameter = sqlite3_column_double(stmt, 9);
+        cap.height = sqlite3_column_double(stmt, 10);
+        cap.leadSpacing = sqlite3_column_double(stmt, 11);
+        cap.length = sqlite3_column_double(stmt, 12);
+        cap.width = sqlite3_column_double(stmt, 13);
     }
     else {
         result.setError(sqlite3_errcode(db_.handle()), "Capacitor not found");
@@ -73,9 +91,13 @@ bool CapacitorManager::getById(int id, Capacitor& cap, DbResult& result) {
 bool CapacitorManager::update(const Capacitor& cap, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
-        "UPDATE Capacitors SET Capacitance=?, VoltageRating=?, Tolerance=?, ESR=?, LeakageCurrent=?, Polarized=?, PackageTypeID=?, DielectricTypeID=? "
+        "UPDATE Capacitors SET "
+        "Capacitance=?, VoltageRating=?, Tolerance=?, ESR=?, LeakageCurrent=?, "
+        "Polarized=?, PackageTypeID=?, DielectricTypeID=?, "
+        "Diameter=?, Height=?, LeadSpacing=?, Length=?, Width=? "
         "WHERE ComponentID=?;",
-        stmt, result)) {
+        stmt, result))
+    {
         return false;
     }
 
@@ -87,7 +109,12 @@ bool CapacitorManager::update(const Capacitor& cap, DbResult& result) {
     sqlite3_bind_int(stmt, 6, cap.polarized ? 1 : 0);
     sqlite3_bind_int(stmt, 7, cap.packageTypeId);
     sqlite3_bind_int(stmt, 8, cap.dielectricTypeId);
-    sqlite3_bind_int(stmt, 9, cap.componentId);
+    sqlite3_bind_double(stmt, 9, cap.diameter);
+    sqlite3_bind_double(stmt, 10, cap.height);
+    sqlite3_bind_double(stmt, 11, cap.leadSpacing);
+    sqlite3_bind_double(stmt, 12, cap.length);
+    sqlite3_bind_double(stmt, 13, cap.width);
+    sqlite3_bind_int(stmt, 14, cap.componentId);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         result.setError(sqlite3_errcode(db_.handle()), sqlite3_errmsg(db_.handle()));
@@ -124,9 +151,12 @@ bool CapacitorManager::remove(int id, DbResult& result) {
 bool CapacitorManager::list(std::vector<Capacitor>& caps, DbResult& result) {
     sqlite3_stmt* stmt = nullptr;
     if (!db_.prepare(
-        "SELECT ComponentID, Capacitance, VoltageRating, Tolerance, ESR, LeakageCurrent, Polarized, PackageTypeID, DielectricTypeID "
+        "SELECT ComponentID, Capacitance, VoltageRating, Tolerance, ESR, LeakageCurrent, "
+        "Polarized, PackageTypeID, DielectricTypeID, "
+        "Diameter, Height, LeadSpacing, Length, Width "
         "FROM Capacitors;",
-        stmt, result)) {
+        stmt, result))
+    {
         return false;
     }
 
@@ -141,6 +171,13 @@ bool CapacitorManager::list(std::vector<Capacitor>& caps, DbResult& result) {
         cap.polarized = sqlite3_column_int(stmt, 6) != 0;
         cap.packageTypeId = sqlite3_column_int(stmt, 7);
         cap.dielectricTypeId = sqlite3_column_int(stmt, 8);
+
+        cap.diameter = sqlite3_column_double(stmt, 9);
+        cap.height = sqlite3_column_double(stmt, 10);
+        cap.leadSpacing = sqlite3_column_double(stmt, 11);
+        cap.length = sqlite3_column_double(stmt, 12);
+        cap.width = sqlite3_column_double(stmt, 13);
+
         caps.push_back(std::move(cap));
     }
 

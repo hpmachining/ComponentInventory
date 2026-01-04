@@ -117,14 +117,7 @@ TEST_F(CapacitorManagerTest, ListCapacitors_ReturnsAll) {
     EXPECT_GE(caps.size(), 2);
 }
 
-// 6. ListLookup_ReturnsAllItems
-//TEST_F(CapacitorManagerTest, ListLookup_ReturnsAllItems) {
-//    std::vector<LookupItem> items;
-//    ASSERT_TRUE(capMgr.listLookup(items, res));
-//    EXPECT_FALSE(items.empty());
-//}
-
-// 7. ForeignKey_PackageAndDielectric_Valid
+// 6. ForeignKey_PackageAndDielectric_Valid
 TEST_F(CapacitorManagerTest, ForeignKey_PackageAndDielectric_Valid) {
     Capacitor good{ compId, 1e-6, 16.0, 10.0, 0.3, 0.005, true, pkgId, dielId };
     EXPECT_TRUE(capMgr.add(good, res));
@@ -134,4 +127,19 @@ TEST_F(CapacitorManagerTest, ForeignKey_PackageAndDielectric_Valid) {
 
     Capacitor badDiel{ compId, 1e-6, 16.0, 10.0, 0.3, 0.005, true, pkgId, 999999 };
     EXPECT_FALSE(capMgr.add(badDiel, res));
+}
+
+TEST_F(CapacitorManagerTest, GeometryFields_RoundTrip) {
+    Capacitor c{ compId, 1e-6, 25.0, 5.0, 0.1, 0.001, false,
+                 pkgId, dielId,
+                 6.3, 11.0, 2.5, 0.0, 0.0 };
+
+    ASSERT_TRUE(capMgr.add(c, res));
+
+    Capacitor fetched;
+    ASSERT_TRUE(capMgr.getById(compId, fetched, res));
+
+    EXPECT_DOUBLE_EQ(fetched.diameter, 6.3);
+    EXPECT_DOUBLE_EQ(fetched.height, 11.0);
+    EXPECT_DOUBLE_EQ(fetched.leadSpacing, 2.5);
 }

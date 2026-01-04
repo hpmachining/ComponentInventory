@@ -161,7 +161,7 @@ bool SchemaManager::initialize(DbResult& result) {
             Name TEXT NOT NULL UNIQUE COLLATE NOCASE
         );
 
-        -- General capacitor attributes
+        -- General capacitor attributes (merged geometry)
         CREATE TABLE IF NOT EXISTS Capacitors (
             ComponentID INTEGER PRIMARY KEY,
             Capacitance REAL NOT NULL,
@@ -172,18 +172,17 @@ bool SchemaManager::initialize(DbResult& result) {
             Polarized INTEGER, -- 0 = No, 1 = Yes
             PackageTypeID INTEGER,
             DielectricTypeID INTEGER,
+
+            -- Geometry (supports both radial and SMD)
+            Diameter REAL,      -- cylindrical
+            Height REAL,        -- shared
+            LeadSpacing REAL,   -- cylindrical
+            Length REAL,        -- rectangular
+            Width REAL,         -- rectangular
+
             FOREIGN KEY (ComponentID) REFERENCES Components(ID) ON DELETE CASCADE,
             FOREIGN KEY (PackageTypeID) REFERENCES CapacitorPackage(ID),
             FOREIGN KEY (DielectricTypeID) REFERENCES CapacitorDielectric(ID)
-        );
-
-        -- Electrolytic subtype with geometry
-        CREATE TABLE IF NOT EXISTS Electrolytics (
-            ComponentID INTEGER PRIMARY KEY,
-            Diameter REAL,
-            Height REAL,
-            LeadSpacing REAL,
-            FOREIGN KEY (ComponentID) REFERENCES Capacitors(ComponentID) ON DELETE CASCADE
         );
     )SQL";
 
@@ -198,7 +197,7 @@ bool SchemaManager::initialize(DbResult& result) {
             sqlite3_bind_int(insertStmt, 1, 3);
             sqlite3_bind_text(insertStmt, 2, currentTimestamp().c_str(), -1, SQLITE_TRANSIENT);
             sqlite3_bind_text(insertStmt, 3,
-                "Added Capacitors table with dielectric/package lookups and Electrolytics subtype.",
+                "Added Capacitors table with dielectric/package lookups and unified geometry fields.",
                 -1, SQLITE_TRANSIENT);
 
             if (sqlite3_step(insertStmt) != SQLITE_DONE) {

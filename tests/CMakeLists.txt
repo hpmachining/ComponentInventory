@@ -14,7 +14,7 @@ add_executable(${PROJECT_NAME}
     src/CapacitorPackageManagerTests.cpp
     src/CapacitorDielectricManagerTests.cpp
     src/CapacitorManagerTests.cpp
-    src/ElectrolyticManagerTests.cpp
+    
     src/BJTManagerTests.cpp
     src/TransistorManagerTests.cpp
     src/TransistorTypeManagerTests.cpp
